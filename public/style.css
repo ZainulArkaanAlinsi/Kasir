@@ -30,8 +30,13 @@
   /* Teks */
   --text: #eef1f6;
   --text-2: #b6becd;
-  --muted: #7b8497;
-  --faint: #545c6d;
+  /* Dua nilai di bawah dinaikkan setelah pengukuran kontras: yang lama
+     (#7b8497 dan #545c6d) hanya mencapai 4.44:1 dan 2.48:1 di atas kartu
+     modal, sedangkan WCAG AA menuntut 4.5:1. Teks keterangan, label tabel,
+     dan placeholder memakai warna ini — jadi kegagalannya bukan urusan
+     teori, itu tulisan yang memang harus terbaca kasir. */
+  --muted: #8a93a6;   /* 5.40:1 pada latar terterang */
+  --faint: #828b9f;   /* 4.87:1 pada latar terterang */
 
   /* Aksen merek */
   --brand: #ff2e43;
@@ -59,6 +64,23 @@
   --sh-2: 0 8px 24px -8px rgba(0, 0, 0, .6);
   --sh-3: 0 24px 60px -20px rgba(0, 0, 0, .75);
   --lift: 0 1px 0 rgba(255, 255, 255, .06) inset;
+
+  /* Permukaan kaca dipakai berulang oleh panel, kartu statistik, dan kartu
+     produk. Dijadikan satu token supaya mengubah "rasa" kaca cukup di sini,
+     bukan berburu gradien yang sama di tiga tempat. */
+  --surface: linear-gradient(180deg, var(--glass-2), var(--glass));
+  --hairline: linear-gradient(90deg, transparent, var(--edge-top) 25%, var(--edge-top) 75%, transparent);
+
+  /* Skala spasi berbasis 4px. Nilai di luar skala ini dianggap keliru saat
+     review, kecuali ada alasan yang ditulis di komentar. */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --s8: 40px;
 
   --rail: 76px;
   --nav: 246px;
@@ -93,6 +115,17 @@ body::before {
 }
 
 button, input, select, textarea { font: inherit; color: inherit; }
+
+/* Cincin fokus global.
+   Sebelumnya tidak ada satu pun elemen interaktif yang punya penanda fokus,
+   sehingga pengguna keyboard benar-benar kehilangan jejak posisi kursor.
+   :focus-visible dipakai (bukan :focus) supaya cincin hanya muncul saat
+   navigasi keyboard, tidak setiap kali tombol diklik dengan tetikus. */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
 button { cursor: pointer; border: 0; background: none; }
 button:disabled { cursor: not-allowed; opacity: .4; }
 a { color: var(--brand-2); }
@@ -122,6 +155,24 @@ img { max-width: 100%; }
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .2); background-clip: content-box; }
+
+/* ── Target sentuh ─────────────────────────────────────────────────────────
+   Kasir sering memakai layar sentuh, sedangkan beberapa tombol ikon di sini
+   hanya berukuran 26-34px. Alih-alih membesarkan tampilannya dan merusak
+   tata letak yang sudah padat, area sentuhnya yang diperluas ke 44px lewat
+   pseudo-element tak terlihat. Ukuran visual tetap, jari tetap kena.
+   ────────────────────────────────────────────────────────────────────────── */
+.qty-btn, .add-btn, .icon-btn, .modal-close, .rail-btn { position: relative; }
+.qty-btn::after, .add-btn::after, .icon-btn::after,
+.modal-close::after, .rail-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    TOMBOL
@@ -548,7 +599,7 @@ select option { background: var(--bg-2); color: var(--text); }
   overflow: hidden;
   padding: 18px 20px;
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  background: var(--surface);
   border: 1px solid var(--edge);
   /* Sengaja TANPA backdrop-filter. Elemen ini muncul puluhan kali dalam satu
      layar, dan setiap lapisan blur memaksa peramban menggambar ulang area di
@@ -561,7 +612,7 @@ select option { background: var(--bg-2); color: var(--text); }
 .stat-card::after {
   content: "";
   position: absolute; inset: 0 0 auto 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--edge-top) 25%, var(--edge-top) 75%, transparent);
+  background: var(--hairline);
 }
 .stat-card::before {
   content: "";
@@ -605,14 +656,14 @@ select option { background: var(--bg-2); color: var(--text); }
   position: relative;
   padding: 20px;
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  background: var(--surface);
   border: 1px solid var(--edge);
   box-shadow: var(--sh-2), var(--lift);
 }
 .panel::after {
   content: "";
   position: absolute; inset: 0 0 auto 0; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--edge-top) 25%, var(--edge-top) 75%, transparent);
+  background: var(--hairline);
 }
 .panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
 .panel h3 { margin: 0; font-size: 14px; }
@@ -685,7 +736,7 @@ select option { background: var(--bg-2); color: var(--text); }
   overflow: hidden;
   display: flex; flex-direction: column;
   border-radius: var(--r-lg);
-  background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  background: var(--surface);
   border: 1px solid var(--edge);
   /* Sengaja TANPA backdrop-filter. Elemen ini muncul puluhan kali dalam satu
      layar, dan setiap lapisan blur memaksa peramban menggambar ulang area di
@@ -698,7 +749,7 @@ select option { background: var(--bg-2); color: var(--text); }
 .product-card::after {
   content: "";
   position: absolute; inset: 0 0 auto 0; height: 1px; z-index: 2;
-  background: linear-gradient(90deg, transparent, var(--edge-top) 25%, var(--edge-top) 75%, transparent);
+  background: var(--hairline);
 }
 .product-card:hover { transform: translateY(-4px); border-color: var(--edge-2); box-shadow: var(--sh-3), var(--lift); }
 .product-card.is-out { opacity: .5; }
