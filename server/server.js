@@ -1,139 +1,93 @@
+/**
+ * Titik masuk aplikasi KasirOne.
+ *
+ * File ini sengaja dijaga tetap tipis: isinya hanya perakitan (wiring)
+ * middleware dan rute. Seluruh logika bisnis tinggal di server/services/*,
+ * sehingga logika yang sama bisa dipindah ke Cloud Function nanti tanpa
+ * menyentuh Express sama sekali.
+ */
 import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import admin from "firebase-admin";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { initFirebase, isFirebaseReady } from "./services/firebase.js";
+import { verifyFirebaseToken, attachRole } from "./middleware/auth.js";
+import { errorHandler, notFoundHandler, asyncHandler } from "./middleware/errorHandler.js";
+import { productsRouter } from "./routes/products.routes.js";
+import { transactionsRouter } from "./routes/transactions.routes.js";
+import { expensesRouter } from "./routes/expenses.routes.js";
+import { reportsRouter } from "./routes/reports.routes.js";
+import { getDb, admin } from "./services/firebase.js";
+import { requireString } from "./lib/validate.js";
 
-const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
-const clientOrigin = process.env.CLIENT_ORIGIN || `http://localhost:${PORT}`;
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || `http://localhost:${PORT}`;
+const PUBLIC_DIR = path.join(__dirname, "../public");
 
-try {
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault()
-    });
-  }
-  console.log("Firebase Admin initialized.");
-} catch (error) {
-  console.warn("Firebase Admin is not initialized yet.");
-  console.warn("Set GOOGLE_APPLICATION_CREDENTIALS in .env for protected API routes.");
-}
+const firebaseReady = initFirebase();
+console.log(firebaseReady
+  ? "Firebase Admin siap."
+  : "Firebase Admin BELUM dikonfigurasi — endpoint /api yang butuh auth akan menolak (mode demo tetap jalan).");
 
-const db = () => admin.firestore();
+export const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-
-app.use(helmet({
-  contentSecurityPolicy: false
-}));
-
-app.use(cors({
-  origin: clientOrigin,
-  methods: ["GET", "POST"],
-  credentials: true
-}));
-
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: CLIENT_ORIGIN, methods: ["GET", "POST", "PATCH", "DELETE"], credentials: true }));
 app.use(express.json({ limit: "100kb" }));
 
-const apiLimiter = rateLimit({
+app.use("/api", rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 120,
+  limit: 300,
   standardHeaders: "draft-7",
   legacyHeaders: false,
-  message: { error: "Terlalu banyak request. Coba lagi beberapa menit." }
+  message: { error: "Terlalu banyak request. Coba lagi beberapa menit.", code: "RATE_LIMITED" }
+}));
+
+// --- Rute publik ---
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true, service: "kasirone", firebase: isFirebaseReady(), time: new Date().toISOString() });
 });
 
-app.use("/api", apiLimiter);
+// --- Semua rute di bawah ini wajib login & punya role ---
+const guarded = [verifyFirebaseToken, attachRole];
 
-async function verifyFirebaseToken(req, res, next) {
-  const authHeader = req.headers.authorization || "";
-  if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Token autentikasi diperlukan." });
-  }
-
-  if (!admin.apps.length) {
-    return res.status(503).json({
-      error: "Firebase Admin belum dikonfigurasi di server."
-    });
-  }
-
-  try {
-    const idToken = authHeader.slice(7);
-    req.user = await admin.auth().verifyIdToken(idToken);
-    next();
-  } catch {
-    return res.status(401).json({ error: "Token tidak valid atau sudah kedaluwarsa." });
-  }
-}
-
-async function requireRole(req, res, next) {
-  try {
-    const snap = await db().collection("users").doc(req.user.uid).get();
-    if (!snap.exists) {
-      return res.status(403).json({ error: "Profil pengguna belum dibuat." });
-    }
-
-    const role = snap.data().role;
-    req.userRole = role;
-
-    if (!["admin", "cashier"].includes(role)) {
-      return res.status(403).json({ error: "Role tidak memiliki akses." });
-    }
-
-    next();
-  } catch {
-    res.status(500).json({ error: "Gagal memeriksa role." });
-  }
-}
-
-app.get("/api/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "kasir-modern",
-    time: new Date().toISOString()
-  });
+app.get("/api/me", guarded, (req, res) => {
+  res.json({ data: { uid: req.user.uid, email: req.user.email ?? null, role: req.userRole, name: req.user.name ?? null } });
 });
 
-app.get("/api/me", verifyFirebaseToken, requireRole, async (req, res) => {
-  res.json({
+app.post("/api/audit", guarded, asyncHandler(async (req, res) => {
+  const action = requireString(req.body?.action, "Action", { min: 2, max: 100 });
+  await getDb().collection("auditLogs").add({
     uid: req.user.uid,
-    email: req.user.email,
-    role: req.userRole
-  });
-});
-
-app.post("/api/audit", verifyFirebaseToken, requireRole, async (req, res) => {
-  const { action, metadata = {} } = req.body || {};
-
-  if (typeof action !== "string" || action.length < 2 || action.length > 100) {
-    return res.status(400).json({ error: "Action tidak valid." });
-  }
-
-  await db().collection("auditLogs").add({
-    uid: req.user.uid,
-    email: req.user.email || null,
+    email: req.user.email ?? null,
     action,
-    metadata,
+    metadata: req.body?.metadata ?? {},
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
-
   res.status(201).json({ ok: true });
-});
+}));
 
-app.use(express.static(path.join(__dirname, "../public")));
+app.use("/api/products", guarded, productsRouter);
+app.use("/api/transactions", guarded, transactionsRouter);
+app.use("/api/expenses", guarded, expensesRouter);
+app.use("/api/reports", guarded, reportsRouter);
 
-app.get("*splat", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
-});
+app.use(notFoundHandler);
 
-app.listen(PORT, () => {
-  console.log(`Kasir Modern berjalan di http://localhost:${PORT}`);
-});
+// --- Frontend statis ---
+app.use(express.static(PUBLIC_DIR));
+app.get("*splat", (_req, res) => res.sendFile(path.join(PUBLIC_DIR, "index.html")));
+
+app.use(errorHandler);
+
+// Hanya menyalakan server bila dijalankan langsung, bukan saat diimpor test.
+if (process.env.NODE_ENV !== "test") {
+  app.listen(PORT, () => console.log(`KasirOne berjalan di http://localhost:${PORT}`));
+}

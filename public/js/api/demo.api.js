@@ -1,0 +1,333 @@
+/**
+ * Implementasi API mode demo (tanpa Firebase), memakai localStorage.
+ *
+ * Modul ini sengaja meniru ATURAN yang sama dengan server: harga selalu
+ * dibaca ulang dari "database" lokal, stok dicek sebelum dikurangi, dan
+ * total dihitung dengan modul uang bersama. Dengan begitu perilaku demo
+ * tidak menyesatkan — kalau sesuatu ditolak di produksi, ditolak juga di sini.
+ *
+ * Data demo TIDAK PERNAH bercampur dengan data Firestore: prefiks kunci
+ * localStorage berbeda dan mode ditentukan eksplisit saat login.
+ */
+import { computeTotals, computeChange, lineProfit } from "../shared/money.js";
+
+const KEY = {
+  products: "kasirone_demo_products",
+  trx: "kasirone_demo_transactions",
+  exp: "kasirone_demo_expenses"
+};
+
+/** Barcode memakai format EAN-13 agar realistis saat diuji dengan scanner asli. */
+const SEED_PRODUCTS = [
+  { name: "Indomie Goreng", sku: "8998866200011", category: "Makanan", hargaJual: 3500, hargaModal: 2800, stok: 42, stokMinimum: 10, icon: "\u{1F35C}" },
+  { name: "Teh Botol Sosro", sku: "8998866200028", category: "Minuman", hargaJual: 4500, hargaModal: 3600, stok: 28, stokMinimum: 10, icon: "\u{1F9C3}" },
+  { name: "Aqua 600ml", sku: "8998866200035", category: "Minuman", hargaJual: 4000, hargaModal: 3100, stok: 18, stokMinimum: 12, icon: "\u{1F4A7}" },
+  { name: "Roti Cokelat", sku: "8998866200042", category: "Makanan", hargaJual: 8500, hargaModal: 6200, stok: 12, stokMinimum: 8, icon: "\u{1F35E}" },
+  { name: "Chitato Original", sku: "8998866200059", category: "Snack", hargaJual: 11500, hargaModal: 9000, stok: 8, stokMinimum: 10, icon: "\u{1F954}" },
+  { name: "SilverQueen", sku: "8998866200066", category: "Snack", hargaJual: 13000, hargaModal: 10500, stok: 25, stokMinimum: 8, icon: "\u{1F36B}" },
+  { name: "Top Kopi Aren", sku: "8998866200073", category: "Minuman", hargaJual: 6500, hargaModal: 4800, stok: 40, stokMinimum: 15, icon: "\u{2615}" },
+  { name: "Susu UHT", sku: "8998866200080", category: "Minuman", hargaJual: 7500, hargaModal: 5900, stok: 14, stokMinimum: 10, icon: "\u{1F95B}" },
+  { name: "Tissue Soft", sku: "8998866200097", category: "Rumah", hargaJual: 9500, hargaModal: 7200, stok: 5, stokMinimum: 8, icon: "\u{1F9FB}" },
+  { name: "Sabun Cair", sku: "8998866200103", category: "Rumah", hargaJual: 14000, hargaModal: 11000, stok: 17, stokMinimum: 6, icon: "\u{1F9F4}" }
+];
+
+const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+
+const baca = (key, fallback) => {
+  try {
+    const raw = JSON.parse(localStorage.getItem(key));
+    return raw ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const tulis = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+const idBaru = () => `d${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+/**
+ * Membuat error yang BENTUKNYA sama dengan error dari server, supaya
+ * modul UI cukup menangani satu format error saja.
+ * @param {string} message
+ * @param {string} code
+ * @param {object} [details]
+ * @returns {Error & {code:string, details?:object}}
+ */
+function apiError(message, code, details) {
+  const error = new Error(message);
+  error.code = code;
+  error.details = details;
+  return error;
+}
+
+/**
+ * @returns {object} objek API mode demo, antarmukanya identik dengan live API
+ */
+export function createDemoApi() {
+  if (!localStorage.getItem(KEY.products)) {
+    tulis(KEY.products, SEED_PRODUCTS.map((p) => ({ id: idBaru(), aktif: true, ...p })));
+  }
+
+  const getProducts = () => baca(KEY.products, []);
+  const getTrx = () => baca(KEY.trx, []);
+  const getExp = () => baca(KEY.exp, []);
+
+  /**
+   * Restock: menambah stok sekaligus mencatat pengeluaran.
+   * Didefinisikan sebagai fungsi biasa agar bisa dipanggil ulang oleh
+   * createExpense tanpa bergantung pada `this`.
+   * @param {{productId:string, qty:number, hargaModalBaru?:number|null, note?:string}} input
+   * @returns {Promise<object>}
+   */
+  async function restock({ productId, qty, hargaModalBaru = null, note = "" }) {
+    const products = getProducts();
+    const product = products.find((p) => p.id === productId);
+    if (!product) throw apiError("Produk tidak ditemukan.", "NOT_FOUND");
+
+    const hargaModal = hargaModalBaru ?? (Number(product.hargaModal) || 0);
+    product.stok = (Number(product.stok) || 0) + qty;
+    if (hargaModalBaru !== null) product.hargaModal = hargaModalBaru;
+    tulis(KEY.products, products);
+
+    const expense = {
+      id: idBaru(),
+      type: "restock",
+      productId,
+      productName: product.name,
+      qty,
+      hargaModal,
+      amount: hargaModal * qty,
+      note,
+      createdAt: new Date().toISOString()
+    };
+    tulis(KEY.exp, [expense, ...getExp()]);
+    return { ...expense, stokBaru: product.stok };
+  }
+
+  return {
+    mode: "demo",
+
+    me: async () => ({ uid: "demo-user", email: null, role: "admin", name: "Nabila (Demo)" }),
+
+    listProducts: async () => getProducts().filter((p) => p.aktif !== false),
+
+    findBySku: async (sku) => {
+      const kode = String(sku).trim();
+      const found = getProducts().find((p) => p.sku === kode && p.aktif !== false);
+      if (!found) throw apiError(`Barcode "${kode}" tidak terdaftar.`, "NOT_FOUND");
+      return found;
+    },
+
+    createProduct: async (data) => {
+      const products = getProducts();
+      if (products.some((p) => p.sku === data.sku)) {
+        throw apiError(`SKU "${data.sku}" sudah dipakai produk lain.`, "DUPLICATE_SKU");
+      }
+      if (Number(data.hargaJual) < Number(data.hargaModal)) {
+        throw apiError("Harga jual tidak boleh lebih kecil dari harga modal.", "PRICE_BELOW_COST");
+      }
+      const product = { id: idBaru(), aktif: true, icon: "\u{1F4E6}", ...data };
+      tulis(KEY.products, [product, ...products]);
+      return product;
+    },
+
+    updateProduct: async (id, data) => {
+      const products = getProducts();
+      const index = products.findIndex((p) => p.id === id);
+      if (index < 0) throw apiError("Produk tidak ditemukan.", "NOT_FOUND");
+
+      const merged = { ...products[index], ...data };
+      if (Number(merged.hargaJual) < Number(merged.hargaModal)) {
+        throw apiError("Harga jual tidak boleh lebih kecil dari harga modal.", "PRICE_BELOW_COST");
+      }
+      products[index] = merged;
+      tulis(KEY.products, products);
+      return merged;
+    },
+
+    deactivateProduct: async (id) => {
+      const products = getProducts();
+      const index = products.findIndex((p) => p.id === id);
+      if (index < 0) throw apiError("Produk tidak ditemukan.", "NOT_FOUND");
+      products[index].aktif = false;
+      tulis(KEY.products, products);
+      return { id, aktif: false };
+    },
+
+    /**
+     * Meniru validasi server: harga dibaca dari "database" lokal (bukan dari
+     * argumen), stok dicek lebih dulu, baru dikurangi.
+     */
+    createTransaction: async ({ items, paymentMethod, cashReceived, discount = 0, qrisReference = null }) => {
+      const products = getProducts();
+      const lines = [];
+      const kurang = [];
+
+      for (const item of items ?? []) {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product) throw apiError(`Produk tidak ditemukan (${item.productId}).`, "NOT_FOUND");
+
+        const stok = Number(product.stok) || 0;
+        if (stok < item.qty) {
+          kurang.push({ name: product.name, diminta: item.qty, tersedia: stok });
+          continue;
+        }
+        lines.push({
+          productId: product.id,
+          name: product.name,
+          sku: product.sku,
+          hargaJual: Number(product.hargaJual) || 0,
+          hargaModal: Number(product.hargaModal) || 0,
+          qty: item.qty
+        });
+      }
+
+      if (kurang.length > 0) {
+        const ringkas = kurang.map((k) => `${k.name} (minta ${k.diminta}, sisa ${k.tersedia})`).join("; ");
+        throw apiError(`Stok tidak mencukupi: ${ringkas}.`, "INSUFFICIENT_STOCK", { kurang });
+      }
+      if (lines.length === 0) throw apiError("Keranjang tidak boleh kosong.", "EMPTY_CART");
+
+      const totals = computeTotals(lines, { discount });
+
+      let change = null;
+      if (paymentMethod === "cash") {
+        const result = computeChange(cashReceived, totals.total);
+        if (!result.sufficient) {
+          throw apiError("Uang yang diterima kurang dari total tagihan.", "INSUFFICIENT_CASH");
+        }
+        change = result.change;
+      }
+
+      for (const line of lines) {
+        const product = products.find((p) => p.id === line.productId);
+        product.stok = Math.max(0, (Number(product.stok) || 0) - line.qty);
+      }
+      tulis(KEY.products, products);
+
+      const trx = {
+        id: idBaru(),
+        receiptNumber: `TRX-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(Date.now()).slice(-4)}`,
+        cashierUid: "demo-user",
+        cashierName: "Nabila (Demo)",
+        paymentMethod,
+        cashReceived: paymentMethod === "cash" ? cashReceived : null,
+        change,
+        qrisReference: paymentMethod === "qris" ? qrisReference : null,
+        ...totals,
+        itemCount: lines.reduce((sum, l) => sum + l.qty, 0),
+        lines,
+        createdAt: new Date().toISOString()
+      };
+      tulis(KEY.trx, [trx, ...getTrx()].slice(0, 500));
+      return trx;
+    },
+
+    listTransactions: async ({ from, to, limit = 100 } = {}) => getTrx()
+      .filter((t) => (!from || t.createdAt >= from) && (!to || t.createdAt <= to))
+      .slice(0, limit),
+
+    createExpense: async (data) => {
+      if (data.type === "restock") return restock(data);
+      const expense = {
+        id: idBaru(),
+        type: data.type,
+        amount: Number(data.amount) || 0,
+        note: data.note ?? "",
+        productId: null,
+        createdAt: new Date().toISOString()
+      };
+      tulis(KEY.exp, [expense, ...getExp()]);
+      return expense;
+    },
+
+    restock,
+
+    listExpenses: async ({ from, to, limit = 100 } = {}) => getExp()
+      .filter((e) => (!from || e.createdAt >= from) && (!to || e.createdAt <= to))
+      .slice(0, limit),
+
+    /**
+     * Agregasi yang mengikuti aturan yang sama dengan report.service.js.
+     * Kalau logika di server berubah, modul ini harus ikut disesuaikan —
+     * itulah sebabnya keduanya diuji dengan ekspektasi angka yang sama.
+     */
+    getReport: async ({ period = "week", from, to } = {}) => {
+      const now = new Date();
+      const start = from ? new Date(from) : new Date(now);
+      const end = to ? new Date(to) : new Date(now);
+
+      if (!from) {
+        start.setHours(0, 0, 0, 0);
+        const mundur = period === "month" ? 29 : period === "today" ? 0 : 6;
+        start.setDate(start.getDate() - mundur);
+      }
+      end.setHours(23, 59, 59, 999);
+
+      const trx = getTrx().filter((t) => {
+        const d = new Date(t.createdAt);
+        return d >= start && d <= end;
+      });
+      const exp = getExp().filter((e) => {
+        const d = new Date(e.createdAt);
+        return d >= start && d <= end;
+      });
+
+      let pemasukan = 0;
+      let labaKotor = 0;
+      let totalItemTerjual = 0;
+      const perMetodeBayar = {};
+      const perProduk = new Map();
+      const perHari = new Map();
+
+      for (const t of trx) {
+        const total = Number(t.total) || 0;
+        pemasukan += total;
+
+        const metode = t.paymentMethod || "lainnya";
+        perMetodeBayar[metode] ??= { jumlah: 0, total: 0 };
+        perMetodeBayar[metode].jumlah += 1;
+        perMetodeBayar[metode].total += total;
+
+        const kunci = new Date(t.createdAt).toISOString().slice(0, 10);
+        perHari.set(kunci, (perHari.get(kunci) || 0) + total);
+
+        for (const line of t.lines ?? []) {
+          const qty = Number(line.qty) || 0;
+          const laba = lineProfit(line);
+          totalItemTerjual += qty;
+          labaKotor += laba;
+
+          const agg = perProduk.get(line.productId)
+            ?? { productId: line.productId, name: line.name, qty: 0, omzet: 0, laba: 0 };
+          agg.qty += qty;
+          agg.omzet += (Number(line.hargaJual) || 0) * qty;
+          agg.laba += laba;
+          perProduk.set(line.productId, agg);
+        }
+      }
+
+      const pengeluaran = exp.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+      const grafikHarian = [];
+      for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const kunci = d.toISOString().slice(0, 10);
+        grafikHarian.push({ label: NAMA_HARI[d.getDay()], tanggal: kunci, total: perHari.get(kunci) || 0 });
+      }
+
+      return {
+        range: { from: start.toISOString(), to: end.toISOString() },
+        pemasukan,
+        pengeluaran,
+        labaKotor,
+        labaBersih: labaKotor - pengeluaran,
+        jumlahTransaksi: trx.length,
+        rataRataTransaksi: trx.length ? Math.round(pemasukan / trx.length) : 0,
+        totalItemTerjual,
+        perMetodeBayar,
+        produkTerjual: [...perProduk.values()].sort((a, b) => b.qty - a.qty),
+        grafikHarian: grafikHarian.slice(-31)
+      };
+    }
+  };
+}

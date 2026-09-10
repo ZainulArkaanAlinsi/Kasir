@@ -1,12 +1,16 @@
 {
-  "name": "kasir-modern-firebase",
+  "name": "kasirone",
   "version": "1.0.0",
-  "description": "Modern POS/Kasir app with HTML, CSS, JavaScript, Node.js, Express and Firebase",
+  "description": "KasirOne - sistem kasir & inventory toko retail (Express + Firebase)",
   "type": "module",
   "main": "server/server.js",
   "scripts": {
     "dev": "node --watch server/server.js",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "test": "node --test test/money.test.js test/report.test.js test/demo.test.js",
+    "test:emulator": "firebase emulators:exec --only firestore \"node --test test/transaction.emulator.test.js\"",
+    "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
+    "test:all": "npm run test && npm run test:emulator && npm run test:rules"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,5 +19,9 @@
     "express-rate-limit": "^8.2.1",
     "firebase-admin": "^13.5.0",
     "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase-tools": "^13.35.1"
   }
 }

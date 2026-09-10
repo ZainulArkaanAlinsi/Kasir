@@ -1,5 +1,15 @@
 rules_version = '2';
 
+/**
+ * Security Rules KasirOne.
+ *
+ * Prinsip utama: KLIEN TIDAK PERNAH MENULIS data uang atau stok.
+ * Koleksi products / transactions / expenses / auditLogs hanya boleh ditulis
+ * lewat Admin SDK di server (yang melewati rules ini sepenuhnya), setelah
+ * divalidasi dan dijalankan dalam Firestore transaction.
+ * Browser hanya diberi izin MEMBACA, supaya listener real-time tetap bisa
+ * dipakai tanpa membuka celah manipulasi harga/stok.
+ */
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -7,38 +17,67 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return signedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    // Role dibaca dari custom claim lebih dulu (tidak perlu extra read),
+    // lalu jatuh balik ke dokumen users/{uid} untuk akun lama.
+    function roleOf() {
+      return request.auth.token.role != null
+        ? request.auth.token.role
+        : get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
-    function isCashier() {
-      return signedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ["admin", "cashier"];
+    function isAdmin() {
+      return signedIn() && roleOf() == 'admin';
+    }
+
+    function isStaff() {
+      return signedIn() && roleOf() in ['admin', 'cashier'];
     }
 
     match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid || isAdmin();
-      allow create: if signedIn() && request.auth.uid == uid;
-      allow update: if signedIn() && request.auth.uid == uid || isAdmin();
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Pengguna boleh membuat profilnya sendiri, TAPI hanya sebagai cashier.
+      // Tanpa batasan ini, siapa pun yang baru mendaftar bisa langsung
+      // menuliskan role 'admin' untuk dirinya sendiri.
+      allow create: if signedIn()
+                    && request.auth.uid == uid
+                    && request.resource.data.role == 'cashier';
+
+      // Pengguna boleh mengubah namanya sendiri, tapi TIDAK boleh menyentuh
+      // role-nya. Kenaikan role hanya lewat admin atau server.
+      allow update: if isAdmin()
+                    || (signedIn()
+                        && request.auth.uid == uid
+                        && request.resource.data.role == resource.data.role);
+
       allow delete: if isAdmin();
     }
 
+    // Master produk: staf boleh baca (untuk grid kasir & listener stok),
+    // penulisan hanya lewat server.
     match /products/{productId} {
-      allow read: if isCashier();
-      allow create, update, delete: if isAdmin();
+      allow read: if isStaff();
+      allow write: if false;
     }
 
+    // Transaksi: staf boleh baca riwayat; pembuatan HARUS lewat
+    // POST /api/transactions agar stok terkunci atomik.
     match /transactions/{transactionId} {
-      allow read: if isCashier();
-      allow create: if isCashier();
-      allow update, delete: if isAdmin();
+      allow read: if isStaff();
+      allow write: if false;
     }
 
+    // Pengeluaran & modal toko: hanya admin yang boleh melihat.
+    match /expenses/{expenseId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Audit log: hanya admin yang boleh membaca, tidak ada yang boleh
+    // mengubah atau menghapus — termasuk admin.
     match /auditLogs/{logId} {
       allow read: if isAdmin();
-      allow create: if isCashier();
-      allow update, delete: if false;
+      allow write: if false;
     }
 
     match /{document=**} {

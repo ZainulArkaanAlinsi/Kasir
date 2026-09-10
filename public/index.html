@@ -58,6 +58,7 @@
         <button class="nav-item active" data-page="dashboard"><span>⌂</span> Dashboard</button>
         <button class="nav-item" data-page="kasir"><span>▣</span> Kasir</button>
         <button class="nav-item" data-page="produk"><span>□</span> Produk</button>
+        <button class="nav-item admin-only" data-page="restock"><span>↻</span> Restock &amp; Biaya</button>
         <button class="nav-item" data-page="transaksi"><span>↗</span> Transaksi</button>
         <button class="nav-item" data-page="laporan"><span>▥</span> Laporan</button>
       </nav>
@@ -69,7 +70,7 @@
 
       <div class="sidebar-bottom">
         <div class="user-mini">
-          <div class="avatar">R</div>
+          <div class="avatar" id="avatarInitial">K</div>
           <div>
             <strong id="userName">Kasir Demo</strong>
             <span id="userRole">Cashier</span>
@@ -103,15 +104,16 @@
         </div>
 
         <div class="stats-grid">
-          <article class="stat-card"><span>Total penjualan</span><strong id="statSales">Rp 0</strong><small class="positive">+12.5% dari kemarin</small></article>
-          <article class="stat-card"><span>Transaksi</span><strong id="statTransactions">0</strong><small class="positive">Hari ini</small></article>
-          <article class="stat-card"><span>Produk terjual</span><strong id="statItems">0</strong><small>Unit hari ini</small></article>
+          <article class="stat-card"><span>Pemasukan</span><strong id="statSales">Rp 0</strong><small>Periode terpilih</small></article>
+          <article class="stat-card"><span>Transaksi</span><strong id="statTransactions">0</strong><small>Jumlah struk</small></article>
+          <article class="stat-card"><span>Produk terjual</span><strong id="statItems">0</strong><small>Total unit</small></article>
+          <article class="stat-card admin-only"><span>Laba kotor</span><strong id="statProfit">Rp 0</strong><small class="positive">Setelah harga modal</small></article>
           <article class="stat-card"><span>Stok menipis</span><strong id="statLowStock">0</strong><small class="warning-text">Perlu diperiksa</small></article>
         </div>
 
         <div class="content-grid">
           <section class="panel chart-panel">
-            <div class="panel-head"><div><h3>Penjualan mingguan</h3><p>Performa 7 hari terakhir</p></div><select id="chartPeriod"><option>7 hari</option><option>30 hari</option></select></div>
+            <div class="panel-head"><div><h3>Penjualan mingguan</h3><p>Performa 7 hari terakhir</p></div><select id="chartPeriod"><option value="week">7 hari</option><option value="month">30 hari</option><option value="today">Hari ini</option></select></div>
             <div class="bar-chart" id="barChart"></div>
           </section>
           <section class="panel">
@@ -126,7 +128,7 @@
           <section class="products-panel">
             <div class="search-row">
               <div class="search-box"><span>⌕</span><input id="productSearch" placeholder="Cari produk atau SKU..."></div>
-              <button class="btn btn-secondary">▦ Scan</button>
+              <span class="status-pill" title="Arahkan scanner USB ke barcode, atau ketik SKU di kolom cari"><i></i> Scanner siap</span>
             </div>
             <div class="category-row" id="categoryRow"></div>
             <div class="product-grid" id="productGrid"></div>
@@ -148,21 +150,107 @@
 
       <section id="produkPage" class="page">
         <div class="page-toolbar"><div><h3>Produk</h3><p>Kelola katalog dan stok toko.</p></div><button id="addProductBtn" class="btn btn-primary">+ Tambah produk</button></div>
-        <div class="panel table-panel"><table><thead><tr><th>Produk</th><th>SKU</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th></tr></thead><tbody id="productTable"></tbody></table></div>
+        <div class="panel table-panel"><table><thead><tr><th>Produk</th><th>SKU / Barcode</th><th>Kategori</th><th>Modal</th><th>Harga jual</th><th>Margin</th><th>Stok</th><th>Status</th></tr></thead><tbody id="productTable"></tbody></table></div>
       </section>
 
       <section id="transaksiPage" class="page">
-        <div class="page-toolbar"><div><h3>Riwayat transaksi</h3><p>Daftar transaksi yang tercatat.</p></div></div>
-        <div class="panel table-panel"><table><thead><tr><th>ID Transaksi</th><th>Waktu</th><th>Kasir</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody id="transactionTable"></tbody></table></div>
+        <div class="page-toolbar">
+          <div><h3>Riwayat transaksi</h3><p>Daftar transaksi yang tercatat di server.</p></div>
+          <div class="filter-row">
+            <label>Dari<input id="trxFrom" type="date"></label>
+            <label>Sampai<input id="trxTo" type="date"></label>
+            <button id="trxFilterBtn" class="btn btn-secondary">Filter</button>
+            <button id="trxResetBtn" class="btn btn-ghost">Reset</button>
+          </div>
+        </div>
+        <div class="panel table-panel"><table><thead><tr><th>No. Struk</th><th>Waktu</th><th>Kasir</th><th>Pembayaran</th><th>Item</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="transactionTable"></tbody></table></div>
+      </section>
+
+      <section id="restockPage" class="page admin-only">
+        <div class="page-toolbar">
+          <div><h3>Restock &amp; Pengeluaran</h3><p>Menambah stok sekaligus mencatat modal yang keluar.</p></div>
+          <div><span class="muted">Total pengeluaran</span> <strong id="expenseTotal">Rp 0</strong></div>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-head"><div><h3>Restock barang</h3><p>Stok bertambah dan biaya tercatat dalam satu aksi.</p></div></div>
+            <form id="restockForm" class="product-form">
+              <label>Produk<select id="restockProduct" required></select></label>
+              <label>Jumlah masuk<input id="restockQty" type="number" min="1" step="1" required></label>
+              <label>Harga modal baru <small class="muted">(kosongkan bila tidak berubah)</small>
+                <input id="restockModal_price" type="number" min="0" step="1" placeholder="Pakai harga modal lama">
+              </label>
+              <label>Catatan<input id="restockNote" placeholder="mis. kulakan toko grosir"></label>
+              <button class="btn btn-primary btn-block" type="submit">Simpan restock</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><div><h3>Pengeluaran lain</h3><p>Listrik, sewa, gaji, dan biaya operasional.</p></div></div>
+            <form id="expenseForm" class="product-form">
+              <label>Jenis
+                <select id="expenseType">
+                  <option value="operasional">Operasional</option>
+                  <option value="lainnya">Lainnya</option>
+                </select>
+              </label>
+              <label>Nominal<input id="expenseAmount" type="number" min="1" step="1" required></label>
+              <label>Catatan<input id="expenseNote" placeholder="mis. bayar listrik September"></label>
+              <button class="btn btn-secondary btn-block" type="submit">Catat pengeluaran</button>
+            </form>
+          </section>
+        </div>
+
+        <div class="panel table-panel" style="margin-top:18px">
+          <table>
+            <thead><tr><th>Waktu</th><th>Jenis</th><th>Produk</th><th>Qty</th><th>Nominal</th><th>Catatan</th></tr></thead>
+            <tbody id="expenseTable"></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="laporanPage" class="page">
-        <div class="stats-grid">
-          <article class="stat-card"><span>Omzet</span><strong id="reportRevenue">Rp 0</strong><small>Data lokal demo</small></article>
-          <article class="stat-card"><span>Rata-rata transaksi</span><strong id="reportAverage">Rp 0</strong><small>Per transaksi</small></article>
-          <article class="stat-card"><span>Jumlah transaksi</span><strong id="reportCount">0</strong><small>Total</small></article>
+        <div class="page-toolbar">
+          <div><h3>Laporan</h3><p>Pemasukan, pengeluaran, dan barang terjual per periode.</p></div>
+          <label>Periode
+            <select id="reportPeriod">
+              <option value="week">7 hari terakhir</option>
+              <option value="month">30 hari terakhir</option>
+              <option value="today">Hari ini</option>
+            </select>
+          </label>
         </div>
-        <div class="panel report-note"><h3>Laporan</h3><p>Untuk produksi, data laporan sebaiknya dihitung ulang di backend dari transaksi yang tersimpan, bukan dipercaya dari nilai yang dikirim browser.</p></div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>Pemasukan</span><strong id="reportRevenue">Rp 0</strong><small>Dari transaksi</small></article>
+          <article class="stat-card"><span>Pengeluaran</span><strong id="reportExpense">Rp 0</strong><small class="warning-text">Restock + operasional</small></article>
+          <article class="stat-card"><span>Laba kotor</span><strong id="reportProfit">Rp 0</strong><small>Harga jual - modal</small></article>
+          <article class="stat-card"><span>Laba bersih</span><strong id="reportNet">Rp 0</strong><small>Setelah pengeluaran</small></article>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>Jumlah transaksi</span><strong id="reportCount">0</strong><small>Struk tercetak</small></article>
+          <article class="stat-card"><span>Rata-rata transaksi</span><strong id="reportAverage">Rp 0</strong><small>Per struk</small></article>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel table-panel">
+            <div class="panel-head"><div><h3>Barang terjual</h3><p>Jumlah unit per produk pada periode ini.</p></div></div>
+            <table>
+              <thead><tr><th>#</th><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th></tr></thead>
+              <tbody id="soldProducts"></tbody>
+            </table>
+          </section>
+
+          <section class="panel table-panel">
+            <div class="panel-head"><div><h3>Metode pembayaran</h3><p>Tunai, kartu, dan QRIS.</p></div></div>
+            <table>
+              <thead><tr><th>Metode</th><th>Jumlah</th><th>Nilai</th></tr></thead>
+              <tbody id="paymentBreakdown"></tbody>
+            </table>
+          </section>
+        </div>
       </section>
 
       <section id="pengaturanPage" class="page">
@@ -200,7 +288,10 @@
       <div id="qrisArea" class="payment-area hidden">
         <div class="qr-demo"><div class="qr-pattern">▦</div></div>
         <strong>QR pembayaran demo</strong>
-        <p class="muted">Ini hanya simulasi UI. Untuk pembayaran QRIS sungguhan, hubungkan payment gateway resmi di backend.</p>
+        <p class="muted">MVP memakai QRIS statis toko. Setelah pembeli membayar, isi nomor referensi dari aplikasi lalu konfirmasi.</p>
+        <label>Nomor referensi QRIS <small class="muted">(opsional)</small>
+          <input id="qrisReference" placeholder="mis. INV-88213">
+        </label>
       </div>
 
       <div id="cardArea" class="payment-area hidden">
@@ -231,15 +322,19 @@
       <h2>Tambah produk</h2>
       <form id="productForm" class="product-form">
         <label>Nama produk<input id="newName" required></label>
-        <label>SKU<input id="newSku" required></label>
+        <label>SKU / Barcode<input id="newSku" required placeholder="mis. 8998866200011"></label>
         <label>Kategori<input id="newCategory" value="Umum" required></label>
-        <label>Harga<input id="newPrice" type="number" min="0" required></label>
-        <label>Stok<input id="newStock" type="number" min="0" required></label>
+        <label>Harga modal<input id="newModal" type="number" min="0" step="1" required></label>
+        <label>Harga jual<input id="newPrice" type="number" min="0" step="1" required></label>
+        <label>Stok awal<input id="newStock" type="number" min="0" step="1" required></label>
+        <label>Stok minimum <small class="muted">(ambang peringatan)</small>
+          <input id="newMinStock" type="number" min="0" step="1" value="5" required>
+        </label>
         <button class="btn btn-primary btn-block" type="submit">Simpan produk</button>
       </form>
     </div>
   </div>
 
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="/js/main.js"></script>
 </body>
 </html>
