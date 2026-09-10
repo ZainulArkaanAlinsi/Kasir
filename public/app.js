@@ -28,7 +28,7 @@ if (firebaseConfigured) {
   db = getFirestore(app);
 }
 
-const products = [
+let products = [
   {id:"p1",name:"Indomie Goreng",sku:"SKU-001",category:"Makanan",price:3500,stock:42,icon:"🍜"},
   {id:"p2",name:"Teh Botol Sosro",sku:"SKU-002",category:"Minuman",price:4500,stock:28,icon:"🧃"},
   {id:"p3",name:"Aqua 600ml",sku:"SKU-003",category:"Minuman",price:4000,stock:18,icon:"💧"},
@@ -45,6 +45,9 @@ let transactions = JSON.parse(localStorage.getItem("kasir_transactions") || "[]"
 let activeCategory = "Semua";
 let selectedPayment = "cash";
 let lastTransaction = null;
+
+const TAX_RATE = 0.11;
+const PRODUCTS_KEY = "kasir_products";
 
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
@@ -63,6 +66,19 @@ function seedDemoTransactions(){
   localStorage.setItem("kasir_transactions",JSON.stringify(transactions));
 }
 seedDemoTransactions();
+
+function loadProducts(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(PRODUCTS_KEY)||"null");
+    if(Array.isArray(saved)&&saved.length)products=saved;
+  }catch{ /* data rusak, pakai daftar bawaan */ }
+}
+
+function persistProducts(){
+  localStorage.setItem(PRODUCTS_KEY,JSON.stringify(products));
+}
+
+loadProducts();
 
 function renderProducts(){
   const query=($("productSearch")?.value||"").toLowerCase();
@@ -119,10 +135,7 @@ function renderCart(){
   document.querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>changeQty(b.dataset.minus,-1));
   document.querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>changeQty(b.dataset.plus,1));
 
-  const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const discount=0;
-  const tax=Math.round((subtotal-discount)*0.11);
-  const total=subtotal-discount+tax;
+  const {subtotal,discount,tax,total}=computeTotals();
   $("subtotal").textContent=money(subtotal);
   $("discount").textContent=money(discount);
   $("tax").textContent=money(tax);
@@ -135,13 +148,23 @@ function changeQty(id,delta){
   const product=products.find(p=>p.id===id);
   item.qty+=delta;
   if(item.qty<=0)cart=cart.filter(i=>i.id!==id);
-  else if(item.qty>product.stock)item.qty=product.stock;
+  else if(product&&item.qty>product.stock){item.qty=product.stock;showToast("Stok tidak mencukupi.");}
   renderCart();
 }
 
-function totalCart(){
+// Satu-satunya sumber kebenaran untuk perhitungan uang.
+// Sebelumnya renderCart() dan totalCart() menghitung sendiri-sendiri dan
+// totalCart() mengabaikan diskon, jadi angka di layar bisa beda dengan yang ditagih.
+function computeTotals(){
   const subtotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-  return subtotal+Math.round(subtotal*.11);
+  const discount=0;
+  const taxable=Math.max(0,subtotal-discount);
+  const tax=Math.round(taxable*TAX_RATE);
+  return {subtotal,discount,tax,total:taxable+tax};
+}
+
+function totalCart(){
+  return computeTotals().total;
 }
 
 function openModal(id){$(id).classList.remove("hidden")}
@@ -208,13 +231,22 @@ async function handleLogout(){
 }
 
 async function saveTransaction(){
-  const total=totalCart();
+  const {subtotal,discount,tax,total}=computeTotals();
   const method=selectedPayment==="cash"?"Tunai":selectedPayment==="qris"?"QRIS":"Kartu";
   const trx={
     id:`TRX-${new Date().toISOString().slice(0,10).replaceAll("-","")}-${String(Date.now()).slice(-4)}`,
-    date:new Date().toISOString(),cashier:currentUser?.email||"Kasir Demo",method,total,
-    items:cart.reduce((s,i)=>s+i.qty,0)
+    date:new Date().toISOString(),cashier:currentUser?.email||"Kasir Demo",method,
+    subtotal,discount,tax,total,
+    items:cart.reduce((s,i)=>s+i.qty,0),
+    lines:cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty}))
   };
+
+  // Kurangi stok sesuai item yang terjual, lalu simpan.
+  for(const line of cart){
+    const product=products.find(p=>p.id===line.id);
+    if(product)product.stock=Math.max(0,product.stock-line.qty);
+  }
+  persistProducts();
 
   transactions.unshift(trx);
   localStorage.setItem("kasir_transactions",JSON.stringify(transactions));
@@ -305,7 +337,7 @@ document.querySelectorAll(".payment-method").forEach(btn=>btn.addEventListener("
 $("productForm").addEventListener("submit",e=>{
   e.preventDefault();
   const p={id:`p${Date.now()}`,name:$("newName").value.trim(),sku:$("newSku").value.trim(),category:$("newCategory").value.trim(),price:Number($("newPrice").value),stock:Number($("newStock").value),icon:"📦"};
-  products.unshift(p);closeModal("productModal");e.target.reset();renderCategories();renderProducts();renderTables();renderDashboard();showToast("Produk berhasil ditambahkan.");
+  products.unshift(p);persistProducts();closeModal("productModal");e.target.reset();renderCategories();renderProducts();renderTables();renderDashboard();showToast("Produk berhasil ditambahkan.");
 });
 
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){document.querySelectorAll(".modal:not(.hidden)").forEach(m=>m.classList.add("hidden"))}});
