@@ -40,3 +40,8 @@ input:focus,select:focus{border-color:#e78a91;box-shadow:0 0 0 4px rgba(229,29,4
 body[data-role="cashier"] .admin-only{display:none!important}
 .table-panel td small.muted{font-size:10px}
 .bar[title]{cursor:help}
+/* Badge status stok pada kartu produk sempat meluber menimpa baris harga
+   karena padding badge lebih tinggi dari line-box teks 10px di dalam <p>.
+   Flex membuat badge ikut mengatur tinggi baris, bukan menumpuk di atasnya. */
+.product-card p{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.product-card p .badge{padding:3px 7px;line-height:1.5;flex-shrink:0}
