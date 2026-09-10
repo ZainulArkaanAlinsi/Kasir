@@ -64,7 +64,16 @@ pernah bercampur dengan data Firestore.
 { "role": "cashier", "displayName": "Nabila" }
 ```
 
-Untuk admin, isi `"role": "admin"`.
+Atau lebih praktis, pakai skrip bawaan yang sekaligus memasang custom claim:
+
+```bash
+node scripts/set-role.js kasir@toko.com cashier "Nabila"
+node scripts/set-role.js bos@toko.com  admin    "Admin Toko"
+```
+
+> Setelah role diubah, pengguna harus **logout lalu login lagi** agar token
+> barunya terpakai. Lupa melakukan ini adalah penyebab paling umum error
+> 403 yang muncul "tiba-tiba".
 
 > `serviceAccountKey.json` **tidak boleh** masuk ke Git. Sudah tercantum di
 > `.gitignore`. Firebase Web API key di `firebase-config.js` bukan rahasia

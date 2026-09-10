@@ -10,7 +10,8 @@
     "test": "node --test test/money.test.js test/report.test.js test/demo.test.js",
     "test:emulator": "firebase emulators:exec --only firestore \"node --test test/transaction.emulator.test.js\"",
     "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
-    "test:all": "npm run test && npm run test:emulator && npm run test:rules"
+    "test:all": "npm run test && npm run test:emulator && npm run test:rules",
+    "set-role": "node scripts/set-role.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
