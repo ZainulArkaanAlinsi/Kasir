@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Modern POS cashier dashboard">
+  <title>KasirOne — Modern POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <div id="loginView" class="auth-screen">
+    <div class="auth-card">
+      <div class="brand brand-large">
+        <div class="brand-mark">K</div>
+        <div>
+          <strong>KasirOne</strong>
+          <span>Modern POS</span>
+        </div>
+      </div>
+      <h1>Masuk ke kasir</h1>
+      <p class="muted">Kelola transaksi, produk, stok, dan laporan dari satu dashboard.</p>
+
+      <form id="loginForm">
+        <label>Email
+          <input id="loginEmail" type="email" placeholder="kasir@example.com" required>
+        </label>
+        <label>Password
+          <input id="loginPassword" type="password" placeholder="••••••••" required>
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Masuk</button>
+      </form>
+
+      <div class="demo-note">
+        <strong>Mode demo</strong>
+        <span>Jika Firebase belum dikonfigurasi, tombol "Demo tanpa login" dapat dipakai untuk mencoba UI.</span>
+        <button id="demoLogin" class="btn btn-ghost btn-block">Demo tanpa login</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">K</div>
+        <div>
+          <strong>KasirOne</strong>
+          <span>Modern POS</span>
+        </div>
+      </div>
+
+      <div class="side-label">MENU UTAMA</div>
+      <nav>
+        <button class="nav-item active" data-page="dashboard"><span>⌂</span> Dashboard</button>
+        <button class="nav-item" data-page="kasir"><span>▣</span> Kasir</button>
+        <button class="nav-item" data-page="produk"><span>□</span> Produk</button>
+        <button class="nav-item" data-page="transaksi"><span>↗</span> Transaksi</button>
+        <button class="nav-item" data-page="laporan"><span>▥</span> Laporan</button>
+      </nav>
+
+      <div class="side-label">SISTEM</div>
+      <nav>
+        <button class="nav-item" data-page="pengaturan"><span>⚙</span> Pengaturan</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="user-mini">
+          <div class="avatar">R</div>
+          <div>
+            <strong id="userName">Kasir Demo</strong>
+            <span id="userRole">Cashier</span>
+          </div>
+        </div>
+        <button id="logoutBtn" class="btn btn-ghost btn-block">Keluar</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="pageEyebrow">OVERVIEW</p>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+        <div class="top-actions">
+          <div class="status-pill"><i></i> Sistem online</div>
+          <button id="topNewSale" class="btn btn-primary">+ Transaksi baru</button>
+        </div>
+      </header>
+
+      <section id="dashboardPage" class="page active-page">
+        <div class="hero-card">
+          <div>
+            <span class="hero-kicker">SELAMAT DATANG</span>
+            <h1>Kelola toko lebih cepat.</h1>
+            <p>Semua transaksi dan operasional kasir dalam satu layar.</p>
+            <button class="btn btn-light" data-go="kasir">Mulai transaksi →</button>
+          </div>
+          <div class="hero-orb"><span>POS</span></div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>Total penjualan</span><strong id="statSales">Rp 0</strong><small class="positive">+12.5% dari kemarin</small></article>
+          <article class="stat-card"><span>Transaksi</span><strong id="statTransactions">0</strong><small class="positive">Hari ini</small></article>
+          <article class="stat-card"><span>Produk terjual</span><strong id="statItems">0</strong><small>Unit hari ini</small></article>
+          <article class="stat-card"><span>Stok menipis</span><strong id="statLowStock">0</strong><small class="warning-text">Perlu diperiksa</small></article>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel chart-panel">
+            <div class="panel-head"><div><h3>Penjualan mingguan</h3><p>Performa 7 hari terakhir</p></div><select id="chartPeriod"><option>7 hari</option><option>30 hari</option></select></div>
+            <div class="bar-chart" id="barChart"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><div><h3>Transaksi terbaru</h3><p>Aktivitas terakhir</p></div><button class="text-btn" data-go="transaksi">Lihat semua</button></div>
+            <div id="recentTransactions" class="activity-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="kasirPage" class="page">
+        <div class="pos-layout">
+          <section class="products-panel">
+            <div class="search-row">
+              <div class="search-box"><span>⌕</span><input id="productSearch" placeholder="Cari produk atau SKU..."></div>
+              <button class="btn btn-secondary">▦ Scan</button>
+            </div>
+            <div class="category-row" id="categoryRow"></div>
+            <div class="product-grid" id="productGrid"></div>
+          </section>
+
+          <aside class="cart-panel">
+            <div class="cart-head"><div><h3>Keranjang</h3><span id="cartCount">0 item</span></div><button id="clearCart" class="icon-btn">×</button></div>
+            <div id="cartItems" class="cart-items"></div>
+            <div class="cart-summary">
+              <div><span>Subtotal</span><strong id="subtotal">Rp 0</strong></div>
+              <div><span>Diskon</span><strong id="discount">Rp 0</strong></div>
+              <div><span>Pajak</span><strong id="tax">Rp 0</strong></div>
+              <div class="total-row"><span>Total</span><strong id="grandTotal">Rp 0</strong></div>
+              <button id="checkoutBtn" class="btn btn-primary btn-block btn-lg">Bayar sekarang</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="produkPage" class="page">
+        <div class="page-toolbar"><div><h3>Produk</h3><p>Kelola katalog dan stok toko.</p></div><button id="addProductBtn" class="btn btn-primary">+ Tambah produk</button></div>
+        <div class="panel table-panel"><table><thead><tr><th>Produk</th><th>SKU</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th></tr></thead><tbody id="productTable"></tbody></table></div>
+      </section>
+
+      <section id="transaksiPage" class="page">
+        <div class="page-toolbar"><div><h3>Riwayat transaksi</h3><p>Daftar transaksi yang tercatat.</p></div></div>
+        <div class="panel table-panel"><table><thead><tr><th>ID Transaksi</th><th>Waktu</th><th>Kasir</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody id="transactionTable"></tbody></table></div>
+      </section>
+
+      <section id="laporanPage" class="page">
+        <div class="stats-grid">
+          <article class="stat-card"><span>Omzet</span><strong id="reportRevenue">Rp 0</strong><small>Data lokal demo</small></article>
+          <article class="stat-card"><span>Rata-rata transaksi</span><strong id="reportAverage">Rp 0</strong><small>Per transaksi</small></article>
+          <article class="stat-card"><span>Jumlah transaksi</span><strong id="reportCount">0</strong><small>Total</small></article>
+        </div>
+        <div class="panel report-note"><h3>Laporan</h3><p>Untuk produksi, data laporan sebaiknya dihitung ulang di backend dari transaksi yang tersimpan, bukan dipercaya dari nilai yang dikirim browser.</p></div>
+      </section>
+
+      <section id="pengaturanPage" class="page">
+        <div class="panel settings-panel">
+          <h3>Pengaturan</h3>
+          <div class="setting-row"><div><strong>Nama toko</strong><p>Nama yang tampil pada dashboard dan struk.</p></div><input id="storeName" value="KasirOne Store"></div>
+          <div class="setting-row"><div><strong>Mode demo</strong><p>Data demo disimpan di browser dan tidak menggantikan database Firebase.</p></div><span class="status-pill">Aktif</span></div>
+          <div class="setting-row"><div><strong>Keamanan API</strong><p>API memakai Helmet, CORS, rate limiting, dan verifikasi Firebase ID token saat Firebase Admin dikonfigurasi.</p></div><span class="security-badge">Protected</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="paymentModal" class="modal hidden">
+    <div class="modal-card payment-card">
+      <button class="modal-close" data-close="paymentModal">×</button>
+      <span class="eyebrow">CHECKOUT</span>
+      <h2>Pilih metode pembayaran</h2>
+      <p class="muted">Total yang harus dibayar</p>
+      <div class="payment-total" id="paymentTotal">Rp 0</div>
+
+      <div class="payment-methods">
+        <button class="payment-method active" data-method="cash"><span>💵</span><strong>Tunai</strong><small>Bayar di kasir</small></button>
+        <button class="payment-method" data-method="qris"><span>▦</span><strong>QRIS</strong><small>Scan kode pembayaran</small></button>
+        <button class="payment-method" data-method="card"><span>💳</span><strong>Kartu</strong><small>Debit / kartu</small></button>
+      </div>
+
+      <div id="cashArea" class="payment-area">
+        <label>Uang diterima
+          <input id="cashReceived" type="number" min="0" placeholder="0">
+        </label>
+        <div class="change-box"><span>Kembalian</span><strong id="changeAmount">Rp 0</strong></div>
+      </div>
+
+      <div id="qrisArea" class="payment-area hidden">
+        <div class="qr-demo"><div class="qr-pattern">▦</div></div>
+        <strong>QR pembayaran demo</strong>
+        <p class="muted">Ini hanya simulasi UI. Untuk pembayaran QRIS sungguhan, hubungkan payment gateway resmi di backend.</p>
+      </div>
+
+      <div id="cardArea" class="payment-area hidden">
+        <div class="card-demo">💳<span>Terminal siap menerima kartu</span></div>
+      </div>
+
+      <button id="confirmPayment" class="btn btn-primary btn-block btn-lg">Konfirmasi pembayaran</button>
+    </div>
+  </div>
+
+  <div id="successModal" class="modal hidden">
+    <div class="modal-card success-card">
+      <div class="success-icon">✓</div>
+      <h2>Pembayaran berhasil</h2>
+      <p id="successText" class="muted"></p>
+      <div class="receipt-preview" id="receiptPreview"></div>
+      <div class="modal-actions">
+        <button id="printReceipt" class="btn btn-secondary">Cetak struk</button>
+        <button id="newTransaction" class="btn btn-primary">Transaksi baru</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="productModal" class="modal hidden">
+    <div class="modal-card">
+      <button class="modal-close" data-close="productModal">×</button>
+      <span class="eyebrow">PRODUK</span>
+      <h2>Tambah produk</h2>
+      <form id="productForm" class="product-form">
+        <label>Nama produk<input id="newName" required></label>
+        <label>SKU<input id="newSku" required></label>
+        <label>Kategori<input id="newCategory" value="Umum" required></label>
+        <label>Harga<input id="newPrice" type="number" min="0" required></label>
+        <label>Stok<input id="newStock" type="number" min="0" required></label>
+        <button class="btn btn-primary btn-block" type="submit">Simpan produk</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

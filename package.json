@@ -1,0 +1,19 @@
+{
+  "name": "kasir-modern-firebase",
+  "version": "1.0.0",
+  "description": "Modern POS/Kasir app with HTML, CSS, JavaScript, Node.js, Express and Firebase",
+  "type": "module",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "node --watch server/server.js",
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "firebase-admin": "^13.5.0",
+    "helmet": "^8.1.0"
+  }
+}
