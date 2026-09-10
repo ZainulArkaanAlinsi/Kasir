@@ -126,6 +126,7 @@ export async function createTransaction(input) {
       cashReceived,
       change,
       qrisReference: paymentMethod === "qris" ? (input?.qrisReference ?? null) : null,
+      cardReference: paymentMethod === "card" ? (input?.cardReference ?? null) : null,
       subtotal: totals.subtotal,
       discount: totals.discount,
       tax: totals.tax,

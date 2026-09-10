@@ -6,10 +6,10 @@
  * di sini — itu milik lapisan API dan service di server.
  */
 import { subscribe, set, get } from "./state.js";
-import { $, $$, closeAllModals, closeModal, openModal } from "./ui/shell.js";
+import { $, $$, closeAllModals, closeModal } from "./ui/shell.js";
 import { bindAuth, setOnReady } from "./auth.js";
 import { renderCart, clearCart, addToCart } from "./ui/cart.js";
-import { refreshProducts, renderProductGrid, bindProductForm } from "./ui/products.js";
+import { refreshProducts, renderProductGrid, bindProductForm, bukaFormProduk } from "./ui/products.js";
 import { bindPaymentMethods, openPayment, confirmPayment } from "./ui/checkout.js";
 import { refreshDashboard } from "./ui/dashboard.js";
 import { refreshReport } from "./ui/reports.js";
@@ -17,6 +17,8 @@ import { refreshTransactions, bindTransactionFilters } from "./ui/transactions.j
 import { refreshExpenses, bindExpenseForms, bukaRestock, isiPilihanProduk } from "./ui/restock.js";
 import { attachBarcodeListener, handleScan } from "./ui/barcode.js";
 import { getApi } from "./api/index.js";
+import { refreshSettings, bindSettings } from "./ui/settings.js";
+import { eksporTransaksi, eksporLaporan } from "./ui/export-csv.js";
 
 /** Judul dan keterangan tiap halaman. */
 const HALAMAN = {
@@ -40,6 +42,9 @@ async function setPage(nama) {
   $$(".page").forEach((p) => p.classList.remove("active-page"));
   $(`${nama}Page`)?.classList.add("active-page");
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
+  $$(".rail-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
+  $("sideNav")?.classList.remove("open");   // tutup menu geser di layar sempit
+  window.scrollTo({ top: 0, behavior: "smooth" });
 
   if ($("pageTitle")) $("pageTitle").textContent = HALAMAN[nama].title;
   if ($("pageEyebrow")) $("pageEyebrow").textContent = HALAMAN[nama].eyebrow;
@@ -49,31 +54,43 @@ async function setPage(nama) {
   if (nama === "laporan") await refreshReport();
   if (nama === "transaksi") await refreshTransactions();
   if (nama === "restock") { isiPilihanProduk(); await refreshExpenses(); }
+  if (nama === "pengaturan") await refreshSettings();
 }
 
 /** Dijalankan sekali setelah pengguna berhasil masuk. */
 async function mulaiSesi() {
+  bindSettings();
   await refreshProducts();
   await setPage("dashboard");
+  await refreshSettings();   // agar label mode benar sejak awal
   renderCart();
 }
 
 function bindNavigasi() {
-  $$(".nav-item").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
+  $$(".nav-item, .rail-btn").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
+  $("navToggle")?.addEventListener("click", () => $("sideNav")?.classList.toggle("open"));
   $$("[data-go]").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.go)));
   $$("[data-close]").forEach((btn) => btn.addEventListener("click", () => closeModal(btn.dataset.close)));
 
   $("topNewSale")?.addEventListener("click", () => setPage("kasir"));
   $("newTransaction")?.addEventListener("click", () => { closeModal("successModal"); setPage("kasir"); });
   $("printReceipt")?.addEventListener("click", () => window.print());
-  $("addProductBtn")?.addEventListener("click", () => openModal("productModal"));
+  $("addProductBtn")?.addEventListener("click", bukaFormProduk);
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAllModals(); });
 }
 
 function bindKasir() {
   $("productSearch")?.addEventListener("input", renderProductGrid);
-  $("clearCart")?.addEventListener("click", clearCart);
+  $("cartDiscount")?.addEventListener("input", (e) => {
+    set("cartDiscount", Math.max(0, Number(e.target.value) || 0));
+    renderCart();
+  });
+  $("clearCart")?.addEventListener("click", () => {
+    clearCart();
+    set("cartDiscount", 0);
+    if ($("cartDiscount")) $("cartDiscount").value = "0";
+  });
   $("checkoutBtn")?.addEventListener("click", openPayment);
   $("confirmPayment")?.addEventListener("click", (e) => confirmPayment(e.currentTarget));
 
@@ -87,6 +104,8 @@ function bindKasir() {
 function bindLaporan() {
   $("reportPeriod")?.addEventListener("change", refreshReport);
   $("chartPeriod")?.addEventListener("change", refreshDashboard);
+  $("reportExportBtn")?.addEventListener("click", () => eksporLaporan(get("report")));
+  $("trxExportBtn")?.addEventListener("click", () => eksporTransaksi(get("transactions")));
 }
 
 function bindRestockShortcut() {

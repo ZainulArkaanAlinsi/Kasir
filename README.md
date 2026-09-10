@@ -98,8 +98,12 @@ dokumen `users/{uid}` sebagai cadangan agar akun lama tetap bisa masuk.
   memunculkan notifikasi, bukan gagal diam-diam.
 - **Transaksi atomik** — stok dan transaksi tersimpan bersama atau tidak
   sama sekali. Sudah diuji dengan 12 checkout serentak.
-- **Pembayaran** Tunai (dengan kembalian), Kartu, dan QRIS (kode statis toko
-  + nomor referensi manual).
+- **Pembayaran** Tunai (dengan kembalian), Kartu (kode approval EDC), dan
+  QRIS. Lihat bagian 3.1 — sistem tidak pernah memalsukan kode QR.
+- **Diskon per transaksi**, dipotong sebelum pajak.
+- **Foto produk asli** yang bisa diunggah (klik atau seret), dikecilkan
+  otomatis di browser sebelum disimpan.
+- **Ekspor CSV** untuk riwayat transaksi dan laporan.
 - **Harga modal & margin** per produk, jadi laba bisa dihitung.
 - **Stok minimum per produk** — ambang "menipis" ditentukan per barang,
   bukan satu angka untuk semua.
@@ -108,6 +112,28 @@ dokumen `users/{uid}` sebagai cadangan agar akun lama tetap bisa masuk.
   rincian metode bayar, dan jumlah unit terjual per produk
   (mis. *Top Kopi Aren 40 pcs, Indomie Goreng 23 pcs*).
 - **Riwayat transaksi** dengan filter tanggal dan struk yang bisa dicetak.
+
+### 3.1 Soal kepercayaan pada pembayaran QRIS
+
+Versi sebelumnya menampilkan pola kotak-kotak sebagai "QR demo". Itu berbahaya:
+kasir bisa mengira pembayaran sungguhan sedang berlangsung. Sekarang ada tiga
+mode, dan halaman **Pengaturan** selalu menyatakan mana yang aktif.
+
+| Mode | Cara mengaktifkan | Uang benar-benar masuk? | Sistem bisa memastikan lunas? |
+|---|---|---|---|
+| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya** — status dicek ke gateway |
+| **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Tidak — kasir cek mutasi |
+| **Nonaktif** | keduanya kosong | — | QRIS ditolak, bukan dipalsukan |
+
+Pada mode **Terverifikasi**, tombol konfirmasi menolak menyimpan transaksi
+sampai gateway menyatakan lunas. Pada mode **Manual**, nominal tidak terkunci
+sehingga aplikasi memperingatkan kasir untuk mengecek mutasi lebih dulu.
+Pada mode **Nonaktif** dan mode demo, tidak ada gambar QR yang ditampilkan
+sama sekali.
+
+Mulailah dari sandbox Midtrans (`MIDTRANS_IS_PRODUCTION=false`, kunci berawalan
+`SB-Mid-server-`). Aplikasi akan menulis "SANDBOX" pada layar supaya tidak ada
+yang keliru memakainya melayani pembeli sungguhan.
 
 ---
 
@@ -140,7 +166,7 @@ kasir-modern/
 │   ├── middleware/              auth.js, errorHandler.js
 │   ├── routes/                  products, transactions, expenses, reports
 │   └── services/                logika bisnis (bisa dipindah ke Cloud Function)
-├── test/                        money, report, transaksi (emulator), rules
+├── test/                        money, report, demo, payment, emulator, rules
 ├── docs/API.md                  referensi endpoint
 ├── firestore.rules
 └── firestore.indexes.json
@@ -198,6 +224,9 @@ Yang diuji secara khusus:
 - Transaksi dua produk yang salah satunya kurang → **seluruhnya** dibatalkan.
 - Kasir tidak bisa menulis ke `products`/`transactions` dari browser.
 - Kasir tidak bisa menaikkan `role` dirinya sendiri menjadi `admin`.
+- QRIS yang belum dikonfigurasi **menolak** membuat pembayaran, bukan
+  menampilkan QR palsu.
+- QRIS statis menghasilkan QR sungguhan tetapi tidak mengaku terverifikasi.
 
 > Emulator Firebase membutuhkan Java. `firebase-tools` v15+ mensyaratkan
 > JDK 21+; project ini memasang `firebase-tools` v13 secara lokal agar tetap
@@ -232,8 +261,8 @@ isinya — cukup mengganti lapisan pemanggilnya.
 
 ## 8. Belum dikerjakan
 
-- Payment gateway QRIS otomatis (Midtrans/Xendit). MVP memakai QRIS statis
-  toko + konfirmasi manual oleh kasir.
+- Foto produk disimpan sebagai data URL di dalam dokumen produk. Untuk katalog
+  besar sebaiknya dipindah ke Firebase Storage atau CDN.
 - Scan barcode lewat kamera ponsel (saat ini scanner USB dan input manual).
 - Cetak struk ke thermal printer (saat ini memakai cetak bawaan browser).
 - Multi-cabang, App Check, dan sistem poin pelanggan.

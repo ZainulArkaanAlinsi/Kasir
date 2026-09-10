@@ -23,6 +23,7 @@ const state = {
   activeCategory: "Semua",
   activePage: "dashboard",
   paymentMethod: "cash",
+  cartDiscount: 0,
   lastTransaction: null,
   loading: false
 };
@@ -67,6 +68,6 @@ export function patch(patchObject) {
 export function resetSession() {
   patch({
     user: null, role: null, products: [], cart: [], transactions: [],
-    report: null, lastTransaction: null, activePage: "dashboard"
+    report: null, lastTransaction: null, activePage: "dashboard", cartDiscount: 0
   });
 }

@@ -1,218 +1,377 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Modern POS cashier dashboard">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KasirOne — Modern POS</title>
+  <meta name="description" content="Sistem kasir dan inventory untuk toko retail: scan barcode, stok, modal, dan laporan.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div id="toast" class="toast"></div>
 
-  <div id="loginView" class="auth-screen">
-    <div class="auth-card">
-      <div class="brand brand-large">
-        <div class="brand-mark">K</div>
-        <div>
-          <strong>KasirOne</strong>
-          <span>Modern POS</span>
-        </div>
-      </div>
-      <h1>Masuk ke kasir</h1>
-      <p class="muted">Kelola transaksi, produk, stok, dan laporan dari satu dashboard.</p>
+<!-- Kumpulan ikon. Didefinisikan sekali, dipakai ulang lewat <use>, supaya
+     markup halaman tetap ringkas dan tidak ada dependensi ikon eksternal. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-home"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></g>
+    <g id="i-cart"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></g>
+    <g id="i-box"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></g>
+    <g id="i-refresh"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></g>
+    <g id="i-receipt"><path d="M4 2v20l2.5-1.5L9 22l3-1.5L15 22l2.5-1.5L20 22V2l-2.5 1.5L15 2l-3 1.5L9 2 6.5 3.5z"/><path d="M8 8h8M8 12h8M8 16h5"/></g>
+    <g id="i-chart"><path d="M3 3v18h18"/><path d="m7 15 3-4 3 3 5-7"/></g>
+    <g id="i-gear"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></g>
+    <g id="i-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></g>
+    <g id="i-scan"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10.5 8v8M14 8v8M17 8v8"/></g>
+    <g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+    <g id="i-x"><path d="M18 6 6 18M6 6l12 12"/></g>
+    <g id="i-check"><path d="M20 6 9 17l-5-5"/></g>
+    <g id="i-image"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></g>
+    <g id="i-wallet"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></g>
+    <g id="i-card"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></g>
+    <g id="i-qr"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></g>
+    <g id="i-trend"><path d="m23 6-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></g>
+    <g id="i-alert"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></g>
+    <g id="i-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></g>
+    <g id="i-menu"><path d="M3 12h18M3 6h18M3 18h18"/></g>
+    <g id="i-logout"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></g>
+  </defs>
+</svg>
 
-      <form id="loginForm">
-        <label>Email
-          <input id="loginEmail" type="email" placeholder="kasir@example.com" required>
-        </label>
-        <label>Password
-          <input id="loginPassword" type="password" placeholder="••••••••" required>
-        </label>
-        <button class="btn btn-primary btn-block" type="submit">Masuk</button>
-      </form>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-      <div class="demo-note">
-        <strong>Mode demo</strong>
-        <span>Jika Firebase belum dikonfigurasi, tombol "Demo tanpa login" dapat dipakai untuk mencoba UI.</span>
-        <button id="demoLogin" class="btn btn-ghost btn-block">Demo tanpa login</button>
+<!-- ══════════════════════════ LAYAR MASUK ══════════════════════════ -->
+<div id="loginView" class="auth-screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="brand-mark">K</div>
+      <div>
+        <strong>KasirOne</strong>
+        <span>Modern POS</span>
       </div>
     </div>
+
+    <h1>Masuk ke kasir</h1>
+    <p class="muted" style="font-size:13px">Kelola transaksi, stok, modal, dan laporan dari satu layar.</p>
+
+    <form id="loginForm">
+      <div class="field">
+        <input id="loginEmail" type="email" placeholder=" " autocomplete="username" required>
+        <span class="field-label">Email</span>
+      </div>
+      <div class="field">
+        <input id="loginPassword" type="password" placeholder=" " autocomplete="current-password" required>
+        <span class="field-label">Kata sandi</span>
+      </div>
+      <button class="btn-sparkle btn-block" type="submit">
+        <span class="dots_border"></span>
+        <svg class="sparkle" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path class="path" d="M14.187 8.096 15 5.25l.813 2.846a5.2 5.2 0 0 0 3.09 3.09L21.75 12l-2.846.813a5.2 5.2 0 0 0-3.09 3.09L15 18.75l-.813-2.846a5.2 5.2 0 0 0-3.09-3.09L8.25 12l2.846-.813a5.2 5.2 0 0 0 3.09-3.09z"/>
+          <path class="path" d="m6 14.25-.259 1.035a3.4 3.4 0 0 1-2.456 2.456L2.25 18l1.035.259a3.4 3.4 0 0 1 2.456 2.456L6 21.75l.259-1.035a3.4 3.4 0 0 1 2.455-2.456L9.75 18l-1.036-.259a3.4 3.4 0 0 1-2.455-2.456z"/>
+          <path class="path" d="M6.5 4l-.197.591a1.4 1.4 0 0 1-.712.712L5 5.5l.591.197a1.4 1.4 0 0 1 .712.712L6.5 7l.197-.591a1.4 1.4 0 0 1 .712-.712L8 5.5l-.591-.197a1.4 1.4 0 0 1-.712-.712z"/>
+        </svg>
+        <span class="text_button">Masuk</span>
+      </button>
+    </form>
+
+    <div class="demo-note">
+      <strong>Mode demo</strong>
+      <span>Belum menyiapkan Firebase? Coba seluruh alur kasir dengan data yang tersimpan di browser ini saja.</span>
+      <button id="demoLogin" class="btn btn-secondary btn-block" type="button">Demo tanpa login</button>
+    </div>
   </div>
+</div>
 
-  <div id="appView" class="app-shell hidden">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark">K</div>
-        <div>
-          <strong>KasirOne</strong>
-          <span>Modern POS</span>
-        </div>
+<!-- ══════════════════════════ APLIKASI ══════════════════════════ -->
+<div id="appView" class="app-shell hidden">
+
+  <aside class="icon-rail" aria-label="Navigasi utama">
+    <div class="rail-logo">K</div>
+    <button class="rail-btn active" data-page="dashboard" title="Dashboard" aria-label="Dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-home"/></svg></button>
+    <button class="rail-btn" data-page="kasir" title="Kasir" aria-label="Kasir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg></button>
+    <button class="rail-btn" data-page="produk" title="Produk" aria-label="Produk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg></button>
+    <button class="rail-btn admin-only" data-page="restock" title="Restock &amp; Biaya" aria-label="Restock dan biaya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg></button>
+    <button class="rail-btn" data-page="transaksi" title="Riwayat" aria-label="Riwayat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg></button>
+    <button class="rail-btn admin-only" data-page="laporan" title="Analitik" aria-label="Analitik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg></button>
+    <div class="rail-spacer"></div>
+    <button class="rail-btn" data-page="pengaturan" title="Pengaturan" aria-label="Pengaturan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg></button>
+  </aside>
+
+  <nav id="sideNav" class="side-nav" aria-label="Menu">
+    <div class="nav-user">
+      <div class="avatar" id="avatarInitial">K</div>
+      <div>
+        <strong id="userName">Kasir</strong>
+        <span id="userRole">Cashier</span>
       </div>
+    </div>
 
-      <div class="side-label">MENU UTAMA</div>
-      <nav>
-        <button class="nav-item active" data-page="dashboard"><span>⌂</span> Dashboard</button>
-        <button class="nav-item" data-page="kasir"><span>▣</span> Kasir</button>
-        <button class="nav-item" data-page="produk"><span>□</span> Produk</button>
-        <button class="nav-item admin-only" data-page="restock"><span>↻</span> Restock &amp; Biaya</button>
-        <button class="nav-item" data-page="transaksi"><span>↗</span> Transaksi</button>
-        <button class="nav-item" data-page="laporan"><span>▥</span> Laporan</button>
-      </nav>
+    <div class="side-label">OPERASIONAL</div>
+    <button class="nav-item active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-home"/></svg> Dashboard</button>
+    <button class="nav-item" data-page="kasir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg> Kasir <span class="count" id="navCartCount">0</span></button>
+    <button class="nav-item" data-page="produk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg> Produk <span class="count" id="navProductCount">0</span></button>
+    <button class="nav-item admin-only" data-page="restock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg> Restock &amp; Biaya</button>
 
-      <div class="side-label">SISTEM</div>
-      <nav>
-        <button class="nav-item" data-page="pengaturan"><span>⚙</span> Pengaturan</button>
-      </nav>
+    <div class="side-label">LAPORAN</div>
+    <button class="nav-item" data-page="transaksi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg> Riwayat</button>
+    <button class="nav-item admin-only" data-page="laporan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg> Analitik</button>
 
-      <div class="sidebar-bottom">
-        <div class="user-mini">
-          <div class="avatar" id="avatarInitial">K</div>
-          <div>
-            <strong id="userName">Kasir Demo</strong>
-            <span id="userRole">Cashier</span>
-          </div>
-        </div>
-        <button id="logoutBtn" class="btn btn-ghost btn-block">Keluar</button>
-      </div>
-    </aside>
+    <div class="side-label">SISTEM</div>
+    <button class="nav-item" data-page="pengaturan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg> Pengaturan</button>
 
-    <main class="main-content">
-      <header class="topbar">
+    <div class="nav-bottom">
+      <button id="logoutBtn" class="btn btn-ghost btn-block"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-logout"/></svg> Keluar</button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="navToggle" class="icon-btn nav-toggle" aria-label="Buka menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-menu"/></svg></button>
         <div>
-          <p class="eyebrow" id="pageEyebrow">OVERVIEW</p>
+          <p class="eyebrow" id="pageEyebrow">RINGKASAN</p>
           <h2 id="pageTitle">Dashboard</h2>
         </div>
-        <div class="top-actions">
-          <div class="status-pill"><i></i> Sistem online</div>
-          <button id="topNewSale" class="btn btn-primary">+ Transaksi baru</button>
-        </div>
-      </header>
+      </div>
+      <div class="top-actions">
+        <div class="status-pill"><i></i> <span id="modeLabel">Sistem online</span></div>
+        <button id="topNewSale" class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Transaksi baru</button>
+      </div>
+    </header>
 
-      <section id="dashboardPage" class="page active-page">
-        <div class="hero-card">
-          <div>
-            <span class="hero-kicker">SELAMAT DATANG</span>
-            <h1>Kelola toko lebih cepat.</h1>
-            <p>Semua transaksi dan operasional kasir dalam satu layar.</p>
-            <button class="btn btn-light" data-go="kasir">Mulai transaksi →</button>
+    <!-- ───────────────────── DASHBOARD ───────────────────── -->
+    <section id="dashboardPage" class="page active-page">
+      <div class="hero-card">
+        <div>
+          <span class="hero-kicker">SELAMAT DATANG</span>
+          <h1>Kelola toko lebih cepat.</h1>
+          <p>Scan barcode, catat modal, pantau stok menipis, dan lihat laba dalam satu layar.</p>
+          <button class="btn" data-go="kasir" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff">Mulai transaksi →</button>
+        </div>
+        <div class="hero-orb">POS</div>
+      </div>
+
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-head">
+            <span class="stat-label">Pemasukan</span>
+            <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg></div>
           </div>
-          <div class="hero-orb"><span>POS</span></div>
-        </div>
-
-        <div class="stats-grid">
-          <article class="stat-card"><span>Pemasukan</span><strong id="statSales">Rp 0</strong><small>Periode terpilih</small></article>
-          <article class="stat-card"><span>Transaksi</span><strong id="statTransactions">0</strong><small>Jumlah struk</small></article>
-          <article class="stat-card"><span>Produk terjual</span><strong id="statItems">0</strong><small>Total unit</small></article>
-          <article class="stat-card admin-only"><span>Laba kotor</span><strong id="statProfit">Rp 0</strong><small class="positive">Setelah harga modal</small></article>
-          <article class="stat-card"><span>Stok menipis</span><strong id="statLowStock">0</strong><small class="warning-text">Perlu diperiksa</small></article>
-        </div>
-
-        <div class="content-grid">
-          <section class="panel chart-panel">
-            <div class="panel-head"><div><h3>Penjualan mingguan</h3><p>Performa 7 hari terakhir</p></div><select id="chartPeriod"><option value="week">7 hari</option><option value="month">30 hari</option><option value="today">Hari ini</option></select></div>
-            <div class="bar-chart" id="barChart"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head"><div><h3>Transaksi terbaru</h3><p>Aktivitas terakhir</p></div><button class="text-btn" data-go="transaksi">Lihat semua</button></div>
-            <div id="recentTransactions" class="activity-list"></div>
-          </section>
-        </div>
-      </section>
-
-      <section id="kasirPage" class="page">
-        <div class="pos-layout">
-          <section class="products-panel">
-            <div class="search-row">
-              <div class="search-box"><span>⌕</span><input id="productSearch" placeholder="Cari produk atau SKU..."></div>
-              <span class="status-pill" title="Arahkan scanner USB ke barcode, atau ketik SKU di kolom cari"><i></i> Scanner siap</span>
-            </div>
-            <div class="category-row" id="categoryRow"></div>
-            <div class="product-grid" id="productGrid"></div>
-          </section>
-
-          <aside class="cart-panel">
-            <div class="cart-head"><div><h3>Keranjang</h3><span id="cartCount">0 item</span></div><button id="clearCart" class="icon-btn">×</button></div>
-            <div id="cartItems" class="cart-items"></div>
-            <div class="cart-summary">
-              <div><span>Subtotal</span><strong id="subtotal">Rp 0</strong></div>
-              <div><span>Diskon</span><strong id="discount">Rp 0</strong></div>
-              <div><span>Pajak</span><strong id="tax">Rp 0</strong></div>
-              <div class="total-row"><span>Total</span><strong id="grandTotal">Rp 0</strong></div>
-              <button id="checkoutBtn" class="btn btn-primary btn-block btn-lg">Bayar sekarang</button>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section id="produkPage" class="page">
-        <div class="page-toolbar"><div><h3>Produk</h3><p>Kelola katalog dan stok toko.</p></div><button id="addProductBtn" class="btn btn-primary">+ Tambah produk</button></div>
-        <div class="panel table-panel"><table><thead><tr><th>Produk</th><th>SKU / Barcode</th><th>Kategori</th><th>Modal</th><th>Harga jual</th><th>Margin</th><th>Stok</th><th>Status</th></tr></thead><tbody id="productTable"></tbody></table></div>
-      </section>
-
-      <section id="transaksiPage" class="page">
-        <div class="page-toolbar">
-          <div><h3>Riwayat transaksi</h3><p>Daftar transaksi yang tercatat di server.</p></div>
-          <div class="filter-row">
-            <label>Dari<input id="trxFrom" type="date"></label>
-            <label>Sampai<input id="trxTo" type="date"></label>
-            <button id="trxFilterBtn" class="btn btn-secondary">Filter</button>
-            <button id="trxResetBtn" class="btn btn-ghost">Reset</button>
+          <strong id="statSales">Rp 0</strong>
+          <small>Periode terpilih</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head">
+            <span class="stat-label">Transaksi</span>
+            <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg></div>
           </div>
+          <strong id="statTransactions">0</strong>
+          <small>Jumlah struk</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head">
+            <span class="stat-label">Produk terjual</span>
+            <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg></div>
+          </div>
+          <strong id="statItems">0</strong>
+          <small>Total unit</small>
+        </article>
+        <article class="stat-card admin-only">
+          <div class="stat-head">
+            <span class="stat-label">Laba kotor</span>
+            <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-trend"/></svg></div>
+          </div>
+          <strong id="statProfit">Rp 0</strong>
+          <small class="positive">Setelah harga modal</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head">
+            <span class="stat-label">Stok menipis</span>
+            <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg></div>
+          </div>
+          <strong id="statLowStock">0</strong>
+          <small class="warning-text">Perlu diperiksa</small>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <section class="panel">
+          <div class="panel-head">
+            <div><h3>Penjualan</h3><p>Nilai transaksi per hari</p></div>
+            <select id="chartPeriod" style="max-width:140px">
+              <option value="week">7 hari</option>
+              <option value="month">30 hari</option>
+              <option value="today">Hari ini</option>
+            </select>
+          </div>
+          <div class="bar-chart" id="barChart"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div><h3>Transaksi terbaru</h3><p>Aktivitas terakhir</p></div>
+            <button class="text-btn" data-go="transaksi">Lihat semua</button>
+          </div>
+          <div id="recentTransactions" class="activity-list"></div>
+        </section>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-head">
+          <div><h3>Perlu segera direstock</h3><p>Produk yang stoknya menyentuh ambang minimum</p></div>
+          <button class="text-btn admin-only" data-go="restock">Restock sekarang</button>
         </div>
-        <div class="panel table-panel"><table><thead><tr><th>No. Struk</th><th>Waktu</th><th>Kasir</th><th>Pembayaran</th><th>Item</th><th>Total</th><th>Aksi</th></tr></thead><tbody id="transactionTable"></tbody></table></div>
-      </section>
+        <div id="lowStockList" class="activity-list"></div>
+      </div>
+    </section>
 
-      <section id="restockPage" class="page admin-only">
-        <div class="page-toolbar">
-          <div><h3>Restock &amp; Pengeluaran</h3><p>Menambah stok sekaligus mencatat modal yang keluar.</p></div>
-          <div><span class="muted">Total pengeluaran</span> <strong id="expenseTotal">Rp 0</strong></div>
+    <!-- ───────────────────── KASIR ───────────────────── -->
+    <section id="kasirPage" class="page">
+      <div class="pos-layout">
+        <section>
+          <div class="search-row">
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg>
+              <input id="productSearch" placeholder="Cari nama produk atau ketik barcode…" autocomplete="off">
+            </div>
+            <div class="status-pill" title="Arahkan scanner USB ke barcode — otomatis masuk keranjang">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px"><use href="#i-scan"/></svg>
+              Scanner siap
+            </div>
+          </div>
+
+          <div class="category-row" id="categoryRow"></div>
+          <div class="product-grid" id="productGrid"></div>
+        </section>
+
+        <aside class="cart-panel">
+          <div class="cart-head">
+            <div>
+              <h3>Keranjang</h3>
+              <span id="cartCount">0 item</span>
+            </div>
+            <button id="clearCart" class="icon-btn" title="Kosongkan keranjang" aria-label="Kosongkan keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-x"/></svg></button>
+          </div>
+
+          <div id="cartItems" class="cart-items"></div>
+
+          <div class="cart-summary">
+            <div><span>Subtotal</span><strong id="subtotal">Rp 0</strong></div>
+            <div>
+              <span>Diskon</span>
+              <input id="cartDiscount" class="discount-input" type="number" min="0" step="100" value="0" inputmode="numeric" aria-label="Diskon rupiah">
+            </div>
+            <div><span>Pajak</span><strong id="tax">Rp 0</strong></div>
+            <div class="total-row"><span>Total</span><strong id="grandTotal">Rp 0</strong></div>
+            <button id="checkoutBtn" class="btn-sparkle btn-block" disabled style="margin-top:8px">
+              <span class="dots_border"></span>
+              <svg class="sparkle" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path class="path" d="M14.187 8.096 15 5.25l.813 2.846a5.2 5.2 0 0 0 3.09 3.09L21.75 12l-2.846.813a5.2 5.2 0 0 0-3.09 3.09L15 18.75l-.813-2.846a5.2 5.2 0 0 0-3.09-3.09L8.25 12l2.846-.813a5.2 5.2 0 0 0 3.09-3.09z"/>
+                <path class="path" d="m6 14.25-.259 1.035a3.4 3.4 0 0 1-2.456 2.456L2.25 18l1.035.259a3.4 3.4 0 0 1 2.456 2.456L6 21.75l.259-1.035a3.4 3.4 0 0 1 2.455-2.456L9.75 18l-1.036-.259a3.4 3.4 0 0 1-2.455-2.456z"/>
+                <path class="path" d="M6.5 4l-.197.591a1.4 1.4 0 0 1-.712.712L5 5.5l.591.197a1.4 1.4 0 0 1 .712.712L6.5 7l.197-.591a1.4 1.4 0 0 1 .712-.712L8 5.5l-.591-.197a1.4 1.4 0 0 1-.712-.712z"/>
+              </svg>
+              <span class="text_button">Bayar sekarang</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ───────────────────── PRODUK ───────────────────── -->
+    <section id="produkPage" class="page">
+      <div class="page-toolbar">
+        <div><h3>Katalog produk</h3><p>Kelola foto, harga modal, harga jual, dan ambang stok.</p></div>
+        <button id="addProductBtn" class="btn btn-primary admin-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg> Tambah produk</button>
+      </div>
+      <div class="panel table-panel">
+        <table>
+          <thead>
+            <tr>
+              <th>Produk</th><th>SKU / Barcode</th><th>Kategori</th>
+              <th class="admin-only">Modal</th><th>Harga jual</th><th class="admin-only">Margin</th>
+              <th>Stok</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="productTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────────────────── RESTOCK & BIAYA ───────────────────── -->
+    <section id="restockPage" class="page admin-only">
+      <div class="page-toolbar">
+        <div><h3>Restock &amp; Pengeluaran</h3><p>Menambah stok sekaligus mencatat modal yang keluar.</p></div>
+        <div style="text-align:right">
+          <span class="muted" style="font-size:11px">Total pengeluaran</span>
+          <strong id="expenseTotal" style="display:block;font-size:20px">Rp 0</strong>
         </div>
+      </div>
 
-        <div class="content-grid">
-          <section class="panel">
-            <div class="panel-head"><div><h3>Restock barang</h3><p>Stok bertambah dan biaya tercatat dalam satu aksi.</p></div></div>
-            <form id="restockForm" class="product-form">
-              <label>Produk<select id="restockProduct" required></select></label>
-              <label>Jumlah masuk<input id="restockQty" type="number" min="1" step="1" required></label>
-              <label>Harga modal baru <small class="muted">(kosongkan bila tidak berubah)</small>
-                <input id="restockModal_price" type="number" min="0" step="1" placeholder="Pakai harga modal lama">
-              </label>
-              <label>Catatan<input id="restockNote" placeholder="mis. kulakan toko grosir"></label>
-              <button class="btn btn-primary btn-block" type="submit">Simpan restock</button>
-            </form>
-          </section>
+      <div class="content-grid">
+        <section class="panel">
+          <div class="panel-head"><div><h3>Restock barang</h3><p>Stok bertambah dan biaya tercatat dalam satu aksi.</p></div></div>
+          <form id="restockForm" class="form-grid" style="margin-top:16px">
+            <label>Produk<select id="restockProduct" required></select></label>
+            <div class="form-grid form-grid-2">
+              <label>Jumlah masuk<input id="restockQty" type="number" min="1" step="1" required placeholder="0"></label>
+              <label>Harga modal baru<input id="restockModal_price" type="number" min="0" step="1" placeholder="Pakai harga lama"></label>
+            </div>
+            <label>Catatan<input id="restockNote" placeholder="mis. kulakan toko grosir"></label>
+            <button class="btn btn-primary btn-block" type="submit">Simpan restock</button>
+          </form>
+        </section>
 
-          <section class="panel">
-            <div class="panel-head"><div><h3>Pengeluaran lain</h3><p>Listrik, sewa, gaji, dan biaya operasional.</p></div></div>
-            <form id="expenseForm" class="product-form">
-              <label>Jenis
-                <select id="expenseType">
-                  <option value="operasional">Operasional</option>
-                  <option value="lainnya">Lainnya</option>
-                </select>
-              </label>
-              <label>Nominal<input id="expenseAmount" type="number" min="1" step="1" required></label>
-              <label>Catatan<input id="expenseNote" placeholder="mis. bayar listrik September"></label>
-              <button class="btn btn-secondary btn-block" type="submit">Catat pengeluaran</button>
-            </form>
-          </section>
+        <section class="panel">
+          <div class="panel-head"><div><h3>Pengeluaran lain</h3><p>Listrik, sewa, gaji, dan biaya operasional.</p></div></div>
+          <form id="expenseForm" class="form-grid" style="margin-top:16px">
+            <label>Jenis
+              <select id="expenseType">
+                <option value="operasional">Operasional</option>
+                <option value="lainnya">Lainnya</option>
+              </select>
+            </label>
+            <label>Nominal<input id="expenseAmount" type="number" min="1" step="1" required placeholder="0"></label>
+            <label>Catatan<input id="expenseNote" placeholder="mis. bayar listrik September"></label>
+            <button class="btn btn-secondary btn-block" type="submit">Catat pengeluaran</button>
+          </form>
+        </section>
+      </div>
+
+      <div class="panel table-panel" style="margin-top:14px">
+        <table>
+          <thead><tr><th>Waktu</th><th>Jenis</th><th>Produk</th><th>Qty</th><th>Nominal</th><th>Catatan</th></tr></thead>
+          <tbody id="expenseTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────────────────── RIWAYAT ───────────────────── -->
+    <section id="transaksiPage" class="page">
+      <div class="page-toolbar">
+        <div><h3>Riwayat transaksi</h3><p>Seluruh struk yang tercatat.</p></div>
+        <div class="filter-row">
+          <label>Dari<input id="trxFrom" type="date"></label>
+          <label>Sampai<input id="trxTo" type="date"></label>
+          <button id="trxFilterBtn" class="btn btn-secondary">Filter</button>
+          <button id="trxResetBtn" class="btn btn-ghost">Reset</button>
+          <button id="trxExportBtn" class="btn btn-secondary admin-only"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-download"/></svg> CSV</button>
         </div>
+      </div>
+      <div class="panel table-panel">
+        <table>
+          <thead><tr><th>No. Struk</th><th>Waktu</th><th>Kasir</th><th>Pembayaran</th><th>Item</th><th>Total</th><th>Aksi</th></tr></thead>
+          <tbody id="transactionTable"></tbody>
+        </table>
+      </div>
+    </section>
 
-        <div class="panel table-panel" style="margin-top:18px">
-          <table>
-            <thead><tr><th>Waktu</th><th>Jenis</th><th>Produk</th><th>Qty</th><th>Nominal</th><th>Catatan</th></tr></thead>
-            <tbody id="expenseTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="laporanPage" class="page">
-        <div class="page-toolbar">
-          <div><h3>Laporan</h3><p>Pemasukan, pengeluaran, dan barang terjual per periode.</p></div>
+    <!-- ───────────────────── ANALITIK ───────────────────── -->
+    <section id="laporanPage" class="page admin-only">
+      <div class="page-toolbar">
+        <div><h3>Analitik</h3><p>Pemasukan, pengeluaran, dan barang terjual per periode.</p></div>
+        <div class="filter-row">
           <label>Periode
             <select id="reportPeriod">
               <option value="week">7 hari terakhir</option>
@@ -220,121 +379,191 @@
               <option value="today">Hari ini</option>
             </select>
           </label>
+          <button id="reportExportBtn" class="btn btn-secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-download"/></svg> CSV</button>
         </div>
+      </div>
 
-        <div class="stats-grid">
-          <article class="stat-card"><span>Pemasukan</span><strong id="reportRevenue">Rp 0</strong><small>Dari transaksi</small></article>
-          <article class="stat-card"><span>Pengeluaran</span><strong id="reportExpense">Rp 0</strong><small class="warning-text">Restock + operasional</small></article>
-          <article class="stat-card"><span>Laba kotor</span><strong id="reportProfit">Rp 0</strong><small>Harga jual - modal</small></article>
-          <article class="stat-card"><span>Laba bersih</span><strong id="reportNet">Rp 0</strong><small>Setelah pengeluaran</small></article>
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Pemasukan</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg></div></div>
+          <strong id="reportRevenue">Rp 0</strong><small>Dari transaksi</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Pengeluaran</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg></div></div>
+          <strong id="reportExpense">Rp 0</strong><small class="warning-text">Restock + operasional</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Laba kotor</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-trend"/></svg></div></div>
+          <strong id="reportProfit">Rp 0</strong><small>Harga jual − modal</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Laba bersih</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg></div></div>
+          <strong id="reportNet">Rp 0</strong><small>Setelah pengeluaran</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Jumlah transaksi</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg></div></div>
+          <strong id="reportCount">0</strong><small>Struk tercetak</small>
+        </article>
+        <article class="stat-card">
+          <div class="stat-head"><span class="stat-label">Rata-rata struk</span><div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg></div></div>
+          <strong id="reportAverage">Rp 0</strong><small>Per transaksi</small>
+        </article>
+      </div>
+
+      <div class="content-grid">
+        <section class="panel table-panel">
+          <div class="panel-head" style="padding:14px 14px 0"><div><h3>Barang terjual</h3><p>Jumlah unit per produk pada periode ini.</p></div></div>
+          <table>
+            <thead><tr><th>#</th><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th></tr></thead>
+            <tbody id="soldProducts"></tbody>
+          </table>
+        </section>
+
+        <section class="panel table-panel">
+          <div class="panel-head" style="padding:14px 14px 0"><div><h3>Metode pembayaran</h3><p>Tunai, kartu, dan QRIS.</p></div></div>
+          <table>
+            <thead><tr><th>Metode</th><th>Jumlah</th><th>Nilai</th></tr></thead>
+            <tbody id="paymentBreakdown"></tbody>
+          </table>
+        </section>
+      </div>
+    </section>
+
+    <!-- ───────────────────── PENGATURAN ───────────────────── -->
+    <section id="pengaturanPage" class="page">
+      <div class="panel settings-panel">
+        <h3>Pengaturan</h3>
+        <div class="setting-row">
+          <div><strong>Nama toko</strong><p>Nama yang tampil pada dashboard dan struk.</p></div>
+          <input id="storeName" value="KasirOne Store">
         </div>
-
-        <div class="stats-grid">
-          <article class="stat-card"><span>Jumlah transaksi</span><strong id="reportCount">0</strong><small>Struk tercetak</small></article>
-          <article class="stat-card"><span>Rata-rata transaksi</span><strong id="reportAverage">Rp 0</strong><small>Per struk</small></article>
+        <div class="setting-row">
+          <div><strong>Mode aktif</strong><p>Mode demo menyimpan data di browser dan tidak menyentuh database Firebase.</p></div>
+          <span class="status-pill" id="settingMode"><i></i> Demo</span>
         </div>
-
-        <div class="content-grid">
-          <section class="panel table-panel">
-            <div class="panel-head"><div><h3>Barang terjual</h3><p>Jumlah unit per produk pada periode ini.</p></div></div>
-            <table>
-              <thead><tr><th>#</th><th>Produk</th><th>Terjual</th><th>Omzet</th><th>Laba</th></tr></thead>
-              <tbody id="soldProducts"></tbody>
-            </table>
-          </section>
-
-          <section class="panel table-panel">
-            <div class="panel-head"><div><h3>Metode pembayaran</h3><p>Tunai, kartu, dan QRIS.</p></div></div>
-            <table>
-              <thead><tr><th>Metode</th><th>Jumlah</th><th>Nilai</th></tr></thead>
-              <tbody id="paymentBreakdown"></tbody>
-            </table>
-          </section>
+        <div class="setting-row">
+          <div><strong>Pembayaran QRIS</strong><p id="qrisStatusNote">Status integrasi payment gateway.</p></div>
+          <span class="security-badge" id="qrisStatusBadge">Memeriksa…</span>
         </div>
-      </section>
-
-      <section id="pengaturanPage" class="page">
-        <div class="panel settings-panel">
-          <h3>Pengaturan</h3>
-          <div class="setting-row"><div><strong>Nama toko</strong><p>Nama yang tampil pada dashboard dan struk.</p></div><input id="storeName" value="KasirOne Store"></div>
-          <div class="setting-row"><div><strong>Mode demo</strong><p>Data demo disimpan di browser dan tidak menggantikan database Firebase.</p></div><span class="status-pill">Aktif</span></div>
-          <div class="setting-row"><div><strong>Keamanan API</strong><p>API memakai Helmet, CORS, rate limiting, dan verifikasi Firebase ID token saat Firebase Admin dikonfigurasi.</p></div><span class="security-badge">Protected</span></div>
+        <div class="setting-row">
+          <div><strong>Keamanan API</strong><p>Helmet, CORS, rate limiting, verifikasi Firebase ID token, dan transaksi atomik di server.</p></div>
+          <span class="security-badge">Protected</span>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══════════════════════════ MODAL PEMBAYARAN ══════════════════════════ -->
+<div id="paymentModal" class="modal hidden">
+  <div class="modal-card">
+    <button class="modal-close" data-close="paymentModal" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">CHECKOUT</span>
+    <h2>Pilih metode pembayaran</h2>
+    <p class="muted" style="font-size:12px;margin:4px 0 0">Total yang harus dibayar</p>
+    <div class="payment-total" id="paymentTotal">Rp 0</div>
+
+    <div class="payment-methods">
+      <button class="payment-method active" data-method="cash" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg>
+        <strong>Tunai</strong><small>Bayar di kasir</small>
+      </button>
+      <button class="payment-method" data-method="qris" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-qr"/></svg>
+        <strong>QRIS</strong><small>Scan untuk bayar</small>
+      </button>
+      <button class="payment-method" data-method="card" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-card"/></svg>
+        <strong>Kartu</strong><small>Debit / kredit</small>
+      </button>
+    </div>
+
+    <div id="cashArea" class="payment-area">
+      <label>Uang diterima<input id="cashReceived" type="number" min="0" step="500" placeholder="0" inputmode="numeric"></label>
+      <div class="change-box"><span>Kembalian</span><strong id="changeAmount">Rp 0</strong></div>
+    </div>
+
+    <div id="qrisArea" class="payment-area hidden">
+      <div class="qr-shell">
+        <div class="qr-frame" id="qrFrame"></div>
+        <div id="qrisStatus" class="qr-wait"><span class="spinner"></span> Menunggu pembayaran…</div>
+        <p class="muted" id="qrisHint" style="font-size:11px;margin:0;max-width:36ch"></p>
+      </div>
+      <label id="qrisRefWrap" style="margin-top:14px">Nomor referensi <small class="muted">(diisi otomatis bila gateway aktif)</small>
+        <input id="qrisReference" placeholder="mis. INV-88213">
+      </label>
+    </div>
+
+    <div id="cardArea" class="payment-area hidden">
+      <div class="change-box"><span>Terminal EDC siap menerima kartu</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:24px;height:24px"><use href="#i-card"/></svg></div>
+      <label style="margin-top:12px">Kode approval <small class="muted">(opsional)</small>
+        <input id="cardReference" placeholder="mis. 004512">
+      </label>
+    </div>
+
+    <button id="confirmPayment" class="btn-sparkle btn-block">
+      <span class="dots_border"></span>
+      <svg class="sparkle" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path class="path" d="M14.187 8.096 15 5.25l.813 2.846a5.2 5.2 0 0 0 3.09 3.09L21.75 12l-2.846.813a5.2 5.2 0 0 0-3.09 3.09L15 18.75l-.813-2.846a5.2 5.2 0 0 0-3.09-3.09L8.25 12l2.846-.813a5.2 5.2 0 0 0 3.09-3.09z"/>
+        <path class="path" d="m6 14.25-.259 1.035a3.4 3.4 0 0 1-2.456 2.456L2.25 18l1.035.259a3.4 3.4 0 0 1 2.456 2.456L6 21.75l.259-1.035a3.4 3.4 0 0 1 2.455-2.456L9.75 18l-1.036-.259a3.4 3.4 0 0 1-2.455-2.456z"/>
+        <path class="path" d="M6.5 4l-.197.591a1.4 1.4 0 0 1-.712.712L5 5.5l.591.197a1.4 1.4 0 0 1 .712.712L6.5 7l.197-.591a1.4 1.4 0 0 1 .712-.712L8 5.5l-.591-.197a1.4 1.4 0 0 1-.712-.712z"/>
+      </svg>
+      <span class="text_button">Konfirmasi pembayaran</span>
+    </button>
   </div>
+</div>
 
-  <div id="paymentModal" class="modal hidden">
-    <div class="modal-card payment-card">
-      <button class="modal-close" data-close="paymentModal">×</button>
-      <span class="eyebrow">CHECKOUT</span>
-      <h2>Pilih metode pembayaran</h2>
-      <p class="muted">Total yang harus dibayar</p>
-      <div class="payment-total" id="paymentTotal">Rp 0</div>
-
-      <div class="payment-methods">
-        <button class="payment-method active" data-method="cash"><span>💵</span><strong>Tunai</strong><small>Bayar di kasir</small></button>
-        <button class="payment-method" data-method="qris"><span>▦</span><strong>QRIS</strong><small>Scan kode pembayaran</small></button>
-        <button class="payment-method" data-method="card"><span>💳</span><strong>Kartu</strong><small>Debit / kartu</small></button>
-      </div>
-
-      <div id="cashArea" class="payment-area">
-        <label>Uang diterima
-          <input id="cashReceived" type="number" min="0" placeholder="0">
-        </label>
-        <div class="change-box"><span>Kembalian</span><strong id="changeAmount">Rp 0</strong></div>
-      </div>
-
-      <div id="qrisArea" class="payment-area hidden">
-        <div class="qr-demo"><div class="qr-pattern">▦</div></div>
-        <strong>QR pembayaran demo</strong>
-        <p class="muted">MVP memakai QRIS statis toko. Setelah pembeli membayar, isi nomor referensi dari aplikasi lalu konfirmasi.</p>
-        <label>Nomor referensi QRIS <small class="muted">(opsional)</small>
-          <input id="qrisReference" placeholder="mis. INV-88213">
-        </label>
-      </div>
-
-      <div id="cardArea" class="payment-area hidden">
-        <div class="card-demo">💳<span>Terminal siap menerima kartu</span></div>
-      </div>
-
-      <button id="confirmPayment" class="btn btn-primary btn-block btn-lg">Konfirmasi pembayaran</button>
+<!-- ══════════════════════════ MODAL SUKSES ══════════════════════════ -->
+<div id="successModal" class="modal hidden">
+  <div class="modal-card success-card">
+    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></div>
+    <h2>Pembayaran berhasil</h2>
+    <p id="successText" class="muted" style="font-size:12px"></p>
+    <div class="receipt-preview" id="receiptPreview"></div>
+    <div class="modal-actions">
+      <button id="printReceipt" class="btn btn-secondary">Cetak struk</button>
+      <button id="newTransaction" class="btn btn-primary">Transaksi baru</button>
     </div>
   </div>
+</div>
 
-  <div id="successModal" class="modal hidden">
-    <div class="modal-card success-card">
-      <div class="success-icon">✓</div>
-      <h2>Pembayaran berhasil</h2>
-      <p id="successText" class="muted"></p>
-      <div class="receipt-preview" id="receiptPreview"></div>
-      <div class="modal-actions">
-        <button id="printReceipt" class="btn btn-secondary">Cetak struk</button>
-        <button id="newTransaction" class="btn btn-primary">Transaksi baru</button>
-      </div>
-    </div>
-  </div>
+<!-- ══════════════════════════ MODAL PRODUK ══════════════════════════ -->
+<div id="productModal" class="modal hidden">
+  <div class="modal-card wide">
+    <button class="modal-close" data-close="productModal" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">PRODUK</span>
+    <h2 id="productModalTitle">Tambah produk</h2>
 
-  <div id="productModal" class="modal hidden">
-    <div class="modal-card">
-      <button class="modal-close" data-close="productModal">×</button>
-      <span class="eyebrow">PRODUK</span>
-      <h2>Tambah produk</h2>
-      <form id="productForm" class="product-form">
-        <label>Nama produk<input id="newName" required></label>
+    <form id="productForm" class="form-grid" style="margin-top:20px">
+      <label>Foto produk
+        <div class="image-drop" id="imageDrop">
+          <input type="file" id="productImage" accept="image/png,image/jpeg,image/webp">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-image"/></svg>
+          <span id="imageDropText">Klik atau seret foto asli produk ke sini<br><small class="faint">JPG, PNG, atau WebP — maksimal 3 MB</small></span>
+        </div>
+      </label>
+
+      <div class="form-grid form-grid-2">
+        <label>Nama produk<input id="newName" required placeholder="mis. Indomie Goreng"></label>
         <label>SKU / Barcode<input id="newSku" required placeholder="mis. 8998866200011"></label>
+      </div>
+      <div class="form-grid form-grid-2">
         <label>Kategori<input id="newCategory" value="Umum" required></label>
-        <label>Harga modal<input id="newModal" type="number" min="0" step="1" required></label>
-        <label>Harga jual<input id="newPrice" type="number" min="0" step="1" required></label>
-        <label>Stok awal<input id="newStock" type="number" min="0" step="1" required></label>
-        <label>Stok minimum <small class="muted">(ambang peringatan)</small>
-          <input id="newMinStock" type="number" min="0" step="1" value="5" required>
-        </label>
-        <button class="btn btn-primary btn-block" type="submit">Simpan produk</button>
-      </form>
-    </div>
-  </div>
+        <label>Stok awal<input id="newStock" type="number" min="0" step="1" required placeholder="0"></label>
+      </div>
+      <div class="form-grid form-grid-2">
+        <label>Harga modal<input id="newModal" type="number" min="0" step="1" required placeholder="0"></label>
+        <label>Harga jual<input id="newPrice" type="number" min="0" step="1" required placeholder="0"></label>
+      </div>
+      <label>Stok minimum <small class="muted">(ambang peringatan "menipis")</small>
+        <input id="newMinStock" type="number" min="0" step="1" value="5" required>
+      </label>
 
-  <script type="module" src="/js/main.js"></script>
+      <button class="btn btn-primary btn-block btn-lg" type="submit">Simpan produk</button>
+    </form>
+  </div>
+</div>
+
+<script type="module" src="/js/main.js"></script>
 </body>
 </html>

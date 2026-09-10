@@ -79,7 +79,10 @@ export const clearCart = () => set("cart", []);
  * Angka-angka keranjang saat ini.
  * @returns {{subtotal:number, discount:number, tax:number, total:number}}
  */
-export const cartTotals = () => computeTotals(get("cart"), { discount: get("cartDiscount") ?? 0 });
+export function cartTotals() {
+  const diskon = Math.max(0, Number(get("cartDiscount")) || 0);
+  return computeTotals(get("cart"), { discount: diskon });
+}
 
 /**
  * Payload yang dikirim ke API. Sengaja HANYA productId dan qty —
@@ -95,6 +98,8 @@ export function renderCart() {
 
   const cartCount = $("cartCount");
   if (cartCount) cartCount.textContent = `${jumlahItem} item`;
+  const navCount = $("navCartCount");
+  if (navCount) navCount.textContent = String(jumlahItem);
 
   const container = $("cartItems");
   if (container) {
@@ -114,7 +119,10 @@ export function renderCart() {
             <button class="qty-btn" data-plus="${escapeHtml(item.productId)}" aria-label="Tambah">+</button>
           </div>
         </div>`).join("")
-      : `<div class="empty-cart">Keranjang masih kosong.<br>Scan barcode atau pilih produk.</div>`;
+      : `<div class="empty-cart">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg>
+          <div>Keranjang masih kosong.<br>Scan barcode atau pilih produk.</div>
+        </div>`;
 
     container.querySelectorAll("[data-minus]").forEach((b) => {
       b.onclick = () => changeQty(b.dataset.minus, -1);
@@ -126,7 +134,6 @@ export function renderCart() {
 
   const totals = cartTotals();
   if ($("subtotal")) $("subtotal").textContent = money(totals.subtotal);
-  if ($("discount")) $("discount").textContent = money(totals.discount);
   if ($("tax")) $("tax").textContent = money(totals.tax);
   if ($("grandTotal")) $("grandTotal").textContent = money(totals.total);
   if ($("checkoutBtn")) $("checkoutBtn").disabled = cart.length === 0;

@@ -63,6 +63,10 @@ export function createLiveApi(getToken) {
     restock: (data) => request("/expenses/restock", { method: "POST", body: JSON.stringify(data) }),
     listExpenses: (filter) => request(`/expenses${qs(filter)}`),
 
-    getReport: (params) => request(`/reports${qs(params)}`)
+    getReport: (params) => request(`/reports${qs(params)}`),
+
+    paymentStatus: () => request("/payments/status"),
+    createQris: (payload) => request("/payments/qris", { method: "POST", body: JSON.stringify(payload) }),
+    qrisStatus: (orderId) => request(`/payments/qris/${encodeURIComponent(orderId)}/status`)
   };
 }

@@ -21,6 +21,7 @@ import { productsRouter } from "./routes/products.routes.js";
 import { transactionsRouter } from "./routes/transactions.routes.js";
 import { expensesRouter } from "./routes/expenses.routes.js";
 import { reportsRouter } from "./routes/reports.routes.js";
+import { paymentsRouter } from "./routes/payments.routes.js";
 import { getDb, admin } from "./services/firebase.js";
 import { requireString } from "./lib/validate.js";
 
@@ -40,7 +41,9 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: CLIENT_ORIGIN, methods: ["GET", "POST", "PATCH", "DELETE"], credentials: true }));
-app.use(express.json({ limit: "100kb" }));
+// 1 MB, bukan 100 KB: produk kini membawa foto sebagai data URL. Batas ini
+// tetap konservatif karena browser sudah mengecilkan foto ke sisi 640px.
+app.use(express.json({ limit: "1mb" }));
 
 app.use("/api", rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -78,6 +81,7 @@ app.use("/api/products", guarded, productsRouter);
 app.use("/api/transactions", guarded, transactionsRouter);
 app.use("/api/expenses", guarded, expensesRouter);
 app.use("/api/reports", guarded, reportsRouter);
+app.use("/api/payments", guarded, paymentsRouter);
 
 app.use(notFoundHandler);
 

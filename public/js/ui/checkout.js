@@ -1,10 +1,16 @@
 /**
- * Alur pembayaran (M3 + M4).
+ * Alur pembayaran.
  *
- * Titik penting: tombol "Konfirmasi" TIDAK menghitung apa pun yang mengikat.
- * Ia mengirim daftar productId + qty ke server, dan server yang menentukan
- * total, kembalian, serta apakah stok mencukupi. Angka di layar hanyalah
- * pratinjau agar kasir tahu harus menagih berapa.
+ * Dua prinsip yang menentukan seluruh isi berkas ini:
+ *
+ * 1. Tombol "Konfirmasi" TIDAK menghitung apa pun yang mengikat. Ia mengirim
+ *    daftar productId + qty; server yang menentukan total, kembalian, dan
+ *    apakah stok mencukupi. Angka di layar hanya pratinjau.
+ *
+ * 2. Aplikasi tidak boleh berpura-pura sudah menerima uang. Bila payment
+ *    gateway aktif, transaksi hanya boleh disimpan setelah gateway menyatakan
+ *    lunas. Bila tidak aktif, kasir diberi tahu gamblang bahwa verifikasi
+ *    dilakukan manual — bukan disodori QR yang terlihat sah tapi tidak menagih.
  */
 import { get, set } from "../state.js";
 import { $, $$, openModal, closeModal, showToast, showApiError, withBusy } from "./shell.js";
@@ -13,10 +19,25 @@ import { computeChange } from "../shared/money.js";
 import { cartTotals, cartItemsForApi, clearCart } from "./cart.js";
 import { getApi } from "../api/index.js";
 
+/** Status pembayaran QRIS untuk transaksi yang sedang berjalan. */
+let qris = { orderId: null, mode: null, terverifikasi: false, lunas: false };
+
+/** Pewaktu polling status; wajib dihentikan saat modal ditutup. */
+let pollTimer = null;
+
+/** Menghentikan polling dan membersihkan state QRIS. */
+function resetQris() {
+  clearInterval(pollTimer);
+  pollTimer = null;
+  qris = { orderId: null, mode: null, terverifikasi: false, lunas: false };
+  const frame = $("qrFrame");
+  if (frame) frame.innerHTML = "";
+}
+
 /** Memasang tombol pemilih metode pembayaran. */
 export function bindPaymentMethods() {
   $$(".payment-method").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       $$(".payment-method").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
@@ -25,11 +46,15 @@ export function bindPaymentMethods() {
       $("cashArea")?.classList.toggle("hidden", metode !== "cash");
       $("qrisArea")?.classList.toggle("hidden", metode !== "qris");
       $("cardArea")?.classList.toggle("hidden", metode !== "card");
+
       hitungKembalian();
+      if (metode === "qris") await siapkanQris();
+      else resetQris();
     });
   });
 
   $("cashReceived")?.addEventListener("input", hitungKembalian);
+  $$('[data-close="paymentModal"]').forEach((b) => b.addEventListener("click", resetQris));
 }
 
 /** Membuka modal pembayaran dengan total terkini. */
@@ -38,8 +63,9 @@ export function openPayment() {
     showToast("Keranjang masih kosong.", "error");
     return;
   }
-  const total = cartTotals().total;
-  if ($("paymentTotal")) $("paymentTotal").textContent = money(total);
+  resetQris();
+
+  if ($("paymentTotal")) $("paymentTotal").textContent = money(cartTotals().total);
   if ($("cashReceived")) $("cashReceived").value = "";
   hitungKembalian();
   openModal("paymentModal");
@@ -50,8 +76,82 @@ function hitungKembalian() {
   const el = $("changeAmount");
   if (!el) return;
   const diterima = Number($("cashReceived")?.value || 0);
-  const { change } = computeChange(diterima, cartTotals().total);
-  el.textContent = money(change);
+  el.textContent = money(computeChange(diterima, cartTotals().total).change);
+}
+
+/** Menampilkan baris status di area QRIS. */
+function tulisStatusQris(html, kelas = "qr-wait") {
+  const el = $("qrisStatus");
+  if (!el) return;
+  el.className = kelas;
+  el.innerHTML = html;
+}
+
+/**
+ * Meminta kode QR ke server dan menampilkannya.
+ * Semua kemungkinan hasil ditampilkan apa adanya — termasuk saat QRIS belum
+ * dikonfigurasi, supaya tidak ada QR palsu yang terlihat sah.
+ */
+async function siapkanQris() {
+  const frame = $("qrFrame");
+  const hint = $("qrisHint");
+  const orderId = `KSR-${Date.now()}`;
+
+  tulisStatusQris('<span class="spinner"></span> Menyiapkan kode QR…');
+  if (frame) frame.innerHTML = "";
+
+  try {
+    const hasil = await getApi().createQris({ amount: cartTotals().total, orderId });
+    qris = { orderId, mode: hasil.mode, terverifikasi: hasil.terverifikasi, lunas: false };
+
+    if (frame) {
+      frame.innerHTML = hasil.qrImage
+        ? `<img src="${escapeHtml(hasil.qrImage)}" alt="Kode QR pembayaran">`
+        : `<div style="color:#111;font-size:12px;font-weight:700;text-align:center;padding:14px">
+             Tidak ada kode QR<br><span style="font-weight:400">pada mode ini</span>
+           </div>`;
+    }
+    if (hint) hint.textContent = hasil.keterangan ?? "";
+
+    if (hasil.terverifikasi) {
+      tulisStatusQris('<span class="spinner"></span> Menunggu pembayaran…');
+      mulaiPolling(orderId);
+    } else {
+      tulisStatusQris("Verifikasi manual — cek mutasi sebelum menyerahkan barang.");
+    }
+  } catch (error) {
+    if (frame) frame.innerHTML = "";
+    if (hint) hint.textContent = "";
+    tulisStatusQris(escapeHtml(error.message || "Gagal menyiapkan QRIS."), "qr-wait danger-text");
+    qris = { orderId: null, mode: "gagal", terverifikasi: false, lunas: false };
+  }
+}
+
+/** Memeriksa status pembayaran berkala sampai lunas atau modal ditutup. */
+function mulaiPolling(orderId) {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    // Modal sudah ditutup atau order berganti: hentikan.
+    if ($("paymentModal")?.classList.contains("hidden") || qris.orderId !== orderId) {
+      resetQris();
+      return;
+    }
+    try {
+      const { status } = await getApi().qrisStatus(orderId);
+      if (status === "lunas") {
+        qris.lunas = true;
+        clearInterval(pollTimer);
+        tulisStatusQris("Pembayaran diterima. Silakan konfirmasi.", "qr-wait positive");
+        showToast("Pembayaran QRIS diterima.", "success");
+      } else if (status === "gagal") {
+        clearInterval(pollTimer);
+        tulisStatusQris("Pembayaran gagal atau kedaluwarsa.", "qr-wait danger-text");
+      }
+    } catch {
+      // Kegagalan sesaat saat polling tidak perlu mengganggu kasir;
+      // percobaan berikutnya akan mencoba lagi.
+    }
+  }, 3000);
 }
 
 /**
@@ -59,13 +159,11 @@ function hitungKembalian() {
  * @param {HTMLButtonElement} [tombol] tombol pemicu, dinonaktifkan selama proses
  */
 export async function confirmPayment(tombol) {
-  const cart = get("cart");
-  if (cart.length === 0) return;
+  if (get("cart").length === 0) return;
 
   const paymentMethod = get("paymentMethod");
   const total = cartTotals().total;
 
-  // Pengecekan awal di klien hanya demi umpan balik cepat.
   if (paymentMethod === "cash") {
     const diterima = Number($("cashReceived")?.value || 0);
     if (!computeChange(diterima, total).sufficient) {
@@ -74,19 +172,38 @@ export async function confirmPayment(tombol) {
     }
   }
 
+  if (paymentMethod === "qris") {
+    if (qris.mode === "gagal" || !qris.orderId) {
+      showToast("QRIS belum siap. Pilih metode lain atau coba lagi.", "error");
+      return;
+    }
+    // Bila gateway aktif, kita PUNYA cara memastikan pembayaran — maka
+    // transaksi tidak boleh disimpan sebelum benar-benar lunas.
+    if (qris.terverifikasi && !qris.lunas) {
+      showToast("Pembayaran belum diterima gateway. Tunggu sampai statusnya lunas.", "error");
+      return;
+    }
+  }
+
   const payload = {
     items: cartItemsForApi(),
     paymentMethod,
-    discount: get("cartDiscount") ?? 0,
+    discount: Math.max(0, Number(get("cartDiscount")) || 0),
     cashReceived: paymentMethod === "cash" ? Number($("cashReceived")?.value || 0) : undefined,
-    qrisReference: paymentMethod === "qris" ? ($("qrisReference")?.value.trim() || null) : null
+    qrisReference: paymentMethod === "qris" ? (qris.orderId || $("qrisReference")?.value.trim() || null) : null,
+    cardReference: paymentMethod === "card" ? ($("cardReference")?.value.trim() || null) : null
   };
 
   await withBusy(tombol, async () => {
     try {
       const trx = await getApi().createTransaction(payload);
       set("lastTransaction", trx);
+
       clearCart();
+      set("cartDiscount", 0);
+      if ($("cartDiscount")) $("cartDiscount").value = "0";
+
+      resetQris();
       closeModal("paymentModal");
       tampilkanStruk(trx);
       document.dispatchEvent(new CustomEvent("kasirone:transaksi-selesai"));
@@ -104,37 +221,45 @@ export async function confirmPayment(tombol) {
  */
 export function tampilkanStruk(trx) {
   const nomor = trx.receiptNumber ?? trx.id;
+  const namaToko = $("storeName")?.value?.trim() || "KasirOne Store";
+
   if ($("successText")) {
-    $("successText").textContent = `${nomor} \u00B7 ${labelMetode(trx.paymentMethod)} \u00B7 ${money(trx.total)}`;
+    $("successText").textContent = `${nomor} · ${labelMetode(trx.paymentMethod)} · ${money(trx.total)}`;
   }
 
-  const barisItem = (trx.lines ?? []).map((l) => `
-    <div style="display:flex;justify-content:space-between;gap:10px">
-      <span>${escapeHtml(l.name)} &times;${l.qty}</span>
-      <span>${money(l.hargaJual * l.qty)}</span>
-    </div>`).join("");
+  const baris = (kiri, kanan, tebal = false) => {
+    const buka = tebal ? "<strong>" : "";
+    const tutup = tebal ? "</strong>" : "";
+    return `<div class="receipt-line"><span>${buka}${kiri}${tutup}</span><span>${buka}${kanan}${tutup}</span></div>`;
+  };
 
-  const barisKembalian = trx.paymentMethod === "cash" ? `
-    <div style="display:flex;justify-content:space-between"><span>Tunai</span><span>${money(trx.cashReceived)}</span></div>
-    <div style="display:flex;justify-content:space-between"><strong>Kembalian</strong><strong>${money(trx.change)}</strong></div>` : "";
+  const item = (trx.lines ?? [])
+    .map((l) => baris(`${escapeHtml(l.name)} &times;${l.qty}`, money(l.hargaJual * l.qty)))
+    .join("");
+
+  const tunai = trx.paymentMethod === "cash"
+    ? baris("Tunai", money(trx.cashReceived)) + baris("Kembalian", money(trx.change), true)
+    : "";
+
+  const referensi = trx.qrisReference || trx.cardReference;
 
   if ($("receiptPreview")) {
     $("receiptPreview").innerHTML = `
-      <strong>KasirOne Store</strong><br>
+      <strong>${escapeHtml(namaToko)}</strong><br>
       ${escapeHtml(nomor)}<br>
-      ${tanggal(trx.createdAt)}<br>
+      ${escapeHtml(tanggal(trx.createdAt))}<br>
       Kasir: ${escapeHtml(trx.cashierName ?? "-")}
       <hr>
-      ${barisItem}
+      ${item}
       <hr>
-      <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span>${money(trx.subtotal)}</span></div>
-      <div style="display:flex;justify-content:space-between"><span>Diskon</span><span>${money(trx.discount)}</span></div>
-      <div style="display:flex;justify-content:space-between"><span>Pajak</span><span>${money(trx.tax)}</span></div>
-      <div style="display:flex;justify-content:space-between"><strong>Total</strong><strong>${money(trx.total)}</strong></div>
-      ${barisKembalian}
+      ${baris("Subtotal", money(trx.subtotal))}
+      ${baris("Diskon", money(trx.discount))}
+      ${baris("Pajak", money(trx.tax))}
+      ${baris("Total", money(trx.total), true)}
+      ${tunai}
       <hr>
-      Pembayaran: ${labelMetode(trx.paymentMethod)}
-      ${trx.qrisReference ? `<br>Ref QRIS: ${escapeHtml(trx.qrisReference)}` : ""}`;
+      ${baris("Pembayaran", escapeHtml(labelMetode(trx.paymentMethod)))}
+      ${referensi ? baris("Referensi", escapeHtml(referensi)) : ""}`;
   }
 
   openModal("successModal");

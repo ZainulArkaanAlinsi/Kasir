@@ -19,16 +19,16 @@ const KEY = {
 
 /** Barcode memakai format EAN-13 agar realistis saat diuji dengan scanner asli. */
 const SEED_PRODUCTS = [
-  { name: "Indomie Goreng", sku: "8998866200011", category: "Makanan", hargaJual: 3500, hargaModal: 2800, stok: 42, stokMinimum: 10, icon: "\u{1F35C}" },
-  { name: "Teh Botol Sosro", sku: "8998866200028", category: "Minuman", hargaJual: 4500, hargaModal: 3600, stok: 28, stokMinimum: 10, icon: "\u{1F9C3}" },
-  { name: "Aqua 600ml", sku: "8998866200035", category: "Minuman", hargaJual: 4000, hargaModal: 3100, stok: 18, stokMinimum: 12, icon: "\u{1F4A7}" },
-  { name: "Roti Cokelat", sku: "8998866200042", category: "Makanan", hargaJual: 8500, hargaModal: 6200, stok: 12, stokMinimum: 8, icon: "\u{1F35E}" },
-  { name: "Chitato Original", sku: "8998866200059", category: "Snack", hargaJual: 11500, hargaModal: 9000, stok: 8, stokMinimum: 10, icon: "\u{1F954}" },
-  { name: "SilverQueen", sku: "8998866200066", category: "Snack", hargaJual: 13000, hargaModal: 10500, stok: 25, stokMinimum: 8, icon: "\u{1F36B}" },
-  { name: "Top Kopi Aren", sku: "8998866200073", category: "Minuman", hargaJual: 6500, hargaModal: 4800, stok: 40, stokMinimum: 15, icon: "\u{2615}" },
-  { name: "Susu UHT", sku: "8998866200080", category: "Minuman", hargaJual: 7500, hargaModal: 5900, stok: 14, stokMinimum: 10, icon: "\u{1F95B}" },
-  { name: "Tissue Soft", sku: "8998866200097", category: "Rumah", hargaJual: 9500, hargaModal: 7200, stok: 5, stokMinimum: 8, icon: "\u{1F9FB}" },
-  { name: "Sabun Cair", sku: "8998866200103", category: "Rumah", hargaJual: 14000, hargaModal: 11000, stok: 17, stokMinimum: 6, icon: "\u{1F9F4}" }
+  { name: "Indomie Goreng", sku: "8998866200011", category: "Makanan", hargaJual: 3500, hargaModal: 2800, stok: 42, stokMinimum: 10 },
+  { name: "Teh Botol Sosro", sku: "8998866200028", category: "Minuman", hargaJual: 4500, hargaModal: 3600, stok: 28, stokMinimum: 10 },
+  { name: "Aqua 600ml", sku: "8998866200035", category: "Minuman", hargaJual: 4000, hargaModal: 3100, stok: 18, stokMinimum: 12 },
+  { name: "Roti Cokelat", sku: "8998866200042", category: "Makanan", hargaJual: 8500, hargaModal: 6200, stok: 12, stokMinimum: 8 },
+  { name: "Chitato Original", sku: "8998866200059", category: "Snack", hargaJual: 11500, hargaModal: 9000, stok: 8, stokMinimum: 10 },
+  { name: "SilverQueen", sku: "8998866200066", category: "Snack", hargaJual: 13000, hargaModal: 10500, stok: 25, stokMinimum: 8 },
+  { name: "Top Kopi Aren", sku: "8998866200073", category: "Minuman", hargaJual: 6500, hargaModal: 4800, stok: 40, stokMinimum: 15 },
+  { name: "Susu UHT", sku: "8998866200080", category: "Minuman", hargaJual: 7500, hargaModal: 5900, stok: 14, stokMinimum: 10 },
+  { name: "Tissue Soft", sku: "8998866200097", category: "Rumah", hargaJual: 9500, hargaModal: 7200, stok: 5, stokMinimum: 8 },
+  { name: "Sabun Cair", sku: "8998866200103", category: "Rumah", hargaJual: 14000, hargaModal: 11000, stok: 17, stokMinimum: 6 }
 ];
 
 const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -111,6 +111,29 @@ export function createDemoApi() {
 
     listProducts: async () => getProducts().filter((p) => p.aktif !== false),
 
+    /**
+     * Mode demo sengaja TIDAK memalsukan QR pembayaran. Menampilkan kode QR
+     * yang terlihat sungguhan padahal tidak menagih apa pun adalah cara
+     * tercepat membuat orang mengira uangnya sudah masuk.
+     */
+    paymentStatus: async () => ({
+      mode: "demo",
+      terverifikasi: false,
+      lingkungan: "-",
+      keterangan: "Mode demo: tidak ada pembayaran sungguhan. QRIS dicatat sebagai simulasi tanpa kode QR."
+    }),
+
+    createQris: async ({ orderId }) => ({
+      mode: "demo",
+      orderId,
+      qrImage: null,
+      terverifikasi: false,
+      keterangan: "Mode demo — tidak ada uang yang berpindah.",
+      expiresAt: null
+    }),
+
+    qrisStatus: async () => ({ status: "tidak-diketahui", raw: "demo" }),
+
     findBySku: async (sku) => {
       const kode = String(sku).trim();
       const found = getProducts().find((p) => p.sku === kode && p.aktif !== false);
@@ -126,7 +149,7 @@ export function createDemoApi() {
       if (Number(data.hargaJual) < Number(data.hargaModal)) {
         throw apiError("Harga jual tidak boleh lebih kecil dari harga modal.", "PRICE_BELOW_COST");
       }
-      const product = { id: idBaru(), aktif: true, icon: "\u{1F4E6}", ...data };
+      const product = { id: idBaru(), aktif: true, ...data };
       tulis(KEY.products, [product, ...products]);
       return product;
     },
@@ -158,7 +181,7 @@ export function createDemoApi() {
      * Meniru validasi server: harga dibaca dari "database" lokal (bukan dari
      * argumen), stok dicek lebih dulu, baru dikurangi.
      */
-    createTransaction: async ({ items, paymentMethod, cashReceived, discount = 0, qrisReference = null }) => {
+    createTransaction: async ({ items, paymentMethod, cashReceived, discount = 0, qrisReference = null, cardReference = null }) => {
       const products = getProducts();
       const lines = [];
       const kurang = [];
@@ -214,6 +237,7 @@ export function createDemoApi() {
         cashReceived: paymentMethod === "cash" ? cashReceived : null,
         change,
         qrisReference: paymentMethod === "qris" ? qrisReference : null,
+        cardReference: paymentMethod === "card" ? cardReference : null,
         ...totals,
         itemCount: lines.reduce((sum, l) => sum + l.qty, 0),
         lines,

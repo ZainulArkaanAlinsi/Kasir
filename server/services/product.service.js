@@ -11,6 +11,12 @@ import { requireNumber, requireString } from "../lib/validate.js";
 import { isLowStock, STOK_MINIMUM_DEFAULT } from "../../public/js/shared/product.js";
 
 /**
+ * Batas panjang string foto (~500 KB base64).
+ * Dokumen Firestore maksimal 1 MB; sisanya disediakan untuk field lain.
+ */
+const MAKS_PANJANG_FOTO = 700000;
+
+/**
  * Memvalidasi & menormalkan payload produk.
  * @param {object} body
  * @param {boolean} partial true untuk update (field boleh sebagian)
@@ -27,14 +33,39 @@ function normalizeProduct(body, partial = false) {
   if (!partial || has("hargaModal")) out.hargaModal = requireNumber(body?.hargaModal, "Harga modal", { min: 0, integer: true });
   if (!partial || has("stok")) out.stok = requireNumber(body?.stok, "Stok", { min: 0, integer: true });
   if (!partial || has("stokMinimum")) out.stokMinimum = requireNumber(body?.stokMinimum ?? STOK_MINIMUM_DEFAULT, "Stok minimum", { min: 0, integer: true });
-  if (has("icon")) out.icon = requireString(body.icon, "Ikon", { max: 8 });
   if (has("aktif")) out.aktif = Boolean(body.aktif);
+  if (has("imageUrl")) out.imageUrl = normalizeImage(body.imageUrl);
 
   // Aturan bisnis: menjual di bawah modal biasanya salah input, bukan niat.
   if (out.hargaJual !== undefined && out.hargaModal !== undefined && out.hargaJual < out.hargaModal) {
     throw badRequest("Harga jual tidak boleh lebih kecil dari harga modal.", "PRICE_BELOW_COST");
   }
   return out;
+}
+
+/**
+ * Memvalidasi foto produk.
+ *
+ * Yang diterima hanya data URL gambar (hasil pengecilan di browser) atau URL
+ * https bila toko memakai CDN sendiri. Skema lain ditolak karena string
+ * seperti `javascript:` akan langsung dieksekusi begitu dipasang ke atribut
+ * src pada halaman admin.
+ *
+ * @param {unknown} value
+ * @returns {string|null}
+ */
+function normalizeImage(value) {
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") throw badRequest("Foto produk tidak valid.");
+
+  const aman = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value)
+    || /^https:\/\/\S+$/.test(value);
+  if (!aman) throw badRequest("Foto harus gambar JPG/PNG/WebP atau tautan https.", "BAD_IMAGE");
+
+  if (value.length > MAKS_PANJANG_FOTO) {
+    throw badRequest("Foto terlalu besar. Kecilkan dulu sebelum diunggah.", "IMAGE_TOO_LARGE");
+  }
+  return value;
 }
 
 /** SKU wajib unik karena dipakai sebagai nilai barcode saat scan. */
@@ -70,7 +101,7 @@ export async function createProduct(body, adminUid) {
   const ref = getDb().collection("products").doc();
   await ref.set({
     ...data,
-    icon: data.icon ?? "📦",
+    imageUrl: data.imageUrl ?? null,
     aktif: data.aktif ?? true,
     createdBy: adminUid,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),

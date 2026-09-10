@@ -56,10 +56,47 @@ export async function refreshDashboard() {
     if ($("statProfit")) $("statProfit").textContent = money(report.labaKotor);
 
     renderChart(report.grafikHarian);
+    renderStokMenipis(produk);
     await renderAktivitasTerbaru();
   } catch (error) {
     showApiError(error);
   }
+}
+
+/**
+ * Daftar produk yang perlu direstock, diurutkan dari yang paling mendesak.
+ * Ini menjawab kebutuhan "kalau menipis kelihatan" tanpa harus membuka
+ * halaman Produk dan memindai satu per satu.
+ *
+ * @param {Array<object>} produk
+ */
+function renderStokMenipis(produk) {
+  const container = $("lowStockList");
+  if (!container) return;
+
+  const menipis = produk
+    .filter(isLowStock)
+    .sort((a, b) => (Number(a.stok) || 0) - (Number(b.stok) || 0))
+    .slice(0, 6);
+
+  if (menipis.length === 0) {
+    container.innerHTML = `<p class="muted" style="padding:10px 8px">Semua stok aman.</p>`;
+    return;
+  }
+
+  container.innerHTML = menipis.map((p) => {
+    const stok = Number(p.stok) || 0;
+    const kelas = stok <= 0 ? "out-badge" : "low-badge";
+    const label = stok <= 0 ? "Habis" : `Sisa ${angka(stok)}`;
+    return `
+      <div class="activity">
+        <div>
+          <strong>${escapeHtml(p.name)}</strong>
+          <span>Ambang minimum ${angka(p.stokMinimum ?? 5)}</span>
+        </div>
+        <span class="badge ${kelas}">${label}</span>
+      </div>`;
+  }).join("");
 }
 
 /** Daftar transaksi terbaru di panel kanan dashboard. */

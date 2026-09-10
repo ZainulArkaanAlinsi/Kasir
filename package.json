@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --watch server/server.js",
     "start": "node server/server.js",
-    "test": "node --test test/money.test.js test/report.test.js test/demo.test.js",
+    "test": "node --test test/money.test.js test/report.test.js test/demo.test.js test/payment.test.js",
     "test:emulator": "firebase emulators:exec --only firestore \"node --test test/transaction.emulator.test.js\"",
     "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
     "test:all": "npm run test && npm run test:emulator && npm run test:rules",
@@ -19,7 +19,8 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
     "firebase-admin": "^13.5.0",
-    "helmet": "^8.1.0"
+    "helmet": "^8.1.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
