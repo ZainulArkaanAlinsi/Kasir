@@ -516,17 +516,17 @@ select option { background: var(--bg-2); color: var(--text); }
 .hero-card {
   position: relative;
   overflow: hidden;
-  padding: 30px 34px;
+  padding: 22px 26px;
   border-radius: var(--r-xl);
   background:
     radial-gradient(700px 300px at 88% -30%, rgba(255, 107, 82, .5), transparent 65%),
     linear-gradient(115deg, #b0122a, #ff2e43 55%, #ff6b52);
   box-shadow: 0 22px 50px -22px var(--brand-glow), var(--lift);
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  min-height: 186px;
+  flex-wrap: wrap;
 }
-.hero-card h1 { font-size: 30px; margin: 8px 0 6px; letter-spacing: -.02em; }
-.hero-card p { margin: 0 0 20px; opacity: .9; max-width: 46ch; }
+.hero-card h1 { font-size: 24px; margin: 6px 0 4px; letter-spacing: -.02em; }
+.hero-card p { margin: 0; opacity: .88; max-width: 52ch; font-size: 13px; }
 .hero-kicker { font-size: 10px; font-weight: 800; letter-spacing: .18em; opacity: .82; }
 .hero-orb {
   width: 148px; height: 148px;
@@ -579,7 +579,7 @@ select option { background: var(--bg-2); color: var(--text); }
 .stat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stat-label { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
 .stat-card strong { display: block; font-size: 26px; font-weight: 800; margin: 10px 0 4px; letter-spacing: -.02em; }
-.stat-card small { font-size: 11px; color: var(--faint); }
+.stat-card small { font-size: 11px; color: var(--faint); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .stat-ico {
   width: 32px; height: 32px;
   display: grid; place-items: center;

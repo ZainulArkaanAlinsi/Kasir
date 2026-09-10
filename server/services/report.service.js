@@ -33,6 +33,83 @@ export function resolvePeriod(period, now = new Date()) {
 }
 
 /**
+ * Menghitung selisih relatif antara dua angka.
+ *
+ * Kasus nol ditangani eksplisit karena pembagian dengan nol menghasilkan
+ * Infinity, dan "naik tak terhingga persen" tidak berarti apa pun bagi
+ * pemilik toko. Bila periode sebelumnya nol, kita hanya menyatakan ada
+ * kenaikan tanpa persentase.
+ *
+ * @param {number} sekarang
+ * @param {number} sebelumnya
+ * @returns {{persen:number|null, arah:"naik"|"turun"|"tetap"}}
+ */
+export function bandingkan(sekarang, sebelumnya) {
+  const a = Number(sekarang) || 0;
+  const b = Number(sebelumnya) || 0;
+
+  if (a === b) return { persen: 0, arah: "tetap" };
+  if (b === 0) return { persen: null, arah: "naik" };
+
+  const persen = Math.round(((a - b) / Math.abs(b)) * 100);
+  return { persen, arah: persen >= 0 ? "naik" : "turun" };
+}
+
+/**
+ * Rentang periode tepat SEBELUM rentang yang diberikan, dengan panjang sama.
+ * Dipakai agar "naik 12%" punya arti: dibandingkan tujuh hari sebelumnya,
+ * bukan angka karangan.
+ *
+ * @param {{from:Date, to:Date}} range
+ * @returns {{from:Date, to:Date}}
+ */
+function periodeSebelumnya(range) {
+  const durasi = range.to.getTime() - range.from.getTime();
+  return {
+    from: new Date(range.from.getTime() - durasi - 1),
+    to: new Date(range.from.getTime() - 1)
+  };
+}
+
+/**
+ * Angka ringkas satu periode. Sengaja hanya menjumlah, tanpa agregasi produk,
+ * karena dipakai sebagai pembanding, bukan untuk ditampilkan utuh.
+ *
+ * @param {{from:Date, to:Date}} range
+ * @returns {Promise<{pemasukan:number, pengeluaran:number, labaKotor:number, jumlahTransaksi:number, totalItemTerjual:number}>}
+ */
+async function ringkasPeriode(range) {
+  const db = getDb();
+  const [trxSnap, expSnap] = await Promise.all([
+    db.collection("transactions")
+      .where("createdAt", ">=", range.from).where("createdAt", "<=", range.to).get(),
+    db.collection("expenses")
+      .where("createdAt", ">=", range.from).where("createdAt", "<=", range.to).get()
+  ]);
+
+  let pemasukan = 0;
+  let labaKotor = 0;
+  let totalItemTerjual = 0;
+
+  for (const doc of trxSnap.docs) {
+    const trx = doc.data();
+    pemasukan += Number(trx.total) || 0;
+    for (const line of trx.lines ?? []) {
+      totalItemTerjual += Number(line.qty) || 0;
+      labaKotor += lineProfit(line);
+    }
+  }
+
+  return {
+    pemasukan,
+    pengeluaran: expSnap.docs.reduce((sum, d) => sum + (Number(d.data().amount) || 0), 0),
+    labaKotor,
+    jumlahTransaksi: trxSnap.size,
+    totalItemTerjual
+  };
+}
+
+/**
  * Laporan lengkap satu periode: pemasukan, pengeluaran, laba, produk terlaris.
  *
  * @param {{from:Date, to:Date}} range
@@ -106,7 +183,18 @@ export async function buildReport(range) {
 
   const jumlahTransaksi = trxSnap.size;
 
+  // Pembanding terhadap periode sebelumnya yang panjangnya sama.
+  const lalu = await ringkasPeriode(periodeSebelumnya(range));
+  const perbandingan = {
+    pemasukan: bandingkan(pemasukan, lalu.pemasukan),
+    pengeluaran: bandingkan(pengeluaran, lalu.pengeluaran),
+    labaKotor: bandingkan(labaKotor, lalu.labaKotor),
+    jumlahTransaksi: bandingkan(jumlahTransaksi, lalu.jumlahTransaksi),
+    totalItemTerjual: bandingkan(totalItemTerjual, lalu.totalItemTerjual)
+  };
+
   return {
+    perbandingan,
     range: { from: range.from.toISOString(), to: range.to.toISOString() },
     pemasukan,
     pengeluaran,

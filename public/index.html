@@ -146,11 +146,13 @@
       <div class="hero-card">
         <div>
           <span class="hero-kicker">SELAMAT DATANG</span>
-          <h1>Kelola toko lebih cepat.</h1>
-          <p>Scan barcode, catat modal, pantau stok menipis, dan lihat laba dalam satu layar.</p>
-          <button class="btn" data-go="kasir" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff">Mulai transaksi →</button>
+          <h1 id="heroGreeting">Kelola toko lebih cepat.</h1>
+          <p id="heroSub">Scan barcode, catat modal, dan pantau laba dalam satu layar.</p>
         </div>
-        <div class="hero-orb">POS</div>
+        <button class="btn" data-go="kasir" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);color:#fff;padding:13px 22px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-plus"/></svg>
+          Mulai transaksi
+        </button>
       </div>
 
       <div class="stats-grid">
@@ -160,7 +162,7 @@
             <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg></div>
           </div>
           <strong id="statSales">Rp 0</strong>
-          <small>Periode terpilih</small>
+          <small id="trendSales">Periode terpilih</small>
         </article>
         <article class="stat-card">
           <div class="stat-head">
@@ -168,7 +170,7 @@
             <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg></div>
           </div>
           <strong id="statTransactions">0</strong>
-          <small>Jumlah struk</small>
+          <small id="trendTransactions">Jumlah struk</small>
         </article>
         <article class="stat-card">
           <div class="stat-head">
@@ -176,7 +178,7 @@
             <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg></div>
           </div>
           <strong id="statItems">0</strong>
-          <small>Total unit</small>
+          <small id="trendItems">Total unit</small>
         </article>
         <article class="stat-card admin-only">
           <div class="stat-head">
@@ -184,7 +186,7 @@
             <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-trend"/></svg></div>
           </div>
           <strong id="statProfit">Rp 0</strong>
-          <small class="positive">Setelah harga modal</small>
+          <small id="trendProfit">Setelah harga modal</small>
         </article>
         <article class="stat-card">
           <div class="stat-head">
@@ -199,7 +201,7 @@
       <div class="content-grid">
         <section class="panel">
           <div class="panel-head">
-            <div><h3>Penjualan</h3><p>Nilai transaksi per hari</p></div>
+            <div><h3>Penjualan</h3><p id="chartSummary">Nilai transaksi per hari</p></div>
             <select id="chartPeriod" style="max-width:140px">
               <option value="week">7 hari</option>
               <option value="month">30 hari</option>

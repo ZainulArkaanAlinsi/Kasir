@@ -5,7 +5,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { resolvePeriod } from "../server/services/report.service.js";
+import { resolvePeriod, bandingkan } from "../server/services/report.service.js";
 import { lineProfit } from "../public/js/shared/money.js";
 
 const acuan = new Date("2026-09-10T14:30:00");
@@ -64,4 +64,33 @@ test("laba bersih = laba kotor - pengeluaran, boleh negatif", () => {
   const labaKotor = 84100;
   const pengeluaran = 120000; // restock besar bulan ini
   assert.equal(labaKotor - pengeluaran, -35900);
+});
+
+test("tren: kenaikan dan penurunan dihitung terhadap periode sebelumnya", () => {
+  assert.deepEqual(bandingkan(120, 100), { persen: 20, arah: "naik" });
+  assert.deepEqual(bandingkan(80, 100), { persen: -20, arah: "turun" });
+  assert.deepEqual(bandingkan(100, 100), { persen: 0, arah: "tetap" });
+});
+
+test("tren: periode sebelumnya nol TIDAK menghasilkan Infinity", () => {
+  const r = bandingkan(50000, 0);
+  assert.equal(r.persen, null, "persentase harus null, bukan Infinity");
+  assert.equal(r.arah, "naik");
+  assert.ok(Number.isFinite(r.persen) === false);
+});
+
+test("tren: dua-duanya nol dianggap tetap, bukan naik", () => {
+  assert.deepEqual(bandingkan(0, 0), { persen: 0, arah: "tetap" });
+});
+
+test("tren: pembanding negatif memakai nilai mutlak agar arah tidak terbalik", () => {
+  // Laba minggu lalu -100 (rugi), minggu ini -50 (rugi lebih kecil) = membaik.
+  const r = bandingkan(-50, -100);
+  assert.equal(r.arah, "naik");
+  assert.equal(r.persen, 50);
+});
+
+test("tren: input kotor tidak meledak", () => {
+  assert.deepEqual(bandingkan(undefined, undefined), { persen: 0, arah: "tetap" });
+  assert.deepEqual(bandingkan("abc", 100), { persen: -100, arah: "turun" });
 });

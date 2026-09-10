@@ -33,6 +33,24 @@ const SEED_PRODUCTS = [
 
 const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
+/**
+ * Selisih relatif dua angka. Aturannya harus sama persis dengan
+ * bandingkan() di server/services/report.service.js, jika tidak angka di
+ * mode demo dan mode live akan berbeda untuk data yang sama.
+ *
+ * @param {number} sekarang
+ * @param {number} sebelumnya
+ * @returns {{persen:number|null, arah:"naik"|"turun"|"tetap"}}
+ */
+function bandingkan(sekarang, sebelumnya) {
+  const a = Number(sekarang) || 0;
+  const b = Number(sebelumnya) || 0;
+  if (a === b) return { persen: 0, arah: "tetap" };
+  if (b === 0) return { persen: null, arah: "naik" };
+  const persen = Math.round(((a - b) / Math.abs(b)) * 100);
+  return { persen, arah: persen >= 0 ? "naik" : "turun" };
+}
+
 const baca = (key, fallback) => {
   try {
     const raw = JSON.parse(localStorage.getItem(key));
@@ -333,6 +351,32 @@ export function createDemoApi() {
 
       const pengeluaran = exp.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
+      // Periode sebelumnya dengan panjang sama, untuk badge tren.
+      const durasi = end.getTime() - start.getTime();
+      const laluMulai = new Date(start.getTime() - durasi - 1);
+      const laluSelesai = new Date(start.getTime() - 1);
+
+      let laluPemasukan = 0;
+      let laluLaba = 0;
+      let laluItem = 0;
+      let laluTrx = 0;
+      for (const t of getTrx()) {
+        const d = new Date(t.createdAt);
+        if (d < laluMulai || d > laluSelesai) continue;
+        laluTrx += 1;
+        laluPemasukan += Number(t.total) || 0;
+        for (const line of t.lines ?? []) {
+          laluItem += Number(line.qty) || 0;
+          laluLaba += lineProfit(line);
+        }
+      }
+      const laluPengeluaran = getExp()
+        .filter((e) => {
+          const d = new Date(e.createdAt);
+          return d >= laluMulai && d <= laluSelesai;
+        })
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
       const grafikHarian = [];
       for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const kunci = d.toISOString().slice(0, 10);
@@ -341,6 +385,13 @@ export function createDemoApi() {
 
       return {
         range: { from: start.toISOString(), to: end.toISOString() },
+        perbandingan: {
+          pemasukan: bandingkan(pemasukan, laluPemasukan),
+          pengeluaran: bandingkan(pengeluaran, laluPengeluaran),
+          labaKotor: bandingkan(labaKotor, laluLaba),
+          jumlahTransaksi: bandingkan(trx.length, laluTrx),
+          totalItemTerjual: bandingkan(totalItemTerjual, laluItem)
+        },
         pemasukan,
         pengeluaran,
         labaKotor,
