@@ -238,7 +238,12 @@ select {
   pointer-events: none; transform-origin: left top;
   transition: transform .2s var(--ease), color .2s;
 }
+/* :-webkit-autofill ikut disebut karena saat Chrome menawarkan sandi
+   tersimpan, nilainya sudah tergambar di layar tetapi BELUM masuk ke DOM —
+   :placeholder-shown masih true, label tetap di posisi bawah, dan teksnya
+   bertumpuk dengan email yang ditawarkan. */
 .field > input:focus ~ .field-label,
+.field > input:-webkit-autofill ~ .field-label,
 .field > input:not(:placeholder-shown) ~ .field-label {
   transform: translateY(-11px) scale(.78);
   color: var(--accent);
