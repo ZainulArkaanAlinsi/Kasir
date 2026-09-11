@@ -1,0 +1,20 @@
+# Apa pun di sini tidak ikut masuk image. Selain memperkecil ukuran, ini juga
+# pagar keamanan: serviceAccountKey.json dan .env TIDAK BOLEH ikut terbawa,
+# karena kredensial di Cloud Run disuntikkan lewat Secret Manager saat jalan.
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.*
+serviceAccountKey.json
+*.log
+test
+docs
+firestore.rules
+firestore.indexes.json
+firebase.json
+.firebase
+Dockerfile
+.dockerignore
+README.md

@@ -16,6 +16,7 @@ import { refreshReport } from "./ui/reports.js";
 import { refreshTransactions, bindTransactionFilters } from "./ui/transactions.js";
 import { refreshExpenses, bindExpenseForms, bukaRestock, isiPilihanProduk } from "./ui/restock.js";
 import { attachBarcodeListener, handleScan } from "./ui/barcode.js";
+import { kameraDidukung, mulaiPindai, hentikanPindai } from "./ui/camera-scan.js";
 import { getApi } from "./api/index.js";
 import { refreshSettings, bindSettings } from "./ui/settings.js";
 import { eksporTransaksi, eksporLaporan } from "./ui/export-csv.js";
@@ -107,6 +108,50 @@ function bindKasir() {
   attachBarcodeListener((kode) => {
     if (get("activePage") !== "kasir") setPage("kasir");
     handleScan(kode, getApi(), addToCart);
+  });
+
+  bindKamera();
+}
+
+/**
+ * Pindai lewat kamera, sebagai cadangan bagi toko yang belum punya scanner USB.
+ * Tombolnya hanya dimunculkan bila peramban benar-benar mendukung — memunculkan
+ * tombol yang selalu menolak saat ditekan lebih membingungkan daripada tidak
+ * ada tombol sama sekali.
+ */
+function bindKamera() {
+  const tombol = $("tombolKamera");
+  if (!tombol || !kameraDidukung()) return;
+
+  tombol.classList.remove("hidden");
+
+  const tutup = () => {
+    hentikanPindai();
+    closeModal("modalKamera");
+  };
+
+  tombol.addEventListener("click", async () => {
+    openModal("modalKamera");
+    const status = $("statusKamera");
+    if (status) status.textContent = "Menyalakan kamera…";
+
+    try {
+      await mulaiPindai($("videoKamera"), (kode) => {
+        tutup();
+        handleScan(kode, getApi(), addToCart);
+      });
+      if (status) status.textContent = "Arahkan barcode ke dalam bingkai.";
+    } catch (error) {
+      if (status) status.textContent = error.message;
+    }
+  });
+
+  $("tutupKamera")?.addEventListener("click", tutup);
+  // Kamera WAJIB dimatikan saat modal ditutup lewat jalur mana pun,
+  // kalau tidak lampunya tetap menyala dan baterai terkuras diam-diam.
+  document.querySelector('[data-close="modalKamera"]')?.addEventListener("click", tutup);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("modalKamera")?.classList.contains("hidden")) tutup();
   });
 }
 

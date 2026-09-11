@@ -57,7 +57,7 @@ footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #14171f; fon
     <tr><td><strong>Project Firebase</strong><br>Tanpa ini seluruh jalur produksi tidak pernah berjalan sekali pun</td><td><span class="pill p-anda">Anda</span></td><td>15 menit</td></tr>
     <tr><td><strong>Akun Midtrans</strong><br>Tanpa ini QRIS hanya menolak dengan jujur, tidak menagih</td><td><span class="pill p-anda">Anda</span></td><td>1&ndash;3 hari verifikasi</td></tr>
     <tr><td><strong>Hosting dan domain</strong><br>Aplikasi masih hanya hidup di localhost</td><td><span class="pill p-anda">Anda</span></td><td>30 menit</td></tr>
-    <tr><td>Deploy ke Cloud Run dan Firebase Hosting</td><td><span class="pill p-saya">Saya</span></td><td>setelah tiga hal di atas</td></tr>
+    <tr><td>Deploy ke Cloud Run dan Firebase Hosting<br><strong>Berkasnya sudah siap</strong>: Dockerfile, konfigurasi hosting, dan empat skrip npm</td><td><span class="pill p-saya">Saya</span></td><td>setelah tiga hal di atas</td></tr>
   </tbody>
 </table>
 
@@ -110,11 +110,13 @@ footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #14171f; fon
   sedangkan rute dan frontend tidak berubah.
 </p>
 
-<h3>2.4 Scan barcode lewat kamera ponsel</h3>
+<h3>2.4 Scan barcode lewat kamera &mdash; SUDAH SELESAI</h3>
 <p>
-  Saat ini mendukung scanner USB dan ketik manual. Scan lewat kamera memerlukan
-  pustaka tambahan dan izin kamera, dan hanya berguna bila toko tidak memakai
-  scanner fisik.
+  Memakai <code>BarcodeDetector</code> bawaan peramban, bukan pustaka dari CDN,
+  supaya kasir tetap bisa dibuka saat internet toko mati. Tombolnya hanya
+  muncul pada peramban yang mendukung &mdash; terutama Chrome di Android.
+  Chrome di Windows belum mendukung, jadi di sana tombolnya sengaja
+  disembunyikan alih-alih memunculkan tombol yang menolak saat ditekan.
 </p>
 
 <h3>2.5 Pemberitahuan ke pembeli</h3>

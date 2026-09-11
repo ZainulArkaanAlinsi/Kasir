@@ -6,12 +6,12 @@
 
 <br />
 
-<img src="https://img.shields.io/badge/Node.js-ES_Modules-2fe0a4?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=0d0f14" alt="Node.js" />
-<img src="https://img.shields.io/badge/Express-5-eef1f6?style=flat-square&logo=express&logoColor=white&labelColor=0d0f14" alt="Express 5" />
-<img src="https://img.shields.io/badge/Firebase-Auth-ffb224?style=flat-square&logo=firebase&logoColor=white&labelColor=0d0f14" alt="Firebase Auth" />
-<img src="https://img.shields.io/badge/Cloud-Firestore-ff6b52?style=flat-square&logo=firebase&logoColor=white&labelColor=0d0f14" alt="Cloud Firestore" />
-<img src="https://img.shields.io/badge/frontend-tanpa_framework-5b9dff?style=flat-square&logo=javascript&logoColor=white&labelColor=0d0f14" alt="Tanpa framework" />
-<img src="https://img.shields.io/badge/tests-node:test_+_emulator-ff2e43?style=flat-square&labelColor=0d0f14" alt="Tests" />
+<img src="https://img.shields.io/badge/Node.js-ES_Modules-f3f0e8?style=flat-square&logo=nodedotjs&logoColor=white&labelColor=17150f" alt="Node.js" />
+<img src="https://img.shields.io/badge/Express-5-f3f0e8?style=flat-square&logo=express&logoColor=white&labelColor=17150f" alt="Express 5" />
+<img src="https://img.shields.io/badge/Firebase-Auth-f3f0e8?style=flat-square&logo=firebase&logoColor=white&labelColor=17150f" alt="Firebase Auth" />
+<img src="https://img.shields.io/badge/Cloud-Firestore-f3f0e8?style=flat-square&logo=firebase&logoColor=white&labelColor=17150f" alt="Cloud Firestore" />
+<img src="https://img.shields.io/badge/frontend-tanpa_framework-f3f0e8?style=flat-square&logo=javascript&logoColor=white&labelColor=17150f" alt="Tanpa framework" />
+<img src="https://img.shields.io/badge/tests-node:test_+_emulator-ec2a3f?style=flat-square&labelColor=17150f" alt="Tests" />
 
 <br /><br />
 
@@ -203,9 +203,9 @@ menyatakan mana yang aktif.
 
 | Mode | Cara mengaktifkan | Uang benar-benar masuk? | Sistem bisa memastikan lunas? |
 |:--|:--|:--:|:--|
-| 🟢 **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya** — status dicek ke gateway |
-| 🟡 **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Tidak — kasir cek mutasi |
-| ⚪ **Nonaktif** | keduanya kosong | — | QRIS ditolak, bukan dipalsukan |
+| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya** — status dicek ke gateway |
+| **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Tidak — kasir cek mutasi |
+| **Nonaktif** | keduanya kosong | — | QRIS ditolak, bukan dipalsukan |
 
 - Pada mode **Terverifikasi**, tombol konfirmasi menolak menyimpan transaksi sampai gateway menyatakan lunas.
 - Pada mode **Manual**, nominal tidak terkunci sehingga aplikasi memperingatkan kasir untuk mengecek mutasi lebih dulu.
@@ -341,7 +341,7 @@ diubah bulan depan, laporan laba bulan ini tetap akurat.
 `total`, `paymentMethod`, `paymentRef`, `riwayatStatus[]`, `expiresAt`, `createdAt`, `updatedAt`
 
 ```mermaid
-%%{init: {'theme':'base','themeVariables':{'primaryColor':'#161a22','primaryTextColor':'#eef1f6','primaryBorderColor':'#ff6b52','lineColor':'#ff6b52','transitionColor':'#ff6b52','transitionLabelColor':'#8a93a6','stateLabelColor':'#eef1f6','fontFamily':'Segoe UI, Inter, Helvetica, Arial, sans-serif'}}}%%
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#fffefb','primaryTextColor':'#17150f','primaryBorderColor':'#17150f','lineColor':'#857f73','transitionColor':'#857f73','transitionLabelColor':'#857f73','stateLabelColor':'#17150f','fontFamily':'SFMono-Regular, Consolas, Menlo, monospace'}}}%%
 stateDiagram-v2
     direction LR
     [*] --> menunggu_bayar
@@ -358,8 +358,8 @@ stateDiagram-v2
     siap_diambil --> batal
     selesai --> [*]
 
-    classDef ok fill:#0f2a22,stroke:#2fe0a4,color:#eef1f6
-    classDef stop fill:#2a1216,stroke:#ff4d5e,color:#eef1f6
+    classDef ok fill:#e9f5ef,stroke:#16895c,color:#17150f
+    classDef stop fill:#fdecee,stroke:#ec2a3f,color:#17150f
     class selesai ok
     class batal, kedaluwarsa stop
 ```
@@ -464,3 +464,33 @@ dipindah ke Cloud Functions nanti tanpa mengubah isinya — cukup mengganti lapi
   <br />
   <sub><a href="#top">↑ kembali ke atas</a></sub>
 </div>
+
+---
+
+## Deploy
+
+Berkasnya sudah siap; yang belum ada hanyalah akun. Setelah project Firebase
+dan Google Cloud dibuat:
+
+```bash
+npm run deploy:api    # backend ke Cloud Run
+npm run deploy:web    # frontend, security rules, dan indeks ke Firebase
+```
+
+Untuk mencoba image-nya lebih dulu di komputer sendiri:
+
+```bash
+npm run docker:build
+npm run docker:run
+```
+
+**Yang dijaga pada konfigurasi ini**
+
+- `Dockerfile` memakai dua tahap sehingga `firebase-tools` dan pustaka uji
+  tidak ikut terbawa ke server produksi.
+- Kontainer berjalan sebagai pengguna biasa, bukan root.
+- `.dockerignore` mengecualikan `.env` dan `serviceAccountKey.json`.
+  Kredensial produksi disuntikkan lewat Secret Manager saat jalan, bukan
+  dipanggang ke dalam image.
+- Firebase Hosting menyajikan aset statis dari CDN dan meneruskan `/api/**`
+  ke Cloud Run, sehingga halaman tetap cepat dibuka meski server sedang sibuk.

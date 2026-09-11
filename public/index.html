@@ -247,6 +247,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg>
               Keranjang
             </button>
+            <button id="tombolKamera" class="btn btn-secondary hidden" type="button" style="flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-scan"/></svg>
+              Kamera
+            </button>
             <div class="status-pill" title="Arahkan scanner USB ke barcode — otomatis masuk keranjang">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px"><use href="#i-scan"/></svg>
               Scanner siap
@@ -571,6 +575,21 @@
       </svg>
       <span class="text_button">Konfirmasi pembayaran</span>
     </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MODAL PINDAI KAMERA ══════════════════════════ -->
+<div id="modalKamera" class="modal hidden">
+  <div class="modal-card">
+    <button class="modal-close" data-close="modalKamera" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">PINDAI</span>
+    <h2>Arahkan ke barcode</h2>
+    <div class="kamera-bingkai">
+      <video id="videoKamera" muted playsinline></video>
+      <div class="kamera-garis"></div>
+    </div>
+    <p class="muted" id="statusKamera" style="font-size:12px;text-align:center;margin:12px 0 0">Menyalakan kamera…</p>
+    <button id="tutupKamera" class="btn btn-secondary btn-block" style="margin-top:16px">Batal</button>
   </div>
 </div>
 

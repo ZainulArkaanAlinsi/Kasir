@@ -2,8 +2,8 @@
   <title>Fig. 3 — Uji race condition, 12 checkout atas stok 10</title>
   <defs>
     <filter id="ink" x="-20%" y="-20%" width="140%" height="140%">
-      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.6 0 0 0 2.1" result="m"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="2" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.7 0 0 0 1.72" result="m"/>
       <feComposite in="SourceGraphic" in2="m" operator="in"/>
     </filter>
     <filter id="paper" x="-20%" y="-10%" width="140%" height="130%">
@@ -19,6 +19,7 @@
       @keyframes sw { 0%, 100% { transform: rotate(-1.6deg) } 50% { transform: rotate(1.6deg) } }
       [class^="s"]:not(.sw):not(.serif):not(.sans) { transform-box: fill-box; transform-origin: center; opacity: 0; }
       .panel { opacity: 0; }
+      g[filter] { mix-blend-mode: multiply; }
 
       /* Satu linimasa 9 detik: tiket dicap berurutan, kardus stok diambil dari kanan */
       .s0{animation:s0 9s infinite}@keyframes s0{0%,6.67%{opacity:0;transform:scale(1.9)}8.22%{opacity:1;transform:scale(.94)}9.56%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0;transform:scale(1)}}
@@ -76,7 +77,7 @@
   <text class="mono" x="66" y="46" font-size="11.5" font-weight="700" fill="#17150f" letter-spacing="2.4">FIG. 3 — UJI RACE CONDITION</text>
   <text class="mono" x="1152" y="46" font-size="11" fill="#857f73" letter-spacing="1.4" text-anchor="end">firestore emulator · npm run test:emulator</text>
   <line x1="48" y1="64" x2="1152" y2="64" stroke="#e4dfd4"/>
-  <text class="serif" x="48" y="104" font-size="28" fill="#17150f">12 pesanan serentak, stok hanya <tspan font-style="italic" fill="#ec2a3f">sepuluh.</tspan></text>
+  <text class="serif" x="48" y="104" font-size="28" fill="#17150f">12 orang checkout barengan, stoknya cuma <tspan font-style="italic" fill="#ec2a3f">sepuluh.</tspan></text>
 
   <!-- rel tiket -->
   <line x1="40" y1="128" x2="918" y2="128" stroke="#17150f" stroke-width="2" stroke-linecap="round"/>
@@ -92,8 +93,8 @@
   <g class="sw" style="transform-origin:586.6px 128px;animation-delay:-2.87s"><line x1="586.6" y1="128" x2="586.6" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="557.6" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="586.6" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="586.6" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="586.6" y="186" font-size="22" fill="#17150f" text-anchor="middle">08</text><line x1="563.6" y1="196" x2="609.6" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q7" x="586.6" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(586.6 180) rotate(-12)"><g class="s7" filter="url(#ink)"><circle r="16" fill="none" stroke="#16895c" stroke-width="2"/><circle r="12.5" fill="none" stroke="#16895c" stroke-width=".8"/><path d="M-6 .5l4 4 8-8.5" fill="none" stroke="#16895c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
   <g class="sw" style="transform-origin:659.4px 128px;animation-delay:-3.28s"><line x1="659.4" y1="128" x2="659.4" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="630.4" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="659.4" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="659.4" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="659.4" y="186" font-size="22" fill="#17150f" text-anchor="middle">09</text><line x1="636.4" y1="196" x2="682.4" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q8" x="659.4" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(659.4 180) rotate(-12)"><g class="s8" filter="url(#ink)"><circle r="16" fill="none" stroke="#16895c" stroke-width="2"/><circle r="12.5" fill="none" stroke="#16895c" stroke-width=".8"/><path d="M-6 .5l4 4 8-8.5" fill="none" stroke="#16895c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
   <g class="sw" style="transform-origin:732.2px 128px;animation-delay:-3.69s"><line x1="732.2" y1="128" x2="732.2" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="703.2" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="732.2" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="732.2" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="732.2" y="186" font-size="22" fill="#17150f" text-anchor="middle">10</text><line x1="709.2" y1="196" x2="755.2" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q9" x="732.2" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(732.2 180) rotate(-12)"><g class="s9" filter="url(#ink)"><circle r="16" fill="none" stroke="#16895c" stroke-width="2"/><circle r="12.5" fill="none" stroke="#16895c" stroke-width=".8"/><path d="M-6 .5l4 4 8-8.5" fill="none" stroke="#16895c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g></g>
-  <g class="sw" style="transform-origin:805px 128px;animation-delay:-4.10s"><line x1="805" y1="128" x2="805" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="776" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="805" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="805" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="805" y="186" font-size="22" fill="#17150f" text-anchor="middle">11</text><line x1="782" y1="196" x2="828" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q10" x="805" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(805 180) rotate(-10)"><g class="s10" filter="url(#ink)"><rect x="-24" y="-11" width="48" height="22" rx="3" fill="#faf8f4" fill-opacity=".85" stroke="#ec2a3f" stroke-width="2"/><text class="sans" y="5" font-size="13" font-weight="900" fill="#ec2a3f" text-anchor="middle" letter-spacing="1.5">409</text></g></g></g>
-  <g class="sw" style="transform-origin:877.8px 128px;animation-delay:-4.51s"><line x1="877.8" y1="128" x2="877.8" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="848.8" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="877.8" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="877.8" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="877.8" y="186" font-size="22" fill="#17150f" text-anchor="middle">12</text><line x1="854.8" y1="196" x2="900.8" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q11" x="877.8" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(877.8 180) rotate(-10)"><g class="s11" filter="url(#ink)"><rect x="-24" y="-11" width="48" height="22" rx="3" fill="#faf8f4" fill-opacity=".85" stroke="#ec2a3f" stroke-width="2"/><text class="sans" y="5" font-size="13" font-weight="900" fill="#ec2a3f" text-anchor="middle" letter-spacing="1.5">409</text></g></g></g>
+  <g class="sw" style="transform-origin:805px 128px;animation-delay:-4.10s"><line x1="805" y1="128" x2="805" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="776" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="805" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="805" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="805" y="186" font-size="22" fill="#17150f" text-anchor="middle">11</text><line x1="782" y1="196" x2="828" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q10" x="805" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(805 180) rotate(-10)"><g class="s10" filter="url(#ink)"><rect x="-24" y="-11" width="48" height="22" rx="3" fill="none" stroke="#ec2a3f" stroke-width="2"/><text class="sans" y="5" font-size="13" font-weight="900" fill="#ec2a3f" text-anchor="middle" letter-spacing="1.5">409</text></g></g></g>
+  <g class="sw" style="transform-origin:877.8px 128px;animation-delay:-4.51s"><line x1="877.8" y1="128" x2="877.8" y2="141" stroke="#17150f" stroke-opacity=".5"/><rect x="848.8" y="136" width="58" height="80" rx="4" fill="#fff" stroke="#ddd7ca"/><circle cx="877.8" cy="144" r="3" fill="#faf8f4" stroke="#ddd7ca"/><text class="mono" x="877.8" y="162" font-size="8.5" fill="#857f73" text-anchor="middle" letter-spacing="1.5">NO.</text><text class="serif" x="877.8" y="186" font-size="22" fill="#17150f" text-anchor="middle">12</text><line x1="854.8" y1="196" x2="900.8" y2="196" stroke="#17150f" stroke-opacity=".25" stroke-dasharray="2 3"/><text class="mono q11" x="877.8" y="209" font-size="8" fill="#857f73" text-anchor="middle" letter-spacing="1.2">ANTRE</text><g transform="translate(877.8 180) rotate(-10)"><g class="s11" filter="url(#ink)"><rect x="-24" y="-11" width="48" height="22" rx="3" fill="none" stroke="#ec2a3f" stroke-width="2"/><text class="sans" y="5" font-size="13" font-weight="900" fill="#ec2a3f" text-anchor="middle" letter-spacing="1.5">409</text></g></g></g>
 
   <!-- rak stok -->
   <rect x="69.2" y="248" width="44" height="34" rx="2" fill="none" stroke="#b9a57f" stroke-opacity=".5" stroke-dasharray="3 3"/><g class="k0"><rect x="69.2" y="248" width="44" height="34" rx="2" fill="#eadfc8" stroke="#b39d74"/><rect x="87.7" y="248" width="7" height="34" fill="#d7c49e"/><line x1="69.2" y1="257" x2="113.2" y2="257" stroke="#b39d74" stroke-opacity=".6"/></g>
@@ -108,7 +109,7 @@
   <rect x="846.8" y="248" width="44" height="34" rx="2" fill="none" stroke="#b9a57f" stroke-opacity=".5" stroke-dasharray="3 3"/><g class="k9"><rect x="846.8" y="248" width="44" height="34" rx="2" fill="#eadfc8" stroke="#b39d74"/><rect x="865.3" y="248" width="7" height="34" fill="#d7c49e"/><line x1="846.8" y1="257" x2="890.8" y2="257" stroke="#b39d74" stroke-opacity=".6"/></g>
   <line x1="48" y1="283" x2="912" y2="283" stroke="#17150f" stroke-width="2" stroke-linecap="round"/>
   <path d="M96 284l10 12M864 284l-10 12" stroke="#17150f" stroke-width="1.6" stroke-linecap="round"/>
-  <text class="mono" x="48" y="312" font-size="10.5" fill="#857f73" letter-spacing="1.8">STOK DI RAK — 10 UNIT</text>
+  <text class="mono" x="48" y="312" font-size="10.5" fill="#857f73" letter-spacing="1.8">STOK DI RAK: 10</text>
 
   <!-- struk hasil -->
   <path filter="url(#paper)" fill="#fff" d="M950 128 H1152 V300 L1145.7 307 L1139.4 300 L1133.1 307 L1126.8 300 L1120.4 307 L1114.1 300 L1107.8 307 L1101.5 300 L1095.2 307 L1088.9 300 L1082.6 307 L1076.3 300 L1069.9 307 L1063.6 300 L1057.3 307 L1051 300 L1044.7 307 L1038.4 300 L1032.1 307 L1025.8 300 L1019.4 307 L1013.1 300 L1006.8 307 L1000.5 300 L994.2 307 L987.9 300 L981.6 307 L975.3 300 L968.9 307 L962.6 300 L956.3 307 L950 300 Z"/>
@@ -118,7 +119,7 @@
     <g font-size="11.5" fill="#4a463e">
       <text x="966" y="192">berhasil</text>
       <text x="966" y="218">ditolak</text>
-      <text x="966" y="244">stok akhir</text>
+      <text x="966" y="244">sisa stok</text>
     </g>
     <g stroke="#17150f" stroke-opacity=".3" stroke-dasharray="1 3">
       <line x1="1028" y1="189" x2="1118" y2="189"/><line x1="1020" y1="215" x2="1118" y2="215"/><line x1="1044" y1="241" x2="1118" y2="241"/>
@@ -132,9 +133,9 @@
       <text x="1136" y="244" fill="#17150f">0</text>
     </g>
     <line x1="966" y1="258" x2="1136" y2="258" stroke="#17150f" stroke-opacity=".35" stroke-dasharray="3 4"/>
-    <text class="wait" x="1051" y="284" font-size="10" fill="#857f73" text-anchor="middle" letter-spacing="1.6">MEMPROSES…</text>
-    <text class="panel" x="1051" y="284" font-size="10" font-weight="800" fill="#16895c" text-anchor="middle" letter-spacing="1.6">✓ TIDAK ADA STOK MINUS</text>
+    <text class="wait" x="1051" y="284" font-size="10" fill="#857f73" text-anchor="middle" letter-spacing="1.6">LAGI DIPROSES…</text>
+    <text class="panel" x="1051" y="284" font-size="10" font-weight="800" fill="#16895c" text-anchor="middle" letter-spacing="1.6">✓ AMAN, NGGAK ADA YG MINUS</text>
   </g>
 
-  <text class="sans" x="48" y="342" font-size="13" fill="#857f73">Setiap checkout membaca dan mengurangi stok di dalam satu <tspan class="mono" fill="#17150f">runTransaction</tspan> — dua kasir tidak mungkin menjual unit yang sama.</text>
+  <text class="sans" x="48" y="342" font-size="13" fill="#857f73">Tiap checkout baca dan potong stok di dalam satu <tspan class="mono" fill="#17150f">runTransaction</tspan>, jadi dua kasir nggak mungkin jual barang yang sama.</text>
 </svg>

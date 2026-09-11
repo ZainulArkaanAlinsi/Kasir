@@ -11,7 +11,11 @@
     "test:emulator": "firebase emulators:exec --only firestore \"node --test --test-concurrency=1 test/transaction.emulator.test.js test/reservation.emulator.test.js test/order.emulator.test.js\"",
     "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
     "test:all": "npm run test && npm run test:emulator && npm run test:rules",
-    "set-role": "node scripts/set-role.js"
+    "set-role": "node scripts/set-role.js",
+    "docker:build": "docker build -t kasirone .",
+    "docker:run": "docker run --rm -p 8080:8080 --env-file .env kasirone",
+    "deploy:api": "gcloud run deploy kasirone --source . --region asia-southeast2 --allow-unauthenticated",
+    "deploy:web": "firebase deploy --only hosting,firestore:rules,firestore:indexes"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -25,5 +29,8 @@
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
     "firebase-tools": "^13.35.1"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

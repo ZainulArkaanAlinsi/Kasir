@@ -984,3 +984,24 @@ body[data-role="cashier"] .admin-only { display: none !important; }
   .lp-qr { width: 340px; }
   .lp-nominal { font-size: 40px; }
 }
+
+/* Bingkai kamera pemindai. Rasio 4:3 mengikuti keluaran kamera ponsel
+   sehingga gambarnya tidak terpotong di sisi yang justru berisi barcode. */
+.kamera-bingkai {
+  position: relative; overflow: hidden;
+  aspect-ratio: 4 / 3;
+  margin-top: var(--s4);
+  border-radius: var(--r-lg);
+  background: var(--dark);
+}
+.kamera-bingkai video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Garis pemandu: memberi tahu ke mana barcode harus diarahkan. */
+.kamera-garis {
+  position: absolute; left: 10%; right: 10%; top: 50%;
+  height: 2px; transform: translateY(-50%);
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+  animation: sapu 2.2s ease-in-out infinite;
+}
+@keyframes sapu { 0%, 100% { top: 28%; } 50% { top: 72%; } }
+@media (prefers-reduced-motion: reduce) { .kamera-garis { animation: none; } }

@@ -24,8 +24,8 @@
     </filter>
     <!-- Tinta cap yang tidak rata, seperti stempel karet sungguhan -->
     <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.6 0 0 0 2.05" result="m"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.7 0 0 0 1.72" result="m"/>
       <feComposite in="SourceGraphic" in2="m" operator="in"/>
     </filter>
     <path id="mark" d="M48 72 Q48 36 84 36 H172 Q208 36 208 72 V208 L198 220 L188 208 L178 220 L168 208 L158 220 L148 208 L138 220 L128 208 L118 220 L108 208 L98 220 L88 208 L78 220 L68 208 L58 220 L48 208 Z"/>
@@ -45,16 +45,17 @@
 
       /* Baris yang "diketik" bergantian, seperti printer struk */
       .ph { opacity: 0; animation: ph 16s linear infinite backwards; }
-      .cv1 { animation: cv1 16s steps(40, end) infinite backwards; }
-      .cv2 { animation: cv2 16s steps(48, end) infinite backwards; }
-      .cv3 { animation: cv3 16s steps(44, end) infinite backwards; }
-      .cv4 { animation: cv4 16s steps(45, end) infinite backwards; }
+      .cv1 { animation: cv1 16s steps(34, end) infinite backwards; }
+      .cv2 { animation: cv2 16s steps(43, end) infinite backwards; }
+      .cv3 { animation: cv3 16s steps(36, end) infinite backwards; }
+      .cv4 { animation: cv4 16s steps(33, end) infinite backwards; }
       .ph2, .cv2 { animation-delay: 4s } .ph3, .cv3 { animation-delay: 8s } .ph4, .cv4 { animation-delay: 12s }
       @keyframes ph  { 0% { opacity: 0 } .3%, 23% { opacity: 1 } 25%, 100% { opacity: 0 } }
-      @keyframes cv1 { 0% { transform: translateX(0) } 8%, 100% { transform: translateX(336px) } }
-      @keyframes cv2 { 0% { transform: translateX(0) } 9%, 100% { transform: translateX(403px) } }
-      @keyframes cv3 { 0% { transform: translateX(0) } 8.5%, 100% { transform: translateX(370px) } }
-      @keyframes cv4 { 0% { transform: translateX(0) } 8.5%, 100% { transform: translateX(378px) } }
+      /* JetBrains Mono: 1 huruf = 0.6em = 9px pada 15px, jadi jarak = jumlah huruf × 9 + 2 */
+      @keyframes cv1 { 0% { transform: translateX(0) } 7%, 100% { transform: translateX(308px) } }
+      @keyframes cv2 { 0% { transform: translateX(0) } 8.5%, 100% { transform: translateX(389px) } }
+      @keyframes cv3 { 0% { transform: translateX(0) } 7.5%, 100% { transform: translateX(326px) } }
+      @keyframes cv4 { 0% { transform: translateX(0) } 7%, 100% { transform: translateX(299px) } }
       .caret { animation: caret .9s steps(1) infinite; }
       @keyframes caret { 50% { opacity: 0 } }
 
@@ -84,7 +85,7 @@
         * { animation: none !important; }
         .rise, .stamp, .ph1 { opacity: 1 !important; }
         .roll { transform: none !important; }
-        .cv1 { transform: translateX(336px) !important; }
+        .cv1 { transform: translateX(308px) !important; }
         .rule { stroke-dashoffset: 0 !important; }
       }
     </style>
@@ -103,16 +104,16 @@
     <g fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" transform="translate(80 60) scale(.225) translate(-48 -36)">
       <path d="M98 76v92"/><path d="M160 76l-54 52"/><path d="M124 112l38 56"/>
     </g>
-    <text class="mono" x="130" y="78" font-size="12" font-weight="700" fill="#17150f" letter-spacing="2.4">SISTEM KASIR &amp; INVENTORY TOKO</text>
-    <text class="mono" x="130" y="96" font-size="11" fill="#857f73" letter-spacing="1.6">v1.0.0 — POINT OF SALE UNTUK RETAIL</text>
+    <text class="mono" x="130" y="78" font-size="12" font-weight="700" fill="#17150f" letter-spacing="2.2">KASIR &amp; STOK TOKO</text>
+    <text class="mono" x="130" y="96" font-size="11" fill="#857f73" letter-spacing="1">v1.0.0 · buat toko kecil &amp; menengah</text>
   </g>
 
-  <text class="serif rise d2" x="72" y="222" font-size="104" fill="#17150f" letter-spacing="-3">Kasir<tspan font-style="italic" fill="#ec2a3f">One</tspan></text>
+  <text class="serif rise d2" x="74" y="226" font-size="128" fill="#17150f" letter-spacing="-2">Kasir<tspan font-style="italic" fill="#ec2a3f">One</tspan></text>
   <line class="rule" x1="80" y1="254" x2="600" y2="254" stroke="#17150f" stroke-width="1"/>
 
-  <g class="sans rise d3" font-size="19" fill="#4a463e">
-    <text x="80" y="296">Aplikasi kasir untuk toko retail kecil–menengah.</text>
-    <text x="80" y="322">Cepat di kasir, <tspan font-style="italic" class="serif" font-size="21" fill="#17150f">jujur di pembukuan.</tspan></text>
+  <g class="sans rise d3" font-size="18" fill="#4a463e">
+    <text x="80" y="296">Aplikasi kasir buat toko yang pengin</text>
+    <text x="80" y="322">antreannya cepat dan <tspan font-style="italic" class="serif" font-size="23" fill="#17150f">pembukuannya nggak ngaco.</tspan></text>
   </g>
 
   <g class="rise d4">
@@ -120,19 +121,19 @@
     <!-- Tiap baris punya penutup sewarna kertas yang bergeser per huruf, membawa kursor merah -->
     <g class="mono" font-size="15" fill="#17150f" clip-path="url(#typeLine)">
       <g class="ph ph1">
-        <text x="100" y="370">harga &amp; total dihitung ulang oleh server</text>
+        <text x="100" y="370">harga selalu diambil dari database</text>
         <g class="cv1"><rect x="100" y="348" width="500" height="30" fill="#faf8f4"/><rect class="caret" x="101" y="356" width="8" height="18" fill="#ec2a3f"/></g>
       </g>
       <g class="ph ph2">
-        <text x="100" y="370">stok tidak pernah minus, sekalipun kasir berebut</text>
+        <text x="100" y="370">stok nggak bakal minus, walau kasir rebutan</text>
         <g class="cv2"><rect x="100" y="348" width="500" height="30" fill="#faf8f4"/><rect class="caret" x="101" y="356" width="8" height="18" fill="#ec2a3f"/></g>
       </g>
       <g class="ph ph3">
-        <text x="100" y="370">QRIS jujur — tak pernah menampilkan QR palsu</text>
+        <text x="100" y="370">QRIS-nya asli, nggak ada QR pajangan</text>
         <g class="cv3"><rect x="100" y="348" width="500" height="30" fill="#faf8f4"/><rect class="caret" x="101" y="356" width="8" height="18" fill="#ec2a3f"/></g>
       </g>
       <g class="ph ph4">
-        <text x="100" y="370">scan barcode USB langsung jalan, tanpa driver</text>
+        <text x="100" y="370">colok scanner USB, langsung jalan</text>
         <g class="cv4"><rect x="100" y="348" width="500" height="30" fill="#faf8f4"/><rect class="caret" x="101" y="356" width="8" height="18" fill="#ec2a3f"/></g>
       </g>
     </g>
@@ -181,8 +182,8 @@
       </g>
 
       <!-- cap LUNAS -->
-      <g transform="translate(1046 330) rotate(-12)">
-        <g class="stamp" filter="url(#ink)">
+      <g transform="translate(1004 354) rotate(-12)">
+        <g class="stamp" filter="url(#ink)" style="mix-blend-mode:multiply">
           <rect x="-64" y="-26" width="128" height="52" rx="8" fill="none" stroke="#ec2a3f" stroke-width="3"/>
           <rect x="-58" y="-20" width="116" height="40" rx="5" fill="none" stroke="#ec2a3f" stroke-width="1.2"/>
           <text class="sans" x="0" y="5" font-size="23" font-weight="900" fill="#ec2a3f" text-anchor="middle" letter-spacing="5">LUNAS</text>

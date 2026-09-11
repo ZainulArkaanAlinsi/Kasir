@@ -54,7 +54,7 @@
 
   <rect x="48" y="38" width="8" height="8" fill="#ec2a3f"/>
   <text class="mono" x="66" y="46" font-size="11.5" font-weight="700" fill="#17150f" letter-spacing="2.4">FIG. 2 — FITUR UTAMA</text>
-  <text class="mono" x="1152" y="46" font-size="11" fill="#857f73" letter-spacing="1.4" text-anchor="end">6 kemampuan inti · 15 fitur total</text>
+  <text class="mono" x="1152" y="46" font-size="11" fill="#857f73" letter-spacing="1.4" text-anchor="end">6 yang paling kepake · total ada 15</text>
 
   <g filter="url(#card)"><rect x="48" y="70" width="1104" height="416" rx="16" fill="#fff" stroke="#ddd7ca"/></g>
   <rect class="vl" x="415.5" y="94" width="1" height="368" fill="#e4dfd4"/>
@@ -69,9 +69,9 @@
       <rect class="laser" x="0" y="6" width="36" height="2" rx="1" fill="#ec2a3f"/>
     </g>
     <text class="serif t" x="76" y="164">Scan Barcode</text>
-    <text class="sans d" x="76" y="194">Scanner USB langsung jalan tanpa</text>
-    <text class="sans d" x="76" y="216">driver; barcode asing memberi notifikasi.</text>
-    <text class="mono g" x="76" y="250">— keyboard wedge · input manual</text>
+    <text class="sans d" x="76" y="194">Colok scanner USB, langsung jalan.</text>
+    <text class="sans d" x="76" y="216">Barcode yang belum terdaftar dikasih tahu.</text>
+    <text class="mono g" x="76" y="250">— tanpa driver · bisa ketik manual</text>
   </g>
 
   <!-- 02 -->
@@ -83,9 +83,9 @@
       <circle class="key" cx="18" cy="24.5" r="2.4" fill="#857f73"/>
     </g>
     <text class="serif t" x="444" y="164">Transaksi Atomik</text>
-    <text class="sans d" x="444" y="194">Stok dan transaksi tersimpan bersama,</text>
-    <text class="sans d" x="444" y="216">atau tidak tersimpan sama sekali.</text>
-    <text class="mono g" x="444" y="250">— diuji dengan 12 checkout serentak</text>
+    <text class="sans d" x="444" y="194">Stok sama transaksinya kesimpan bareng.</text>
+    <text class="sans d" x="444" y="216">Satu gagal, semuanya dibatalkan.</text>
+    <text class="mono g" x="444" y="250">— udah dites 12 checkout barengan</text>
   </g>
 
   <!-- 03 -->
@@ -97,9 +97,9 @@
       <g clip-path="url(#c1)"><rect class="qscan" x="2" y="4" width="32" height="2" rx="1" fill="#ec2a3f"/></g>
     </g>
     <text class="serif t" x="812" y="164">QRIS Jujur</text>
-    <text class="sans d" x="812" y="194">Terverifikasi, manual, atau ditolak —</text>
-    <text class="sans d" x="812" y="216">tak pernah ada QR hiasan yang palsu.</text>
-    <text class="mono g" x="812" y="250">— Midtrans · QRIS statis merchant</text>
+    <text class="sans d" x="812" y="194">Pilih terverifikasi, manual, atau matiin.</text>
+    <text class="sans d" x="812" y="216">Nggak ada QR pajangan yang bikin bingung.</text>
+    <text class="mono g" x="812" y="250">— Midtrans · QRIS statis toko</text>
   </g>
 
   <!-- 04 -->
@@ -113,8 +113,8 @@
       <path d="M2 33.5h32" stroke="#17150f" stroke-width="1.4" stroke-linecap="round"/>
     </g>
     <text class="serif t" x="76" y="372">Laporan Laba</text>
-    <text class="sans d" x="76" y="402">Pemasukan vs pengeluaran, laba kotor</text>
-    <text class="sans d" x="76" y="424">&amp; bersih, dan unit terjual per produk.</text>
+    <text class="sans d" x="76" y="402">Pemasukan, pengeluaran, laba kotor-bersih,</text>
+    <text class="sans d" x="76" y="424">sampai barang apa yang paling laku.</text>
     <text class="mono g" x="76" y="458">— filter periode · ekspor CSV</text>
   </g>
 
@@ -129,9 +129,9 @@
       <path class="spark" d="M31 1l1.2 2.8L35 5l-2.8 1.2L31 9l-1.2-2.8L27 5l2.8-1.2z" fill="#ec2a3f"/>
     </g>
     <text class="serif t" x="444" y="372">Etalase Online</text>
-    <text class="sans d" x="444" y="402">Katalog publik, keranjang, ambil di</text>
-    <text class="sans d" x="444" y="424">toko atau diantar — satu sumber stok.</text>
-    <text class="mono g" x="444" y="458">— /toko.html · tanpa akun</text>
+    <text class="sans d" x="444" y="402">Pembeli bisa pesan lewat web, terus</text>
+    <text class="sans d" x="444" y="424">ambil di toko atau minta diantar.</text>
+    <text class="mono g" x="444" y="458">— /toko.html · nggak perlu daftar</text>
   </g>
 
   <!-- 06 -->
@@ -143,8 +143,8 @@
       <path class="ic" stroke-width="1.5" d="M18 11.5l6 3.1v6.8L18 24.5l-6-3.1v-6.8zM12 14.6l6 3.1 6-3.1M18 17.7v6.8"/>
     </g>
     <text class="serif t" x="812" y="372">Stok Terkunci</text>
-    <text class="sans d" x="812" y="402">Pesanan online mengunci stok; dilepas</text>
-    <text class="sans d" x="812" y="424">saat batal, dipotong saat selesai.</text>
+    <text class="sans d" x="812" y="402">Barang yang udah dipesan online dikunci,</text>
+    <text class="sans d" x="812" y="424">jadi nggak kejual dobel di kasir.</text>
     <text class="mono g" x="812" y="458">— tersedia = stok − stokDipesan</text>
   </g>
 </svg>
