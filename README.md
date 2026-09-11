@@ -87,9 +87,9 @@ npm run dev
 
 Satu server, dua pintu:
 
-| Alamat | Buat siapa |
-|:--|:--|
-| `http://localhost:3000/` | **Kasir &amp; admin toko**, harus login staf |
+| Alamat                            | Buat siapa                                              |
+| :-------------------------------- | :------------------------------------------------------ |
+| `http://localhost:3000/`          | **Kasir &amp; admin toko**, harus login staf            |
 | `http://localhost:3000/toko.html` | **Pembeli**, etalase publik yang bisa dibuka tanpa akun |
 
 Dua-duanya pakai stok yang sama. Barang yang baru di-restock admin langsung nongol di etalase, dan
@@ -126,7 +126,7 @@ barang yang dipesan pembeli langsung hilang dari daftar jual kasir.
 3. Nyalain **Authentication → Email/Password**.
 4. Bikin **Cloud Firestore**.
 5. Deploy security rules: `npx firebase deploy --only firestore:rules`
-6. Download service account (*Project Settings → Service accounts*), simpan jadi
+6. Download service account (_Project Settings → Service accounts_), simpan jadi
    `serviceAccountKey.json` di root project.
 7. Salin `.env.example` jadi `.env`.
 8. Bikin akun staf pertama. Satu perintah, sekalian masang custom claim:
@@ -163,10 +163,10 @@ barang yang dipesan pembeli langsung hilang dari daftar jual kasir.
 
 ### Role
 
-| Role | Bisa ngapain aja |
-|:--|:--|
-| `cashier` | Transaksi, scan barcode, lihat produk &amp; riwayat transaksi |
-| `admin` | Semua yang di atas, **plus** kelola produk, restock, pengeluaran, dan laporan laba |
+| Role      | Bisa ngapain aja                                                                   |
+| :-------- | :--------------------------------------------------------------------------------- |
+| `cashier` | Transaksi, scan barcode, lihat produk &amp; riwayat transaksi                      |
+| `admin`   | Semua yang di atas, **plus** kelola produk, restock, pengeluaran, dan laporan laba |
 
 Role dibaca dari custom claim di ID token. Kalau belum ada, sistem ngecek dokumen `users/{uid}`
 sebagai cadangan, jadi akun lama tetap bisa masuk.
@@ -186,23 +186,23 @@ sebagai cadangan, jadi akun lama tetap bisa masuk.
 
 <br />
 
-| Fitur | Penjelasan singkat |
-|:--|:--|
-| **Scan barcode** | Scanner USB langsung jalan tanpa driver (mode *keyboard wedge*: ngetik cepat lalu Enter). Kalau barcode-nya belum terdaftar, bakal ada notifikasi, jadi nggak diam-diam gagal. |
-| **Transaksi atomik** | Stok dan transaksi kesimpan bareng. Kalau satu gagal, dua-duanya batal. Udah dites pakai 12 checkout barengan. |
-| **Pembayaran** | Tunai (plus kembalian), Kartu (kode approval EDC), dan QRIS. Soal QRIS ada [penjelasannya sendiri](#qris). |
-| **Diskon per transaksi** | Dipotong dulu sebelum pajak. |
-| **Foto produk asli** | Tinggal klik atau seret. Ukurannya otomatis dikecilin di browser sebelum disimpan. |
-| **Ekspor CSV** | Buat riwayat transaksi dan laporan. |
-| **Harga modal &amp; margin** | Diisi per produk, jadi untungnya bisa dihitung. |
-| **Stok minimum per produk** | Batas "stok menipis" diatur per barang, nggak disamaratakan. |
-| **Restock sekali klik** | Nambah stok sekalian nyatet pengeluarannya. |
-| **Laporan periodik** | Pemasukan, pengeluaran, laba kotor &amp; bersih, rincian metode bayar, sampai jumlah terjual per produk (misalnya *Kopi Aren 40 pcs, Indomie Goreng 23 pcs*). |
-| **Riwayat transaksi** | Bisa difilter per tanggal, struknya bisa dicetak. |
-| **Etalase publik** | `/toko.html`: katalog, keranjang, pilih ambil di toko atau diantar, plus riwayat pesanan pembeli. |
-| **Pesanan online** | Status pesanannya lengkap. Stok dikunci pas pesan, dilepas kalau batal, dipotong pas selesai. |
-| **Panel pesanan buat staf** | Filter status, lihat detail, pindahin ke tahap berikutnya. |
-| **Webhook pembayaran** | Pakai tanda tangan, jadi status bayar nggak bergantung sama browser pembeli yang bisa aja udah ditutup. |
+| Fitur                        | Penjelasan singkat                                                                                                                                                             |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Scan barcode**             | Scanner USB langsung jalan tanpa driver (mode _keyboard wedge_: ngetik cepat lalu Enter). Kalau barcode-nya belum terdaftar, bakal ada notifikasi, jadi nggak diam-diam gagal. |
+| **Transaksi atomik**         | Stok dan transaksi kesimpan bareng. Kalau satu gagal, dua-duanya batal. Udah dites pakai 12 checkout barengan.                                                                 |
+| **Pembayaran**               | Tunai (plus kembalian), Kartu (kode approval EDC), dan QRIS. Soal QRIS ada [penjelasannya sendiri](#qris).                                                                     |
+| **Diskon per transaksi**     | Dipotong dulu sebelum pajak.                                                                                                                                                   |
+| **Foto produk asli**         | Tinggal klik atau seret. Ukurannya otomatis dikecilin di browser sebelum disimpan.                                                                                             |
+| **Ekspor CSV**               | Buat riwayat transaksi dan laporan.                                                                                                                                            |
+| **Harga modal &amp; margin** | Diisi per produk, jadi untungnya bisa dihitung.                                                                                                                                |
+| **Stok minimum per produk**  | Batas "stok menipis" diatur per barang, nggak disamaratakan.                                                                                                                   |
+| **Restock sekali klik**      | Nambah stok sekalian nyatet pengeluarannya.                                                                                                                                    |
+| **Laporan periodik**         | Pemasukan, pengeluaran, laba kotor &amp; bersih, rincian metode bayar, sampai jumlah terjual per produk (misalnya _Kopi Aren 40 pcs, Indomie Goreng 23 pcs_).                  |
+| **Riwayat transaksi**        | Bisa difilter per tanggal, struknya bisa dicetak.                                                                                                                              |
+| **Etalase publik**           | `/toko.html`: katalog, keranjang, pilih ambil di toko atau diantar, plus riwayat pesanan pembeli.                                                                              |
+| **Pesanan online**           | Status pesanannya lengkap. Stok dikunci pas pesan, dilepas kalau batal, dipotong pas selesai.                                                                                  |
+| **Panel pesanan buat staf**  | Filter status, lihat detail, pindahin ke tahap berikutnya.                                                                                                                     |
+| **Webhook pembayaran**       | Pakai tanda tangan, jadi status bayar nggak bergantung sama browser pembeli yang bisa aja udah ditutup.                                                                        |
 
 </details>
 
@@ -214,11 +214,11 @@ Versi lama sempat nampilin pola kotak-kotak sebagai "QR demo". Ternyata itu baha
 ngira pembayarannya beneran lagi jalan. Sekarang ada tiga mode, dan halaman **Pengaturan** selalu
 nunjukin mode mana yang lagi aktif.
 
-| Mode | Cara nyalain | Uangnya beneran masuk? | Sistem bisa mastiin lunas? |
-|:--|:--|:--:|:--|
-| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya**, statusnya dicek ke gateway |
-| **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Nggak, kasir harus cek mutasi sendiri |
-| **Nonaktif** | dua-duanya dikosongin | – | QRIS langsung ditolak |
+| Mode              | Cara nyalain                | Uangnya beneran masuk? | Sistem bisa mastiin lunas?            |
+| :---------------- | :-------------------------- | :--------------------: | :------------------------------------ |
+| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY`   |           Ya           | **Ya**, statusnya dicek ke gateway    |
+| **Manual**        | isi `MERCHANT_QRIS_PAYLOAD` |           Ya           | Nggak, kasir harus cek mutasi sendiri |
+| **Nonaktif**      | dua-duanya dikosongin       |           –            | QRIS langsung ditolak                 |
 
 - **Terverifikasi:** transaksi baru bisa disimpan setelah gateway bilang lunas.
 - **Manual:** nominalnya nggak terkunci, jadi aplikasi ngingetin kasir buat cek mutasi dulu.
@@ -311,11 +311,11 @@ tersedia = stok − stokDipesan
 Kalau nggak dipisah begini, barang terakhir bisa dipesan pembeli online di detik yang sama waktu kasir
 lagi ngejual barang itu di toko. Ada tiga kejadian yang ngubah angkanya:
 
-| Kejadian | `stok` | `stokDipesan` |
-|:--|:--:|:--:|
-| Pembeli pesan | – | naik |
-| Pesanan batal / kedaluwarsa | – | turun |
-| Pesanan selesai | turun | turun |
+| Kejadian                    | `stok` | `stokDipesan` |
+| :-------------------------- | :----: | :-----------: |
+| Pembeli pesan               |   –    |     naik      |
+| Pesanan batal / kedaluwarsa |   –    |     turun     |
+| Pesanan selesai             | turun  |     turun     |
 
 </details>
 
@@ -462,12 +462,12 @@ mau pindah ke Cloud Functions, isinya nggak perlu diubah, cukup ganti bagian yan
 
 ## 08 &nbsp;·&nbsp; Yang belum dikerjain
 
-| Bagian | Sekarang | Rencananya |
-|:--|:--|:--|
-| Foto produk | Disimpan sebagai data URL di dalam dokumen produk | Pindah ke Firebase Storage atau CDN kalau katalognya udah gede |
-| Scan barcode | Scanner USB dan ketik manual | Scan pakai kamera HP |
-| Cetak struk | Print bawaan browser | Printer thermal |
-| Skala toko | Satu cabang | Multi-cabang, App Check, dan poin pelanggan |
+| Bagian       | Sekarang                                          | Rencananya                                                     |
+| :----------- | :------------------------------------------------ | :------------------------------------------------------------- |
+| Foto produk  | Disimpan sebagai data URL di dalam dokumen produk | Pindah ke Firebase Storage atau CDN kalau katalognya udah gede |
+| Scan barcode | Scanner USB dan ketik manual                      | Scan pakai kamera HP                                           |
+| Cetak struk  | Print bawaan browser                              | Printer thermal                                                |
+| Skala toko   | Satu cabang                                       | Multi-cabang, App Check, dan poin pelanggan                    |
 
 <br />
 

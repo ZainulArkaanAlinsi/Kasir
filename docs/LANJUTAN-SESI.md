@@ -39,8 +39,14 @@ Commit terakhir: `0d69490` — sudah ter-push ke
 | Konfigurasi web | `public/firebase-config.js` — sudah terisi, boleh publik |
 | Kredensial server | `serviceAccountKey.json` di root — **rahasia** |
 
-**Sandi admin sementara: `KasirOne#2026`.** Sandi ini pernah lewat percakapan,
-jadi gantilah. Ini satu-satunya utang keamanan yang masih terbuka.
+**Sandi admin tidak ditulis di sini, dan memang tidak boleh.** Repositori ini
+publik; sandi yang sempat tertulis di berkas ini pernah ter-commit, sudah
+diputar, dan sesi lamanya dicabut. Kalau lupa, setel ulang lewat Firebase
+Console > Authentication, atau:
+
+```bash
+node -e "import('./server/services/firebase.js').then(async m=>{m.initFirebase();const u=await m.getAuth().getUserByEmail('zainaril13@gmail.com');await m.getAuth().updateUser(u.uid,{password:process.argv[1]});console.log('ok')})" "SandiBaruMu"
+```
 
 ### Bukti sudah jalan (bukan klaim)
 
