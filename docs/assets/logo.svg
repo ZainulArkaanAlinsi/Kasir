@@ -1,47 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Logo KasirOne">
   <title>KasirOne</title>
   <defs>
-    <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff6b52"/>
-      <stop offset="1" stop-color="#ff2e43"/>
-    </linearGradient>
-    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff" stop-opacity=".38"/>
-      <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
-    </linearGradient>
+    <!-- Bentuk struk: sudut atas membulat, tepi bawah bergerigi seperti kertas yang disobek -->
+    <path id="receipt" d="M48 72 Q48 36 84 36 H172 Q208 36 208 72 V208 L198 220 L188 208 L178 220 L168 208 L158 220 L148 208 L138 220 L128 208 L118 220 L108 208 L98 220 L88 208 L78 220 L68 208 L58 220 L48 208 Z"/>
+    <clipPath id="clip"><use href="#receipt"/></clipPath>
     <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-      <stop offset=".5" stop-color="#fff" stop-opacity=".55"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".35"/>
       <stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="glow">
-      <stop offset="0" stop-color="#ff2e43" stop-opacity=".75"/>
-      <stop offset="1" stop-color="#ff2e43" stop-opacity="0"/>
-    </radialGradient>
-    <clipPath id="tile"><rect x="40" y="40" width="176" height="176" rx="48"/></clipPath>
     <style>
-      .glow  { transform-origin: 128px 136px; animation: pulse 3.2s ease-in-out infinite; }
-      .shine { animation: sweep 4.8s cubic-bezier(.6,0,.2,1) infinite; }
-      .laser { animation: scan 2.4s ease-in-out infinite alternate; }
-      @keyframes pulse { 0%,100% { transform: scale(.9); opacity: .55 } 50% { transform: scale(1.06); opacity: 1 } }
-      @keyframes sweep { 0%,55% { transform: translateX(-220px) skewX(-20deg) } 100% { transform: translateX(260px) skewX(-20deg) } }
-      @keyframes scan  { from { transform: translateY(0) } to { transform: translateY(112px) } }
+      .shine { animation: sweep 5.5s cubic-bezier(.6,0,.2,1) infinite; }
+      @keyframes sweep { 0%,62% { transform: translateX(-120px) skewX(-18deg) } 100% { transform: translateX(260px) skewX(-18deg) } }
       @media (prefers-reduced-motion: reduce) { * { animation: none !important } }
     </style>
   </defs>
 
-  <circle class="glow" cx="128" cy="136" r="118" fill="url(#glow)"/>
-  <rect x="40" y="40" width="176" height="176" rx="48" fill="url(#face)"/>
-  <g clip-path="url(#tile)">
-    <rect x="40" y="40" width="176" height="176" fill="url(#gloss)"/>
-    <rect class="shine" x="40" y="30" width="70" height="200" fill="url(#shine)"/>
-    <rect class="laser" x="52" y="72" width="152" height="2" rx="1" fill="url(#shine)" opacity=".7"/>
+  <use href="#receipt" fill="#ec2a3f"/>
+  <g clip-path="url(#clip)">
+    <rect class="shine" x="0" y="20" width="60" height="220" fill="url(#shine)"/>
   </g>
-  <rect x="40.5" y="40.5" width="175" height="175" rx="47.5" fill="none" stroke="#fff" stroke-opacity=".28"/>
-
-  <g fill="none" stroke="#fff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M98 82v94"/>
-    <path d="M160 82l-54 52"/>
-    <path d="M124 118l38 58"/>
+  <g fill="none" stroke="#fff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M98 76v92"/>
+    <path d="M160 76l-54 52"/>
+    <path d="M124 112l38 56"/>
   </g>
+  <path d="M80 194h96" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 8"/>
 </svg>

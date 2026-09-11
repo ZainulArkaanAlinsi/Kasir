@@ -18,9 +18,10 @@ import { money, escapeHtml, labelMetode, tanggal } from "../format.js";
 import { computeChange } from "../shared/money.js";
 import { cartTotals, cartItemsForApi, clearCart } from "./cart.js";
 import { getApi } from "../api/index.js";
+import { bukaLayarPembeli, perbaruiStatus, tutupLayarPembeli, bindLayarPembeli, setOnPembayaranDiterima } from "./customer-screen.js";
 
 /** Status pembayaran QRIS untuk transaksi yang sedang berjalan. */
-let qris = { orderId: null, mode: null, terverifikasi: false, lunas: false };
+let qris = { orderId: null, mode: null, terverifikasi: false, lunas: false, qrImage: null, keterangan: "" };
 
 /** Pewaktu polling status; wajib dihentikan saat modal ditutup. */
 let pollTimer = null;
@@ -29,7 +30,8 @@ let pollTimer = null;
 function resetQris() {
   clearInterval(pollTimer);
   pollTimer = null;
-  qris = { orderId: null, mode: null, terverifikasi: false, lunas: false };
+  qris = { orderId: null, mode: null, terverifikasi: false, lunas: false, qrImage: null, keterangan: "" };
+  tutupLayarPembeli();
   const frame = $("qrFrame");
   if (frame) frame.innerHTML = "";
 }
@@ -55,6 +57,27 @@ export function bindPaymentMethods() {
 
   $("cashReceived")?.addEventListener("input", hitungKembalian);
   $$('[data-close="paymentModal"]').forEach((b) => b.addEventListener("click", resetQris));
+
+  bindLayarPembeli();
+  // Saat pembeli selesai membayar, kasir kembali ke layarnya sendiri untuk
+  // menyimpan transaksi. Penyimpanan tetap satu jalur, tidak digandakan.
+  setOnPembayaranDiterima(() => {
+    qris.lunas = true;
+    confirmPayment($("confirmPayment"));
+  });
+
+  $("bukaLayarPembeli")?.addEventListener("click", () => {
+    if (!qris.orderId) {
+      showToast("Siapkan QRIS lebih dulu.", "error");
+      return;
+    }
+    bukaLayarPembeli({
+      qrImage: qris.qrImage,
+      orderId: qris.orderId,
+      keterangan: qris.keterangan,
+      terverifikasi: qris.terverifikasi
+    });
+  });
 }
 
 /** Membuka modal pembayaran dengan total terkini. */
@@ -102,7 +125,7 @@ async function siapkanQris() {
 
   try {
     const hasil = await getApi().createQris({ amount: cartTotals().total, orderId });
-    qris = { orderId, mode: hasil.mode, terverifikasi: hasil.terverifikasi, lunas: false };
+    qris = { orderId, mode: hasil.mode, terverifikasi: hasil.terverifikasi, lunas: false, qrImage: hasil.qrImage ?? null, keterangan: hasil.keterangan ?? "" };
 
     if (frame) {
       frame.innerHTML = hasil.qrImage
@@ -123,7 +146,7 @@ async function siapkanQris() {
     if (frame) frame.innerHTML = "";
     if (hint) hint.textContent = "";
     tulisStatusQris(escapeHtml(error.message || "Gagal menyiapkan QRIS."), "qr-wait danger-text");
-    qris = { orderId: null, mode: "gagal", terverifikasi: false, lunas: false };
+    qris = { orderId: null, mode: "gagal", terverifikasi: false, lunas: false, qrImage: null, keterangan: "" };
   }
 }
 
@@ -142,10 +165,12 @@ function mulaiPolling(orderId) {
         qris.lunas = true;
         clearInterval(pollTimer);
         tulisStatusQris("Pembayaran diterima. Silakan konfirmasi.", "qr-wait positive");
+        perbaruiStatus("lunas");
         showToast("Pembayaran QRIS diterima.", "success");
       } else if (status === "gagal") {
         clearInterval(pollTimer);
         tulisStatusQris("Pembayaran gagal atau kedaluwarsa.", "qr-wait danger-text");
+        perbaruiStatus("gagal");
       }
     } catch {
       // Kegagalan sesaat saat polling tidak perlu mengganggu kasir;

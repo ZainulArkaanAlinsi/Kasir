@@ -864,3 +864,123 @@ body[data-role="cashier"] .admin-only { display: none !important; }
   .toast { left: auto; right: var(--s5); bottom: var(--s5); max-width: 380px; }
   .bar-chart { height: 220px; gap: 8px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LAYAR PEMBELI — ditampilkan penuh lalu layarnya diputar menghadap pembeli
+   ----------------------------------------------------------------------------
+   Ini bukan modal biasa. Yang membacanya bukan kasir melainkan orang di
+   seberang meja, seringkali sambil berdiri dan memegang ponsel. Karena itu
+   QR dibuat sebesar mungkin, nominal ditulis besar, dan semua kendali kasir
+   disingkirkan supaya tidak ada yang salah tekan oleh pembeli.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.layar-pembeli {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; flex-direction: column; align-items: center;
+  padding: var(--s5) var(--s4);
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.lp-merek { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s5); }
+.lp-merek .brand-mark { width: 34px; height: 34px; font-size: 15px; }
+.lp-merek strong { font-size: 15px; }
+
+.lp-kartu {
+  width: min(420px, 100%);
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-3);
+  overflow: hidden;
+}
+
+.lp-kepala { text-align: center; padding: var(--s6) var(--s5) var(--s4); }
+.lp-cek {
+  width: 48px; height: 48px; margin: 0 auto var(--s3);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+.lp-cek svg { width: 24px; height: 24px; }
+.lp-kepala h2 { margin: 0 0 2px; font-size: 20px; letter-spacing: -.02em; }
+.lp-kepala p { margin: 0; font-size: 13px; color: var(--accent); font-weight: 650; }
+
+.lp-nominal {
+  text-align: center;
+  font-size: 34px; font-weight: 800; letter-spacing: -.03em;
+  margin: var(--s4) 0 var(--s2);
+}
+.lp-nomor {
+  display: block; text-align: center;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px; color: var(--ink-3);
+  background: var(--surface-2);
+  padding: 6px 12px; border-radius: var(--r-sm);
+  width: fit-content; margin: 0 auto var(--s5);
+}
+
+/* QR sengaja lebih besar daripada di modal kasir: pembeli memindainya dari
+   jarak setengah meter, bukan dari depan layar. */
+.lp-qr {
+  width: min(300px, 72vw); aspect-ratio: 1;
+  margin: 0 auto;
+  padding: var(--s3);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  display: grid; place-items: center;
+}
+.lp-qr img, .lp-qr svg { width: 100%; height: 100%; object-fit: contain; }
+.lp-qr .kosong { text-align: center; font-size: 13px; color: var(--ink-3); padding: var(--s4); }
+
+.lp-status {
+  display: flex; align-items: center; justify-content: center; gap: var(--s2);
+  margin: var(--s4) var(--s5) 0;
+  padding: var(--s3);
+  border-radius: var(--r-md);
+  background: var(--warn-soft); color: var(--warn);
+  font-size: 13px; font-weight: 650;
+}
+.lp-status.lunas { background: var(--ok-soft); color: var(--ok); }
+.lp-status.gagal { background: var(--danger-soft); color: var(--danger); }
+
+/* Garis sobek memisahkan bagian QR dari rincian, meniru tiket. */
+.lp-sobek {
+  position: relative; height: 22px; margin-top: var(--s5);
+  border-top: 2px dashed var(--line-2);
+}
+.lp-sobek::before, .lp-sobek::after {
+  content: ""; position: absolute; top: -12px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--bg);
+}
+.lp-sobek::before { left: -11px; }
+.lp-sobek::after { right: -11px; }
+
+.lp-rincian { padding: 0 var(--s5) var(--s5); display: grid; gap: var(--s3); }
+.lp-baris { display: flex; justify-content: space-between; gap: var(--s3); font-size: 13px; }
+.lp-baris span { color: var(--ink-3); }
+.lp-baris strong { font-weight: 650; text-align: right; }
+
+.lp-aksi {
+  width: min(420px, 100%);
+  display: grid; grid-template-columns: 1fr; gap: var(--s2);
+  margin: var(--s5) 0 var(--s6);
+}
+
+@media (min-width: 560px) {
+  .lp-aksi { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+  /* Bukan justify-content: center. Pada kontainer yang bisa digulir, center
+     memotong bagian ATAS begitu isinya lebih tinggi dari layar — bagian yang
+     terpotong justru judul dan nominalnya. margin auto memusatkan bila muat,
+     dan tetap menyisakan gulir bila tidak. */
+  .layar-pembeli { padding: var(--s6); }
+  .layar-pembeli > * { flex-shrink: 0; }
+  .lp-merek { margin-top: auto; }
+  .lp-aksi { margin-bottom: auto; }
+  .lp-kartu { width: min(460px, 100%); }
+  .lp-qr { width: 340px; }
+  .lp-nominal { font-size: 40px; }
+}

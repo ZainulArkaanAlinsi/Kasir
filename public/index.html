@@ -545,6 +545,11 @@
         <div id="qrisStatus" class="qr-wait"><span class="spinner"></span> Menunggu pembayaran…</div>
         <p class="muted" id="qrisHint" style="font-size:11px;margin:0;max-width:36ch"></p>
       </div>
+      <button id="bukaLayarPembeli" class="btn btn-secondary btn-block" type="button" style="margin-top:14px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-qr"/></svg>
+        Tampilkan ke pembeli
+      </button>
+
       <label id="qrisRefWrap" style="margin-top:14px">Nomor referensi <small class="muted">(diisi otomatis bila gateway aktif)</small>
         <input id="qrisReference" placeholder="mis. INV-88213">
       </label>
@@ -566,6 +571,43 @@
       </svg>
       <span class="text_button">Konfirmasi pembayaran</span>
     </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════ LAYAR PEMBELI ══════════════════════════
+     Ditampilkan penuh, lalu layar diputar menghadap pembeli. Semua kendali
+     kasir sengaja disingkirkan agar tidak ada yang salah tekan oleh pembeli;
+     hanya tombol tutup yang tersisa, di bawah. -->
+<div id="layarPembeli" class="layar-pembeli hidden" role="dialog" aria-label="Layar pembayaran untuk pembeli">
+  <div class="lp-merek">
+    <div class="brand-mark">K</div>
+    <strong id="lpNamaToko">KasirOne Store</strong>
+  </div>
+
+  <div class="lp-kartu">
+    <div class="lp-kepala">
+      <div class="lp-cek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-qr"/></svg></div>
+      <h2>Scan untuk membayar</h2>
+      <p>Buka aplikasi bank atau e-wallet Anda</p>
+    </div>
+
+    <div class="lp-nominal" id="lpNominal">Rp 0</div>
+    <span class="lp-nomor" id="lpNomor">—</span>
+
+    <div class="lp-qr" id="lpQr"></div>
+
+    <div class="lp-status" id="lpStatus">
+      <span class="spinner"></span> Menunggu pembayaran…
+    </div>
+
+    <div class="lp-sobek"></div>
+
+    <div class="lp-rincian" id="lpRincian"></div>
+  </div>
+
+  <div class="lp-aksi">
+    <button id="tutupLayarPembeli" class="btn btn-secondary">Tutup</button>
+    <button id="lpSelesai" class="btn btn-primary" disabled>Pembayaran diterima</button>
   </div>
 </div>
 
