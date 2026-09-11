@@ -4,6 +4,7 @@ import { asyncHandler } from "../middleware/errorHandler.js";
 import { requireRole, ROLES } from "../middleware/auth.js";
 import * as products from "../services/product.service.js";
 import { imporDariDummyJson } from "../services/import.service.js";
+import { cariBarcode, cariNama } from "../services/katalog-nasional.service.js";
 
 export const productsRouter = Router();
 
@@ -35,4 +36,17 @@ productsRouter.delete("/:id", requireRole(ROLES.ADMIN), asyncHandler(async (req,
 productsRouter.post("/impor-contoh", requireRole(ROLES.ADMIN), asyncHandler(async (req, res) => {
   const hasil = await imporDariDummyJson({ limit: req.body?.limit ?? 30, adminUid: req.user.uid });
   res.status(201).json({ data: hasil });
+}));
+
+/**
+ * Mencari produk di katalog nasional saat barcode tidak ada di toko.
+ * Hanya mengembalikan nama dan barcode; harga dan stok tetap wajib diisi
+ * admin, karena sumbernya menyatakan sendiri harganya angka acak.
+ */
+productsRouter.get("/nasional/barcode/:kode", requireRole(ROLES.ADMIN), asyncHandler(async (req, res) => {
+  res.json({ data: await cariBarcode(req.params.kode) });
+}));
+
+productsRouter.get("/nasional/cari", requireRole(ROLES.ADMIN), asyncHandler(async (req, res) => {
+  res.json({ data: await cariNama(req.query.nama, Number(req.query.limit) || 15) });
 }));

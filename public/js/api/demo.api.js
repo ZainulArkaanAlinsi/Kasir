@@ -325,6 +325,26 @@ export function createDemoApi() {
      * server/services/import.service.js; bila aturan di sana berubah, yang
      * ini harus ikut diubah supaya data uji tidak berbeda antar mode.
      */
+    /**
+     * Pencarian katalog nasional untuk mode demo. Sumbernya publik tanpa
+     * autentikasi, jadi bisa dipanggil langsung dari browser.
+     */
+    cariKatalogNasional: async (kode) => {
+      const basis = "https://api-products.alpha-projects.cloud/api/v1";
+      try {
+        const r = await fetch(`${basis}/products-barcode?barcode=${encodeURIComponent(kode)}&generateBarcode=false`, {
+          signal: AbortSignal.timeout(6000)
+        });
+        if (!r.ok) return null;
+        const d = await r.json().catch(() => null);
+        return d?.name ? { barcode: d.barcode ?? kode, name: d.name, uom: d.uom ?? null } : null;
+      } catch {
+        // Katalog nasional sedang mati atau diblokir jaringan: kasir tetap
+        // bisa mengetik manual, jadi kegagalan di sini tidak perlu berisik.
+        return null;
+      }
+    },
+
     imporContoh: async (limit = 30) => {
       const r = await fetch(`https://dummyjson.com/products?limit=${limit}&select=title,sku,category,price,stock,thumbnail`);
       if (!r.ok) throw apiError("Tidak bisa menghubungi DummyJSON. Periksa koneksi internet.", "SOURCE_UNREACHABLE");

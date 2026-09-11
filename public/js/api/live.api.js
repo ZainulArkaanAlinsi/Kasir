@@ -56,6 +56,7 @@ export function createLiveApi(getToken) {
     updateProduct: (id, data) => request(`/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     deactivateProduct: (id) => request(`/products/${id}`, { method: "DELETE" }),
     imporContoh: (limit = 30) => request("/products/impor-contoh", { method: "POST", body: JSON.stringify({ limit }) }),
+    cariKatalogNasional: (kode) => request(`/products/nasional/barcode/${encodeURIComponent(kode)}`),
 
     createTransaction: (payload) => request("/transactions", { method: "POST", body: JSON.stringify(payload) }),
     listTransactions: (filter) => request(`/transactions${qs(filter)}`),

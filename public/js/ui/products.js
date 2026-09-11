@@ -239,6 +239,17 @@ export function bindProductForm() {
   if (!form) return;
   bindImageDrop();
 
+  // Hasil pencarian katalog nasional: buka formulir dengan nama dan barcode
+  // sudah terisi. Admin tinggal melengkapi harga dan stok.
+  document.addEventListener("kasirone:produk-baru-dari-scan", (e) => {
+    const { sku, name } = e.detail ?? {};
+    if (!sku) return;
+    bukaFormProduk();
+    if ($("newSku")) $("newSku").value = sku;
+    if ($("newName")) $("newName").value = name ?? "";
+    $("newPrice")?.focus();
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const tombol = form.querySelector('button[type="submit"]');

@@ -67,9 +67,32 @@ export async function handleScan(kode, api, tambahKeKeranjang) {
     if (tambahKeKeranjang(product)) {
       showToast(`${product.name} ditambahkan.`, "success");
     }
-  } catch (error) {
-    // Scan gagal harus TERLIHAT. Diam-diam gagal adalah bug kasir paling
-    // menyebalkan: barang sudah dipindai tapi tidak masuk keranjang.
-    showToast(error?.message || `Barcode "${kode}" tidak terdaftar.`, "error");
+    return;
+  } catch {
+    // Tidak ada di katalog toko. Sebelum menyerah, tanyakan ke katalog produk
+    // Indonesia — puluhan ribu barang beserta barcodenya ada di sana, dan
+    // mengetik ulang nama barang di depan antrean adalah pekerjaan yang
+    // paling tidak perlu.
   }
+
+  let temuan = null;
+  try {
+    temuan = await api.cariKatalogNasional?.(kode);
+  } catch {
+    // Katalog nasional mati atau diblokir jaringan: jatuh ke pesan biasa.
+  }
+
+  if (temuan?.name) {
+    showToast(`"${temuan.name}" belum terdaftar di toko. Tambahkan dulu produknya.`, "error");
+    // Formulir tambah produk diisi sebagian supaya admin tinggal melengkapi
+    // harga dan stok — dua hal yang memang hanya toko yang tahu.
+    document.dispatchEvent(new CustomEvent("kasirone:produk-baru-dari-scan", {
+      detail: { sku: temuan.barcode ?? kode, name: temuan.name }
+    }));
+    return;
+  }
+
+  // Scan gagal harus TERLIHAT. Diam-diam gagal adalah bug kasir paling
+  // menyebalkan: barang sudah dipindai tapi tidak masuk keranjang.
+  showToast(`Barcode "${kode}" tidak terdaftar.`, "error");
 }
