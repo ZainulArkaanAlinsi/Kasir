@@ -154,6 +154,18 @@ export function createDemoApi() {
 
     qrisStatus: async () => ({ status: "tidak-diketahui", raw: "demo" }),
 
+    /** Katalog demo memakai penyaringan yang sama dengan server. */
+    listKatalog: async () => getProducts()
+      .filter((p) => p.aktif !== false)
+      .map((p) => {
+        const tersedia = stokTersedia(p);
+        return {
+          id: p.id, name: p.name, sku: p.sku ?? null, category: p.category ?? null,
+          hargaJual: Number(p.hargaJual) || 0, imageUrl: p.imageUrl ?? null,
+          tersedia, habis: tersedia <= 0
+        };
+      }),
+
     opsiPengiriman: async () => ({
       cara: ["pickup", "delivery"],
       zona: ["dalam_kota", "luar_kota"],

@@ -1,0 +1,135 @@
+/* ============================================================================
+   Etalase publik — lapisan di atas design system KasirOne.
+   ----------------------------------------------------------------------------
+   Halaman ini dibuka pengunjung yang belum kenal toko, jadi prioritasnya
+   berbeda dari aplikasi kasir: foto barang dibuat besar, harga tebal dan
+   mudah dipindai, dan satu-satunya tombol mencolok adalah "tambah".
+   Token warna, bentuk, dan bayangan diwarisi apa adanya dari style.css.
+   ========================================================================== */
+
+body.toko { padding-bottom: 0; }
+
+/* ── Kepala halaman ───────────────────────────────────────────────────── */
+.toko-header {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(10, 12, 16, .82);
+  border-bottom: 1px solid var(--edge);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+.toko-header-inner {
+  max-width: 1240px; margin: 0 auto;
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 22px;
+}
+.toko-header .brand { text-decoration: none; color: inherit; flex-shrink: 0; }
+.toko-search { max-width: 420px; }
+.toko-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.hitung {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .25);
+  font-size: 11px; font-weight: 800;
+}
+
+.toko-main { max-width: 1240px; margin: 0 auto; padding: 26px 22px 64px; }
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.toko-hero {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 26px; flex-wrap: wrap;
+  padding: 26px 30px;
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(680px 280px at 85% -25%, rgba(255, 107, 82, .45), transparent 62%),
+    linear-gradient(115deg, #b0122a, #ff2e43 58%, #ff6b52);
+  box-shadow: 0 20px 46px -22px var(--brand-glow);
+}
+.toko-hero h1 { font-size: clamp(22px, 4vw, 30px); margin: 6px 0 6px; letter-spacing: -.02em; }
+.toko-hero p { margin: 0; opacity: .9; max-width: 52ch; font-size: 13px; }
+.toko-hero-cara { display: flex; gap: 10px; flex-wrap: wrap; }
+.cara-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 13px 16px;
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(8px);
+}
+.cara-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+.cara-item strong { display: block; font-size: 13px; }
+.cara-item span { display: block; font-size: 11px; opacity: .85; }
+
+/* ── Grid produk: foto lebih besar daripada di layar kasir ────────────── */
+.toko-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+}
+.toko-kartu {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow: var(--sh-2), var(--lift);
+  transition: transform .22s var(--ease), border-color .22s, box-shadow .22s;
+}
+.toko-kartu::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: var(--hairline); z-index: 2; }
+.toko-kartu:hover { transform: translateY(-4px); border-color: var(--edge-2); box-shadow: var(--sh-3), var(--lift); }
+.toko-kartu.habis { opacity: .45; }
+
+.toko-media { position: relative; aspect-ratio: 4 / 3; background: linear-gradient(160deg, #1a1d25, #101218); overflow: hidden; }
+.toko-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s var(--ease); }
+.toko-kartu:hover .toko-media img { transform: scale(1.05); }
+.toko-media .monogram {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 40px; font-weight: 800; color: rgba(255, 255, 255, .26);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .07), transparent);
+}
+.toko-media .chip { position: absolute; left: 10px; top: 10px; z-index: 2; }
+
+.toko-isi { padding: 14px 15px 15px; display: flex; flex-direction: column; flex: 1; }
+.toko-isi h3 { margin: 0 0 3px; font-size: 14px; font-weight: 700; line-height: 1.35; }
+.toko-isi .kategori { margin: 0; font-size: 11px; color: var(--muted); }
+.toko-bawah { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; }
+.toko-harga { font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+
+/* ── Panel keranjang geser ─────────────────────────────────────────────── */
+.keranjang-panel {
+  position: fixed; right: 0; top: 0; bottom: 0;
+  width: min(400px, 100vw);
+  z-index: 90;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #1b1e26, #121419);
+  border-left: 1px solid var(--edge-2);
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, .8);
+  animation: geser .28s var(--ease);
+}
+@keyframes geser { from { transform: translateX(100%); } to { transform: none; } }
+.tirai { position: fixed; inset: 0; z-index: 80; background: rgba(4, 5, 8, .6); backdrop-filter: blur(4px); }
+
+.toko-footer {
+  max-width: 1240px; margin: 0 auto;
+  padding: 26px 22px 44px;
+  border-top: 1px solid var(--edge);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  color: var(--muted); font-size: 12px;
+}
+
+textarea { resize: vertical; min-height: 76px; font-family: inherit; }
+
+.pesanan-baris { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 8px; border-radius: var(--r-sm); }
+.pesanan-baris:hover { background: var(--glass); }
+.pesanan-baris strong { font-size: 12px; }
+.pesanan-baris span { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+@media (max-width: 760px) {
+  .toko-header-inner { flex-wrap: wrap; padding: 12px 14px; }
+  .toko-search { order: 3; max-width: none; width: 100%; }
+  .toko-main { padding: 18px 14px 48px; }
+  .toko-hero { padding: 20px; }
+  .toko-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .toko-footer { padding: 20px 14px 36px; }
+}

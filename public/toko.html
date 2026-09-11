@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KasirOne Store — Belanja Online</title>
+  <meta name="description" content="Belanja kebutuhan harian. Ambil sendiri di toko atau kami antar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/toko.css">
+</head>
+<body class="toko">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-cart"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></g>
+    <g id="i-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></g>
+    <g id="i-x"><path d="M18 6 6 18M6 6l12 12"/></g>
+    <g id="i-check"><path d="M20 6 9 17l-5-5"/></g>
+    <g id="i-store"><path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></g>
+    <g id="i-truck"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></g>
+    <g id="i-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></g>
+  </defs>
+</svg>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<header class="toko-header">
+  <div class="toko-header-inner">
+    <a class="brand" href="/toko.html">
+      <div class="brand-mark">K</div>
+      <div>
+        <strong>KasirOne Store</strong>
+        <span>Belanja &amp; ambil di toko</span>
+      </div>
+    </a>
+
+    <div class="search-box toko-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg>
+      <input id="cariProduk" placeholder="Cari barang…" autocomplete="off" aria-label="Cari barang">
+    </div>
+
+    <div class="toko-actions">
+      <span class="status-pill" id="akunLabel"><i></i> Pengunjung</span>
+      <button id="bukaKeranjang" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bag"/></svg>
+        Keranjang <span class="hitung" id="hitungKeranjang">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="toko-main">
+  <section class="toko-hero">
+    <div>
+      <span class="hero-kicker">TOKO ONLINE</span>
+      <h1>Belanja dari rumah, ambil di toko.</h1>
+      <p>Stok yang tampil di sini adalah stok sungguhan di rak kami — kalau bisa dipesan, barangnya memang ada.</p>
+    </div>
+    <div class="toko-hero-cara">
+      <div class="cara-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-store"/></svg>
+        <div><strong>Ambil sendiri</strong><span>Gratis</span></div>
+      </div>
+      <div class="cara-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-truck"/></svg>
+        <div><strong>Diantar</strong><span id="tarifDalamKota">Rp 10.000</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="category-row" id="barisKategori"></div>
+  <div class="toko-grid" id="gridKatalog"></div>
+</main>
+
+<footer class="toko-footer">
+  <p>KasirOne Store · Harga sudah termasuk pajak dihitung saat checkout.</p>
+  <a href="/">Masuk sebagai staf toko →</a>
+</footer>
+
+<!-- ══════════════════════ PANEL KERANJANG ══════════════════════ -->
+<aside id="panelKeranjang" class="keranjang-panel hidden" aria-label="Keranjang belanja">
+  <div class="cart-head">
+    <div><h3>Keranjang</h3><span id="ringkasKeranjang">0 item</span></div>
+    <button id="tutupKeranjang" class="icon-btn" aria-label="Tutup keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-x"/></svg></button>
+  </div>
+
+  <div id="isiKeranjang" class="cart-items"></div>
+
+  <div class="cart-summary">
+    <div><span>Subtotal</span><strong id="subtotalKeranjang">Rp 0</strong></div>
+    <div><span>Pajak</span><strong id="pajakKeranjang">Rp 0</strong></div>
+    <div><span>Ongkir</span><strong id="ongkirKeranjang">Rp 0</strong></div>
+    <div class="total-row"><span>Total</span><strong id="totalKeranjang">Rp 0</strong></div>
+    <button id="lanjutCheckout" class="btn btn-primary btn-block btn-lg" disabled>Lanjut ke pemesanan</button>
+  </div>
+</aside>
+<div id="tirai" class="tirai hidden"></div>
+
+<!-- ══════════════════════ MODAL CHECKOUT ══════════════════════ -->
+<div id="modalCheckout" class="modal hidden">
+  <div class="modal-card">
+    <button class="modal-close" data-close="modalCheckout" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">PEMESANAN</span>
+    <h2>Bagaimana barangnya diambil?</h2>
+
+    <div class="payment-methods" style="margin-top:16px">
+      <button class="payment-method active" data-cara="pickup" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-store"/></svg>
+        <strong>Ambil di toko</strong><small>Gratis</small>
+      </button>
+      <button class="payment-method" data-cara="delivery" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-truck"/></svg>
+        <strong>Diantar</strong><small id="tarifAntar">Rp 10.000</small>
+      </button>
+    </div>
+
+    <div class="form-grid" style="margin-top:18px">
+      <label>Nomor WhatsApp<input id="teleponPemesan" type="tel" placeholder="08123456789" inputmode="tel"></label>
+
+      <div id="areaAlamat" class="hidden form-grid">
+        <label>Zona pengiriman
+          <select id="zonaKirim">
+            <option value="dalam_kota">Dalam kota</option>
+            <option value="luar_kota">Luar kota</option>
+          </select>
+        </label>
+        <label>Alamat lengkap
+          <textarea id="alamatKirim" rows="3" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan"></textarea>
+        </label>
+      </div>
+
+      <label>Catatan untuk toko <small class="muted">(opsional)</small>
+        <input id="catatanPesanan" placeholder="mis. titip ke satpam">
+      </label>
+    </div>
+
+    <div class="change-box" style="margin-top:16px">
+      <span>Total dibayar</span>
+      <strong id="totalCheckout">Rp 0</strong>
+    </div>
+
+    <button id="kirimPesanan" class="btn btn-primary btn-block btn-lg" style="margin-top:16px">Buat pesanan</button>
+    <p class="muted" style="font-size:11px;margin:12px 0 0;text-align:center">
+      Stok akan kami sisihkan setelah pesanan dibuat.
+      <span id="batasWaktu">Segera lakukan pembayaran</span> agar tidak kedaluwarsa.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════ MODAL BERHASIL ══════════════════════ -->
+<div id="modalBerhasil" class="modal hidden">
+  <div class="modal-card success-card">
+    <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg></div>
+    <h2>Pesanan diterima</h2>
+    <p id="teksBerhasil" class="muted" style="font-size:12px"></p>
+    <div class="receipt-preview" id="rincianPesanan"></div>
+    <div class="modal-actions">
+      <button id="belanjaLagi" class="btn btn-secondary">Belanja lagi</button>
+      <button id="lihatPesanan" class="btn btn-primary">Lihat pesanan saya</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MODAL PESANAN SAYA ══════════════════════ -->
+<div id="modalPesananSaya" class="modal hidden">
+  <div class="modal-card wide">
+    <button class="modal-close" data-close="modalPesananSaya" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">RIWAYAT</span>
+    <h2>Pesanan saya</h2>
+    <div id="daftarPesananSaya" class="activity-list" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<script type="module" src="/js/toko.js"></script>
+</body>
+</html>

@@ -23,6 +23,7 @@ import { expensesRouter } from "./routes/expenses.routes.js";
 import { reportsRouter } from "./routes/reports.routes.js";
 import { paymentsRouter } from "./routes/payments.routes.js";
 import { ordersRouter } from "./routes/orders.routes.js";
+import { catalogRouter } from "./routes/catalog.routes.js";
 import { verifikasiTandaTanganWebhook, bacaStatusWebhook } from "./services/payment.service.js";
 import { daftarPesanan, ubahStatus, STATUS as ORDER_STATUS } from "./services/order.service.js";
 import { getDb, admin } from "./services/firebase.js";
@@ -60,6 +61,12 @@ app.use("/api", rateLimit({
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "kasirone", firebase: isFirebaseReady(), time: new Date().toISOString() });
 });
+
+/**
+ * Katalog publik untuk etalase. Tanpa login, tetapi field sensitif seperti
+ * harga modal disaring di dalam router-nya.
+ */
+app.use("/api/katalog", catalogRouter);
 
 /**
  * Pemberitahuan pembayaran dari Midtrans (M12).
@@ -141,6 +148,8 @@ app.use(notFoundHandler);
 
 // --- Frontend statis ---
 app.use(express.static(PUBLIC_DIR));
+// Catch-all mengembalikan aplikasi kasir. Etalase (/toko.html) sudah
+// tertangani express.static di atas, jadi tidak ikut tertelan ke sini.
 app.get("*splat", (_req, res) => res.sendFile(path.join(PUBLIC_DIR, "index.html")));
 
 app.use(errorHandler);

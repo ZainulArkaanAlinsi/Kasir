@@ -69,6 +69,18 @@ export function createLiveApi(getToken) {
     createQris: (payload) => request("/payments/qris", { method: "POST", body: JSON.stringify(payload) }),
     qrisStatus: (orderId) => request(`/payments/qris/${encodeURIComponent(orderId)}/status`),
 
+    /**
+     * Katalog publik. Sengaja TIDAK lewat request(), karena request()
+     * selalu melampirkan token; etalase harus bisa dibuka pengunjung yang
+     * belum punya akun sama sekali.
+     */
+    listKatalog: async () => {
+      const r = await fetch("/api/katalog");
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error(body?.error || "Gagal memuat katalog."), { code: body?.code });
+      return body.data ?? [];
+    },
+
     opsiPengiriman: () => request("/orders/opsi-pengiriman"),
     buatPesanan: (payload) => request("/orders", { method: "POST", body: JSON.stringify(payload) }),
     daftarPesanan: (filter) => request(`/orders${qs(filter)}`),
