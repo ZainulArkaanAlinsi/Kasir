@@ -185,7 +185,21 @@ menyimpang — total di layar memperhitungkan diskon, total yang ditagih tidak.
 
 ### `products/{id}`
 `name`, `sku` (dipakai sebagai barcode, unik), `category`, `hargaJual`,
-`hargaModal`, `stok`, `stokMinimum`, `icon`, `aktif`, `createdAt`, `updatedAt`
+`hargaModal`, `stok`, `stokDipesan`, `stokMinimum`, `imageUrl`, `aktif`,
+`createdAt`, `updatedAt`
+
+**Stok dipecah dua.** `stok` adalah jumlah fisik di rak; `stokDipesan` adalah
+bagian yang sudah dijanjikan ke pesanan online yang belum selesai. Yang boleh
+dijual — oleh kasir maupun etalase — adalah selisihnya:
+
+```
+tersedia = stok − stokDipesan
+```
+
+Tanpa pemisahan ini, satu barang terakhir bisa dipesan pembeli online pada
+detik yang sama saat kasir menjualnya di toko. Tiga peristiwa mengubahnya:
+memesan menaikkan `stokDipesan`, membatalkan menurunkannya kembali, dan
+menyelesaikan pesanan menurunkan `stok` sekaligus `stokDipesan`.
 
 ### `transactions/{id}`
 `receiptNumber`, `cashierUid`, `cashierName`, `paymentMethod`, `cashReceived`,
@@ -224,6 +238,11 @@ Yang diuji secara khusus:
 - Transaksi dua produk yang salah satunya kurang → **seluruhnya** dibatalkan.
 - Kasir tidak bisa menulis ke `products`/`transactions` dari browser.
 - Kasir tidak bisa menaikkan `role` dirinya sendiri menjadi `admin`.
+- Kasir tidak bisa menjual barang yang sudah dikunci pesanan online, tetapi
+  tetap boleh menjual sisanya.
+- Satu kasir dan delapan pesanan online berebut stok 5 → tepat 5 unit yang
+  terpakai, tidak ada yang dijanjikan dua kali.
+- Membatalkan pesanan dua kali tidak membuat `stokDipesan` negatif.
 - QRIS yang belum dikonfigurasi **menolak** membuat pembayaran, bukan
   menampilkan QR palsu.
 - QRIS statis menghasilkan QR sungguhan tetapi tidak mengaku terverifikasi.

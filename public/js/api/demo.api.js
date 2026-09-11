@@ -10,6 +10,7 @@
  * localStorage berbeda dan mode ditentukan eksplisit saat login.
  */
 import { computeTotals, computeChange, lineProfit } from "../shared/money.js";
+import { stokTersedia } from "../shared/product.js";
 
 const KEY = {
   products: "kasirone_demo_products",
@@ -83,7 +84,7 @@ function apiError(message, code, details) {
  */
 export function createDemoApi() {
   if (!localStorage.getItem(KEY.products)) {
-    tulis(KEY.products, SEED_PRODUCTS.map((p) => ({ id: idBaru(), aktif: true, ...p })));
+    tulis(KEY.products, SEED_PRODUCTS.map((p) => ({ id: idBaru(), aktif: true, stokDipesan: 0, ...p })));
   }
 
   const getProducts = () => baca(KEY.products, []);
@@ -167,7 +168,7 @@ export function createDemoApi() {
       if (Number(data.hargaJual) < Number(data.hargaModal)) {
         throw apiError("Harga jual tidak boleh lebih kecil dari harga modal.", "PRICE_BELOW_COST");
       }
-      const product = { id: idBaru(), aktif: true, ...data };
+      const product = { id: idBaru(), aktif: true, stokDipesan: 0, ...data };
       tulis(KEY.products, [product, ...products]);
       return product;
     },
@@ -208,9 +209,9 @@ export function createDemoApi() {
         const product = products.find((p) => p.id === item.productId);
         if (!product) throw apiError(`Produk tidak ditemukan (${item.productId}).`, "NOT_FOUND");
 
-        const stok = Number(product.stok) || 0;
-        if (stok < item.qty) {
-          kurang.push({ name: product.name, diminta: item.qty, tersedia: stok });
+        const tersedia = stokTersedia(product);
+        if (tersedia < item.qty) {
+          kurang.push({ name: product.name, diminta: item.qty, tersedia });
           continue;
         }
         lines.push({

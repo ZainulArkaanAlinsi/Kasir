@@ -8,7 +8,7 @@
 import { getDb, admin } from "./firebase.js";
 import { badRequest, conflict, notFound } from "../lib/errors.js";
 import { requireNumber, requireString } from "../lib/validate.js";
-import { isLowStock, STOK_MINIMUM_DEFAULT } from "../../public/js/shared/product.js";
+import { isLowStock, STOK_MINIMUM_DEFAULT, stokTersedia } from "../../public/js/shared/product.js";
 
 /**
  * Batas panjang string foto (~500 KB base64).
@@ -102,6 +102,8 @@ export async function createProduct(body, adminUid) {
   await ref.set({
     ...data,
     imageUrl: data.imageUrl ?? null,
+    // Produk baru belum punya pesanan yang mengunci stoknya.
+    stokDipesan: 0,
     aktif: data.aktif ?? true,
     createdBy: adminUid,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -146,4 +148,4 @@ export async function deactivateProduct(id) {
  * Ambang stok menipis dipakai bersama dengan frontend.
  * Di-re-export agar pemanggil di server tidak perlu tahu letak modul bersama.
  */
-export { isLowStock, STOK_MINIMUM_DEFAULT };
+export { isLowStock, STOK_MINIMUM_DEFAULT, stokTersedia };

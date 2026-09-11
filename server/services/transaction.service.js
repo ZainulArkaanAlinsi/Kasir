@@ -9,7 +9,10 @@
  *     di dalam transaksi.
  *  2. Pengecekan stok dan pengurangan stok terjadi di dalam satu
  *     Firestore transaction, sehingga dua kasir yang checkout barang sama
- *     pada saat bersamaan tidak bisa membuat stok minus.
+ *     pada saat bersamaan tidak bisa membuat stok minus. Sejak M8, yang
+ *     dicek adalah stok TERSEDIA (stok fisik dikurangi yang sudah dipesan
+ *     lewat etalase), supaya kasir tidak menjual barang yang sudah disisihkan
+ *     untuk pesanan online.
  *  3. Harga jual & harga modal di-SNAPSHOT ke dalam dokumen transaksi,
  *     supaya laporan laba historis tetap benar walau harga berubah nanti.
  */
@@ -17,6 +20,7 @@ import { getDb, admin } from "./firebase.js";
 import { computeTotals, computeChange } from "../../public/js/shared/money.js";
 import { badRequest, conflict, notFound } from "../lib/errors.js";
 import { requireCartItems, requireEnum, requireNumber } from "../lib/validate.js";
+import { stokTersedia } from "../../public/js/shared/product.js";
 
 export const PAYMENT_METHODS = Object.freeze(["cash", "card", "qris"]);
 
@@ -69,9 +73,12 @@ export async function createTransaction(input) {
         throw badRequest(`Produk "${product.name}" sudah dinonaktifkan.`, "PRODUCT_INACTIVE");
       }
 
-      const stok = Number(product.stok) || 0;
-      if (stok < qty) {
-        kurang.push({ productId, name: product.name, diminta: qty, tersedia: stok });
+      // Yang dipakai adalah stok TERSEDIA, bukan stok fisik. Barang yang
+      // sudah dikunci untuk pesanan online belum diambil pembelinya, tapi
+      // juga tidak boleh dijual ulang di kasir.
+      const tersedia = stokTersedia(product);
+      if (tersedia < qty) {
+        kurang.push({ productId, name: product.name, diminta: qty, tersedia });
         return;
       }
 

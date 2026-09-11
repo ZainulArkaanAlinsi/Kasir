@@ -7,6 +7,7 @@
  * yang jelas, bukan diam-diam menagih angka lama.
  */
 import { computeTotals } from "../shared/money.js";
+import { stokTersedia } from "../shared/product.js";
 import { get, set } from "../state.js";
 import { $, showToast } from "./shell.js";
 import { money, escapeHtml } from "../format.js";
@@ -21,7 +22,9 @@ export function addToCart(product, qty = 1) {
   if (!product?.id) return false;
 
   const cart = [...get("cart")];
-  const stok = Number(product.stok) || 0;
+  // Batas keranjang mengikuti stok TERSEDIA, bukan stok fisik: sebagian
+  // barang bisa sedang dikunci untuk pesanan online yang belum diambil.
+  const stok = stokTersedia(product);
   const existing = cart.find((item) => item.productId === product.id);
   const qtyBaru = (existing?.qty ?? 0) + qty;
 
