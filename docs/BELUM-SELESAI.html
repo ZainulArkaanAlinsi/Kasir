@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>KasirOne — Yang Belum Bisa Dikerjakan</title>
+<style>
+/* Dirancang untuk dicetak: buka di peramban lalu Ctrl+P > Save as PDF. */
+@page { size: A4; margin: 18mm 16mm; }
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto; max-width: 760px; padding: 28px 22px;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: 11.5pt; line-height: 1.6; color: #14171f; background: #fff;
+}
+h1 { font-size: 22pt; margin: 0 0 4px; letter-spacing: -.02em; }
+.sub { color: #4d5665; margin: 0 0 4px; }
+.meta { font-size: 9pt; color: #737d8d; letter-spacing: .06em; text-transform: uppercase; }
+h2 { font-size: 13pt; margin: 26px 0 8px; padding-top: 12px; border-top: 2px solid #14171f; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 16px 0 4px; page-break-after: avoid; }
+p, li { margin: 0 0 8px; }
+ul, ol { padding-left: 18px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 14px; font-size: 10pt; page-break-inside: avoid; }
+th { text-align: left; padding: 6px 8px 6px 0; border-bottom: 1.5px solid #14171f; font-size: 8.5pt; letter-spacing: .07em; text-transform: uppercase; color: #737d8d; }
+td { padding: 7px 8px 7px 0; border-bottom: 1px solid #e3e8ef; vertical-align: top; }
+.blok { padding: 12px 14px; margin: 12px 0; border-left: 3px solid #ff2e43; background: #fff6f7; page-break-inside: avoid; }
+.blok.info { border-left-color: #0f9d6b; background: #f1faf6; }
+.tag { display: inline-block; font-size: 8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #ff2e43; margin-bottom: 4px; }
+.blok.info .tag { color: #0f9d6b; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .88em; background: #eff2f6; padding: 1px 4px; border-radius: 3px; }
+.pill { display: inline-block; font-size: 8.5pt; font-weight: 700; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
+.p-anda { background: #fdeaec; color: #d92b3c; }
+.p-saya { background: #e4f6ee; color: #0f9d6b; }
+footer { margin-top: 28px; padding-top: 12px; border-top: 2px solid #14171f; font-size: 9pt; color: #737d8d; }
+</style>
+</head>
+<body>
+
+<p class="meta">KasirOne &middot; Daftar Hambatan &middot; 11 September 2026</p>
+<h1>Yang Belum Bisa Saya Kerjakan</h1>
+<p class="sub">Dan siapa yang harus mengerjakannya.</p>
+
+<div class="blok">
+  <span class="tag">Ringkasan</span>
+  <p style="margin:0">
+    Kodenya selesai: 15 milestone (M0 sampai M14) dan 111 pengujian otomatis lolos.
+    Yang belum selesai adalah hal-hal yang <strong>tidak bisa diselesaikan dengan
+    menulis kode</strong> &mdash; semuanya butuh akun, kredensial, atau keputusan
+    bisnis dari pemilik toko.
+  </p>
+</div>
+
+<h2>1. Hambatan yang menghalangi "dipakai orang"</h2>
+
+<table>
+  <thead><tr><th>Hambatan</th><th>Siapa</th><th>Perkiraan</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Project Firebase</strong><br>Tanpa ini seluruh jalur produksi tidak pernah berjalan sekali pun</td><td><span class="pill p-anda">Anda</span></td><td>15 menit</td></tr>
+    <tr><td><strong>Akun Midtrans</strong><br>Tanpa ini QRIS hanya menolak dengan jujur, tidak menagih</td><td><span class="pill p-anda">Anda</span></td><td>1&ndash;3 hari verifikasi</td></tr>
+    <tr><td><strong>Hosting dan domain</strong><br>Aplikasi masih hanya hidup di localhost</td><td><span class="pill p-anda">Anda</span></td><td>30 menit</td></tr>
+    <tr><td>Deploy ke Cloud Run dan Firebase Hosting</td><td><span class="pill p-saya">Saya</span></td><td>setelah tiga hal di atas</td></tr>
+  </tbody>
+</table>
+
+<h3>Kenapa saya tidak bisa membuatkan akunnya</h3>
+<p>
+  Ketiganya mengikat secara hukum atas nama pemilik usaha dan memerlukan
+  verifikasi identitas. Midtrans khususnya meminta data usaha dan rekening
+  penampung &mdash; saya tidak boleh, dan memang tidak bisa, mengisinya untuk Anda.
+</p>
+
+<div class="blok">
+  <span class="tag">Ditemukan saat pengujian</span>
+  <p style="margin:0">
+    Kredensial Google yang aktif di komputer Anda menunjuk ke project
+    <code>jne-attendance-martapura-88</code>, dan Firestore API di sana dalam
+    keadaan mati. Itulah sebabnya jalur produksi tidak pernah bisa saya uji dari
+    ujung ke ujung. Mode demo berjalan penuh tanpa keduanya.
+  </p>
+</div>
+
+<h2>2. Pekerjaan teknis yang sengaja saya tunda</h2>
+
+<h3>2.1 Skala spasi belum diseragamkan</h3>
+<p>
+  Token <code>--s1</code> sampai <code>--s8</code> berbasis 4px sudah ditetapkan,
+  tetapi sebagian nilai lama masih di luar skala. Menormalkan semuanya sekaligus
+  berarti menggeser puluhan elemen dan menguji ulang setiap layar. Manfaatnya
+  kecil, risikonya besar; lebih baik dikerjakan bertahap setiap kali sebuah
+  komponen disentuh.
+</p>
+
+<h3>2.2 Foto produk masih disimpan di dalam dokumen</h3>
+<p>
+  Foto disimpan sebagai data URL di dalam dokumen produk. Untuk katalog kecil ini
+  aman. Begitu produk mencapai ratusan, foto harus dipindah ke Firebase Storage
+  atau CDN &mdash; dokumen Firestore dibatasi 1 MB dan biaya bacanya ikut membengkak.
+</p>
+
+<h3>2.3 Laporan membaca seluruh dokumen</h3>
+<p>
+  Firestore tidak punya <code>SUM</code> atau <code>GROUP BY</code>, jadi laporan
+  membaca semua transaksi pada periode lalu menjumlahkannya di server. Toko dengan
+  200 transaksi per hari berarti sekitar 12.000 dokumen dibaca setiap kali halaman
+  laporan dibuka.
+</p>
+<p>
+  <strong>Ambang pindah ke PostgreSQL: sekitar 100 transaksi per hari.</strong>
+  Migrasinya nanti murah karena seluruh panggilan Firestore sudah terkurung di
+  <code>server/services/</code> &mdash; sekitar enam berkas yang tersentuh,
+  sedangkan rute dan frontend tidak berubah.
+</p>
+
+<h3>2.4 Scan barcode lewat kamera ponsel</h3>
+<p>
+  Saat ini mendukung scanner USB dan ketik manual. Scan lewat kamera memerlukan
+  pustaka tambahan dan izin kamera, dan hanya berguna bila toko tidak memakai
+  scanner fisik.
+</p>
+
+<h3>2.5 Pemberitahuan ke pembeli</h3>
+<p>
+  Pembeli melihat status pesanannya bila membuka halaman etalase, tetapi tidak
+  menerima pesan otomatis saat pesanan disiapkan atau dikirim. Mengirim WhatsApp
+  memerlukan akun WhatsApp Business API, yang juga mengikat atas nama usaha.
+</p>
+
+<h2>3. Keputusan bisnis yang menunggu Anda</h2>
+
+<table>
+  <thead><tr><th>Pertanyaan</th><th>Nilai sementara yang saya pakai</th></tr></thead>
+  <tbody>
+    <tr><td>Berapa tarif ongkir sebenarnya?</td><td>Rp 10.000 dalam kota, Rp 25.000 luar kota</td></tr>
+    <tr><td>Berapa lama pesanan boleh menunggu pembayaran?</td><td>60 menit, lalu stok kembali ke rak</td></tr>
+    <tr><td>Apakah toko memungut PPN?</td><td>11 persen. Toko non-PKP seharusnya 0</td></tr>
+    <tr><td>Siapa kasir, siapa admin?</td><td>Menentukan siapa boleh melihat harga modal dan laba</td></tr>
+  </tbody>
+</table>
+
+<h2>4. Yang sudah selesai, sebagai pembanding</h2>
+
+<div class="blok info">
+  <span class="tag">Selesai dan teruji</span>
+  <ul style="margin:0">
+    <li>15 milestone M0 sampai M14, termasuk etalase publik dan pesanan online</li>
+    <li>111 pengujian: 48 unit, 29 emulator, 21 security rules, 13 langkah peramban</li>
+    <li>Stok tidak bisa terjual dua kali &mdash; diuji dengan kasir dan pesanan online berebut stok yang sama</li>
+    <li>Harga modal tidak pernah bocor ke etalase publik</li>
+    <li>QRIS menolak membuat kode saat belum dikonfigurasi, alih-alih menampilkan QR palsu</li>
+    <li>Webhook pembayaran bertanda tangan, diverifikasi dengan perbandingan waktu-tetap</li>
+    <li>Tema terang 60-30-10 dan tata letak mobile-first</li>
+  </ul>
+</div>
+
+<h2>5. Urutan yang saya sarankan</h2>
+<ol>
+  <li><strong>Buat project Firebase.</strong> Membuka jalur produksi; semua langkah lain bergantung padanya.</li>
+  <li><strong>Saya pasang Vite dan deploy.</strong> Aplikasi punya alamat yang bisa dibuka orang.</li>
+  <li><strong>Daftar Midtrans sandbox.</strong> Pembayaran diuji tanpa uang sungguhan.</li>
+  <li><strong>Jawab empat pertanyaan di bagian 3.</strong> Angka contoh diganti angka toko.</li>
+  <li><strong>Midtrans produksi.</strong> Setelah sandbox terbukti benar.</li>
+</ol>
+
+<footer>
+  Disusun dari pembacaan langsung repositori KasirOne, 11 September 2026.<br>
+  Untuk menyimpan sebagai PDF: buka berkas ini di peramban, tekan Ctrl+P, lalu pilih "Save as PDF".
+</footer>
+
+</body>
+</html>
