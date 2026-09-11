@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/assets/hero.svg" width="100%" alt="KasirOne — Sistem Kasir &amp; Inventory Toko" />
+<img src="docs/assets/hero.svg" width="100%" alt="KasirOne, aplikasi kasir dan stok toko" />
 
 <br />
 
@@ -15,9 +15,9 @@
 
 <br /><br />
 
-**Aplikasi kasir (POS) untuk toko retail kecil–menengah.**<br />
-Transaksi cepat dengan scan barcode, manajemen stok &amp; harga modal,<br />
-pencatatan pengeluaran, serta laporan pemasukan vs pengeluaran per periode.
+**Aplikasi kasir buat toko retail kecil sampai menengah.**<br />
+Scan barcode, kelola stok dan harga modal, catat pengeluaran,<br />
+terus lihat untung-ruginya per periode. Semuanya di satu tempat.
 
 <br />
 
@@ -26,10 +26,10 @@ pencatatan pengeluaran, serta laporan pemasukan vs pengeluaran per periode.
 [**Fitur**](#fitur) &nbsp;·&nbsp;
 [**QRIS**](#qris) &nbsp;·&nbsp;
 [**Struktur**](#struktur) &nbsp;·&nbsp;
-[**Skema**](#skema) &nbsp;·&nbsp;
+[**Data**](#skema) &nbsp;·&nbsp;
 [**Testing**](#testing) &nbsp;·&nbsp;
 [**Deploy**](#deploy) &nbsp;·&nbsp;
-[**Roadmap**](#roadmap)
+[**Belum ada**](#roadmap)
 
 </div>
 
@@ -37,10 +37,10 @@ pencatatan pengeluaran, serta laporan pemasukan vs pengeluaran per periode.
 
 <table>
   <tr>
-    <td align="center" width="25%"><h3>0</h3><sub>harga yang diambil<br />dari browser</sub></td>
-    <td align="center" width="25%"><h3>12 → 10</h3><sub>checkout serentak,<br />stok tidak pernah minus</sub></td>
-    <td align="center" width="25%"><h3>3 mode</h3><sub>QRIS — dan tak satu pun<br />memalsukan kode QR</sub></td>
-    <td align="center" width="25%"><h3>2 pintu</h3><sub>kasir &amp; etalase publik,<br />satu sumber stok</sub></td>
+    <td align="center" width="25%"><h3>0</h3><sub>harga yang dipercaya<br />dari browser</sub></td>
+    <td align="center" width="25%"><h3>12 → 10</h3><sub>checkout barengan,<br />stok tetap nggak minus</sub></td>
+    <td align="center" width="25%"><h3>3 mode</h3><sub>QRIS, dan nggak ada<br />yang pakai QR bohongan</sub></td>
+    <td align="center" width="25%"><h3>2 pintu</h3><sub>kasir &amp; etalase online,<br />stoknya tetap satu</sub></td>
   </tr>
 </table>
 
@@ -48,90 +48,90 @@ pencatatan pengeluaran, serta laporan pemasukan vs pengeluaran per periode.
 
 <a name="prinsip"></a>
 
-## 01 &nbsp;·&nbsp; Prinsip utama: browser tidak dipercaya
+## 01 &nbsp;·&nbsp; Kenapa browser nggak dipercaya
 
-Ini keputusan arsitektur terpenting di proyek ini, dan mempengaruhi hampir semua kode di bawah.
+Ini keputusan paling penting di proyek ini, dan hampir semua kode di bawah ngikutin aturan ini.
 
 > [!IMPORTANT]
-> Harga, total, diskon, dan stok **tidak pernah** diambil dari data yang dikirim browser.
-> Browser hanya boleh mengirim `productId` dan `qty`.
+> Harga, total, diskon, dan stok **nggak pernah** diambil dari data kiriman browser.
+> Browser cuma boleh ngirim `productId` sama `qty`.
 
-<img src="docs/assets/flow.svg" width="100%" alt="Alur checkout: browser mengirim productId dan qty, server menghitung ulang di dalam satu Firestore transaction" />
+<img src="docs/assets/flow.svg" width="100%" alt="Alur checkout: browser cuma kirim productId dan qty, server yang ngitung ulang di dalam satu transaksi Firestore" />
 
-Kasir mengirim daftar barang, lalu **server** membaca harga dari Firestore, menghitung ulang totalnya,
-memeriksa stok, dan mengurangi stok — semuanya di dalam satu Firestore transaction. Firestore Security
-Rules menolak semua penulisan langsung dari browser ke koleksi `products`, `transactions`, `expenses`,
-dan `auditLogs`.
+Jadi kasir cuma ngirim daftar barang. Sisanya dikerjain **server**: ambil harga dari Firestore, hitung
+ulang total, cek stok, lalu potong stok. Semua itu jalan di dalam satu Firestore transaction. Di sisi
+lain, Security Rules nolak semua tulisan langsung dari browser ke `products`, `transactions`,
+`expenses`, dan `auditLogs`.
 
-Akibat praktisnya:
+Efeknya di lapangan:
 
-- Kasir yang membuka DevTools dan mengubah harga di layar **tetap ditagih harga sebenarnya**.
-- Dua kasir yang checkout barang terakhir secara bersamaan **tidak bisa membuat stok menjadi minus**.
+- Kasir iseng buka DevTools terus ganti harga di layar? Pembeli **tetap ditagih harga aslinya**.
+- Dua kasir checkout barang terakhir di detik yang sama? **Stok tetap nggak bisa minus**.
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="mulai"></a>
 
-## 02 &nbsp;·&nbsp; Mulai cepat
+## 02 &nbsp;·&nbsp; Cara jalanin
 
 ```bash
 npm install
 npm run dev
 ```
 
-**Dua pintu, satu server:**
+Satu server, dua pintu:
 
-| Alamat | Untuk siapa |
+| Alamat | Buat siapa |
 |:--|:--|
-| `http://localhost:3000/` | **Kasir &amp; admin toko** — butuh login staf |
-| `http://localhost:3000/toko.html` | **Pembeli** — etalase publik, bisa dibuka tanpa akun |
+| `http://localhost:3000/` | **Kasir &amp; admin toko**, harus login staf |
+| `http://localhost:3000/toko.html` | **Pembeli**, etalase publik yang bisa dibuka tanpa akun |
 
-Keduanya berbagi satu sumber stok. Barang yang direstock admin langsung muncul di etalase, dan barang
-yang dipesan pembeli langsung hilang dari daftar jual kasir.
+Dua-duanya pakai stok yang sama. Barang yang baru di-restock admin langsung nongol di etalase, dan
+barang yang dipesan pembeli langsung hilang dari daftar jual kasir.
 
 <table>
   <tr>
     <td width="50%" valign="top">
       <h3>Mode Demo</h3>
-      <sub>TANPA FIREBASE · SIAP DICOBA</sub>
-      <p>Klik <b>"Demo tanpa login"</b>. Aplikasi berjalan penuh dengan data di <code>localStorage</code>
-      browser — cocok untuk mencoba alur kasir, scan barcode, dan laporan tanpa menyiapkan apa pun.</p>
-      <p>Mode demo memakai aturan validasi yang <b>sama</b> dengan server (harga dibaca dari data
-      tersimpan, stok dicek sebelum dikurangi), jadi perilakunya tidak menyesatkan. Datanya memakai
-      prefiks <code>kasirone_demo_</code> dan tidak pernah bercampur dengan data Firestore.</p>
+      <sub>NGGAK PERLU FIREBASE</sub>
+      <p>Klik <b>"Demo tanpa login"</b>. Aplikasinya jalan penuh pakai data di <code>localStorage</code>
+      browser. Cocok buat nyobain alur kasir, scan barcode, dan laporan tanpa setup apa-apa.</p>
+      <p>Aturan validasinya <b>sama persis</b> dengan server (harga diambil dari data tersimpan, stok
+      dicek dulu sebelum dipotong), jadi hasilnya nggak nipu. Datanya pakai prefiks
+      <code>kasirone_demo_</code> dan nggak bakal kecampur sama data Firestore.</p>
     </td>
     <td width="50%" valign="top">
       <h3>Mode Produksi</h3>
-      <sub>FIREBASE AUTH · CLOUD FIRESTORE</sub>
-      <p>Login staf sungguhan, data di Firestore, role dibaca dari custom claim, dan setiap
-      penulisan melewati server serta Security Rules.</p>
-      <p>Butuh sekitar delapan langkah penyiapan sekali jalan — lihat panduan di bawah.</p>
+      <sub>FIREBASE AUTH + CLOUD FIRESTORE</sub>
+      <p>Login staf beneran, data disimpan di Firestore, role dibaca dari custom claim, dan tiap
+      penulisan wajib lewat server plus Security Rules.</p>
+      <p>Setup-nya sekali aja, kurang lebih delapan langkah. Panduannya ada di bawah.</p>
     </td>
   </tr>
 </table>
 
 <details>
-<summary><b>Panduan penyiapan Mode Produksi</b></summary>
+<summary><b>Langkah setup Mode Produksi</b></summary>
 
 <br />
 
-1. Buat project di [Firebase Console](https://console.firebase.google.com).
-2. Daftarkan Web App, salin konfigurasinya ke `public/firebase-config.js`.
-3. Aktifkan **Authentication → Email/Password**.
-4. Buat **Cloud Firestore**.
+1. Bikin project di [Firebase Console](https://console.firebase.google.com).
+2. Daftarin Web App, terus salin konfigurasinya ke `public/firebase-config.js`.
+3. Nyalain **Authentication → Email/Password**.
+4. Bikin **Cloud Firestore**.
 5. Deploy security rules: `npx firebase deploy --only firestore:rules`
-6. Unduh service account (*Project Settings → Service accounts*) dan simpan sebagai
+6. Download service account (*Project Settings → Service accounts*), simpan jadi
    `serviceAccountKey.json` di root project.
-7. Salin `.env.example` menjadi `.env`.
-8. Buat akun kasir lewat Firebase Authentication, lalu buat dokumen `users/{UID}`:
+7. Salin `.env.example` jadi `.env`.
+8. Bikin akun kasir lewat Firebase Authentication, lalu bikin dokumen `users/{UID}`:
 
    ```json
    { "role": "cashier", "displayName": "Nabila" }
    ```
 
-   Atau lebih praktis, pakai skrip bawaan yang sekaligus memasang custom claim:
+   Atau biar gampang, pakai skrip bawaan yang sekalian masang custom claim:
 
    ```bash
    node scripts/set-role.js kasir@toko.com cashier "Nabila"
@@ -139,90 +139,89 @@ yang dipesan pembeli langsung hilang dari daftar jual kasir.
    ```
 
 > [!TIP]
-> Setelah role diubah, pengguna harus **logout lalu login lagi** agar token barunya terpakai.
-> Lupa melakukan ini adalah penyebab paling umum error 403 yang muncul "tiba-tiba".
+> Habis ganti role, user-nya harus **logout terus login lagi** biar token barunya kepakai.
+> Ini penyebab paling sering error 403 yang tiba-tiba muncul.
 
 > [!CAUTION]
-> `serviceAccountKey.json` **tidak boleh** masuk ke Git — sudah tercantum di `.gitignore`.
-> Firebase Web API key di `firebase-config.js` bukan rahasia dan aman berada di frontend.
+> `serviceAccountKey.json` **jangan sampai** masuk Git. Tenang, udah ada di `.gitignore`.
+> Kalau Firebase Web API key di `firebase-config.js` sih bukan rahasia, aman ditaruh di frontend.
 
 </details>
 
 ### Role
 
-| Role | Bisa |
+| Role | Bisa ngapain aja |
 |:--|:--|
 | `cashier` | Transaksi, scan barcode, lihat produk &amp; riwayat transaksi |
-| `admin` | Semua di atas **+** kelola produk, restock, pengeluaran, laporan laba |
+| `admin` | Semua yang di atas, **plus** kelola produk, restock, pengeluaran, dan laporan laba |
 
-Role dibaca dari custom claim pada ID token; bila belum ada, sistem membaca dokumen `users/{uid}`
-sebagai cadangan agar akun lama tetap bisa masuk.
+Role dibaca dari custom claim di ID token. Kalau belum ada, sistem ngecek dokumen `users/{uid}`
+sebagai cadangan, jadi akun lama tetap bisa masuk.
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="fitur"></a>
 
-## 03 &nbsp;·&nbsp; Fitur
+## 03 &nbsp;·&nbsp; Fiturnya apa aja
 
 <img src="docs/assets/features.svg" width="100%" alt="Enam fitur utama: scan barcode, transaksi atomik, QRIS jujur, laporan laba, etalase online, stok terkunci" />
 
 <details>
-<summary><b>Daftar fitur lengkap</b></summary>
+<summary><b>Lihat semua fitur</b></summary>
 
 <br />
 
-| Fitur | Keterangan |
+| Fitur | Penjelasan singkat |
 |:--|:--|
-| **Scan barcode** | Mendukung scanner USB (mode *keyboard wedge*: mengetik cepat lalu Enter) tanpa driver apa pun. Barcode yang tidak terdaftar memunculkan notifikasi, bukan gagal diam-diam. |
-| **Transaksi atomik** | Stok dan transaksi tersimpan bersama atau tidak sama sekali. Sudah diuji dengan 12 checkout serentak. |
-| **Pembayaran** | Tunai (dengan kembalian), Kartu (kode approval EDC), dan QRIS. Sistem tidak pernah memalsukan kode QR — lihat [bagian QRIS](#qris). |
-| **Diskon per transaksi** | Dipotong sebelum pajak. |
-| **Foto produk asli** | Bisa diunggah (klik atau seret), dikecilkan otomatis di browser sebelum disimpan. |
-| **Ekspor CSV** | Untuk riwayat transaksi dan laporan. |
-| **Harga modal &amp; margin** | Per produk, jadi laba bisa dihitung. |
-| **Stok minimum per produk** | Ambang "menipis" ditentukan per barang, bukan satu angka untuk semua. |
-| **Restock satu aksi** | Menambah stok sekaligus mencatat pengeluarannya. |
-| **Laporan periodik** | Pemasukan, pengeluaran, laba kotor &amp; bersih, rincian metode bayar, dan unit terjual per produk (mis. *Top Kopi Aren 40 pcs, Indomie Goreng 23 pcs*). |
-| **Riwayat transaksi** | Filter tanggal dan struk yang bisa dicetak. |
-| **Etalase publik** | `/toko.html` — katalog, keranjang, pilihan ambil di toko atau diantar, dan riwayat pesanan pembeli. |
-| **Pesanan online** | Siklus status penuh; stok dikunci saat memesan, dilepas saat batal, dipotong saat selesai. |
-| **Panel pesanan staf** | Saring status, lihat rincian, pindahkan tahap. |
-| **Webhook pembayaran** | Bertanda tangan, agar status tidak bergantung pada peramban pembeli yang mungkin sudah ditutup. |
+| **Scan barcode** | Scanner USB langsung jalan tanpa driver (mode *keyboard wedge*: ngetik cepat lalu Enter). Kalau barcode-nya belum terdaftar, bakal ada notifikasi, jadi nggak diam-diam gagal. |
+| **Transaksi atomik** | Stok dan transaksi kesimpan bareng. Kalau satu gagal, dua-duanya batal. Udah dites pakai 12 checkout barengan. |
+| **Pembayaran** | Tunai (plus kembalian), Kartu (kode approval EDC), dan QRIS. Soal QRIS ada [penjelasannya sendiri](#qris). |
+| **Diskon per transaksi** | Dipotong dulu sebelum pajak. |
+| **Foto produk asli** | Tinggal klik atau seret. Ukurannya otomatis dikecilin di browser sebelum disimpan. |
+| **Ekspor CSV** | Buat riwayat transaksi dan laporan. |
+| **Harga modal &amp; margin** | Diisi per produk, jadi untungnya bisa dihitung. |
+| **Stok minimum per produk** | Batas "stok menipis" diatur per barang, nggak disamaratakan. |
+| **Restock sekali klik** | Nambah stok sekalian nyatet pengeluarannya. |
+| **Laporan periodik** | Pemasukan, pengeluaran, laba kotor &amp; bersih, rincian metode bayar, sampai jumlah terjual per produk (misalnya *Kopi Aren 40 pcs, Indomie Goreng 23 pcs*). |
+| **Riwayat transaksi** | Bisa difilter per tanggal, struknya bisa dicetak. |
+| **Etalase publik** | `/toko.html`: katalog, keranjang, pilih ambil di toko atau diantar, plus riwayat pesanan pembeli. |
+| **Pesanan online** | Status pesanannya lengkap. Stok dikunci pas pesan, dilepas kalau batal, dipotong pas selesai. |
+| **Panel pesanan buat staf** | Filter status, lihat detail, pindahin ke tahap berikutnya. |
+| **Webhook pembayaran** | Pakai tanda tangan, jadi status bayar nggak bergantung sama browser pembeli yang bisa aja udah ditutup. |
 
 </details>
 
 <a name="qris"></a>
 
-### Soal kepercayaan pada pembayaran QRIS
+### Soal QRIS
 
-Versi sebelumnya menampilkan pola kotak-kotak sebagai "QR demo". Itu berbahaya: kasir bisa mengira
-pembayaran sungguhan sedang berlangsung. Sekarang ada tiga mode, dan halaman **Pengaturan** selalu
-menyatakan mana yang aktif.
+Versi lama sempat nampilin pola kotak-kotak sebagai "QR demo". Ternyata itu bahaya, karena kasir bisa
+ngira pembayarannya beneran lagi jalan. Sekarang ada tiga mode, dan halaman **Pengaturan** selalu
+nunjukin mode mana yang lagi aktif.
 
-| Mode | Cara mengaktifkan | Uang benar-benar masuk? | Sistem bisa memastikan lunas? |
+| Mode | Cara nyalain | Uangnya beneran masuk? | Sistem bisa mastiin lunas? |
 |:--|:--|:--:|:--|
-| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya** — status dicek ke gateway |
-| **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Tidak — kasir cek mutasi |
-| **Nonaktif** | keduanya kosong | — | QRIS ditolak, bukan dipalsukan |
+| **Terverifikasi** | isi `MIDTRANS_SERVER_KEY` | Ya | **Ya**, statusnya dicek ke gateway |
+| **Manual** | isi `MERCHANT_QRIS_PAYLOAD` | Ya | Nggak, kasir harus cek mutasi sendiri |
+| **Nonaktif** | dua-duanya dikosongin | – | QRIS langsung ditolak |
 
-- Pada mode **Terverifikasi**, tombol konfirmasi menolak menyimpan transaksi sampai gateway menyatakan lunas.
-- Pada mode **Manual**, nominal tidak terkunci sehingga aplikasi memperingatkan kasir untuk mengecek mutasi lebih dulu.
-- Pada mode **Nonaktif** dan mode demo, tidak ada gambar QR yang ditampilkan sama sekali.
+- **Terverifikasi:** transaksi baru bisa disimpan setelah gateway bilang lunas.
+- **Manual:** nominalnya nggak terkunci, jadi aplikasi ngingetin kasir buat cek mutasi dulu.
+- **Nonaktif** (dan mode demo): nggak ada gambar QR yang ditampilin sama sekali.
 
 > [!NOTE]
-> Mulailah dari sandbox Midtrans (`MIDTRANS_IS_PRODUCTION=false`, kunci berawalan `SB-Mid-server-`).
-> Aplikasi akan menulis **"SANDBOX"** di layar supaya tidak ada yang keliru memakainya untuk melayani
-> pembeli sungguhan.
+> Mulai dari sandbox Midtrans dulu (`MIDTRANS_IS_PRODUCTION=false`, kuncinya diawali `SB-Mid-server-`).
+> Di layar bakal ada tulisan **"SANDBOX"**, biar nggak ada yang salah pakai buat pembeli beneran.
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="struktur"></a>
 
-## 04 &nbsp;·&nbsp; Struktur
+## 04 &nbsp;·&nbsp; Isi foldernya
 
 ```text
 kasir-modern/
@@ -235,42 +234,42 @@ kasir-modern/
 │       ├── state.js             state terpusat + langganan perubahan
 │       ├── auth.js              login, mode demo, logout
 │       ├── format.js            format rupiah/tanggal + escape HTML
-│       ├── firebase.js          init Firebase sisi klien (auth saja)
-│       ├── shared/              dipakai bersama browser & server
+│       ├── firebase.js          init Firebase sisi klien (auth aja)
+│       ├── shared/              dipakai bareng browser & server
 │       │   ├── money.js         computeTotals, kembalian, laba
-│       │   └── product.js       ambang stok menipis
+│       │   └── product.js       batas stok menipis
 │       ├── api/
-│       │   ├── index.js         pemilih implementasi
-│       │   ├── live.api.js      ke backend sungguhan
-│       │   └── demo.api.js      localStorage, aturan sama
+│       │   ├── index.js         milih implementasi
+│       │   ├── live.api.js      ke backend beneran
+│       │   └── demo.api.js      localStorage, aturannya sama
 │       └── ui/                  cart, products, checkout, dashboard,
 │                                reports, restock, transactions, barcode
 ├── server/
-│   ├── server.js                wiring saja, tanpa logika bisnis
+│   ├── server.js                cuma wiring, nggak ada logika bisnis
 │   ├── lib/                     errors.js, validate.js
 │   ├── middleware/              auth.js, errorHandler.js
 │   ├── routes/                  products, transactions, expenses, reports
 │   └── services/                logika bisnis (bisa dipindah ke Cloud Function)
 ├── test/                        money, report, demo, payment, emulator, rules
-├── docs/API.md                  referensi endpoint
+├── docs/API.md                  daftar endpoint
 ├── firestore.rules
 └── firestore.indexes.json
 ```
 
 > [!IMPORTANT]
-> **Modul `shared/` adalah kunci.** Server dan browser mengimpor file yang sama untuk menghitung uang.
-> Sebelumnya logika total ditulis dua kali dan sempat menyimpang — total di layar memperhitungkan
-> diskon, total yang ditagih tidak.
+> **Folder `shared/` itu penting banget.** Server dan browser pakai file yang sama buat ngitung uang.
+> Dulu logika total ditulis dua kali dan sempat beda: total di layar udah dipotong diskon, tapi yang
+> ditagih belum.
 
-Referensi endpoint lengkap ada di [`docs/API.md`](docs/API.md).
+Daftar endpoint lengkapnya ada di [`docs/API.md`](docs/API.md).
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="skema"></a>
 
-## 05 &nbsp;·&nbsp; Skema Firestore
+## 05 &nbsp;·&nbsp; Bentuk data di Firestore
 
 <details>
 <summary><code>users/{uid}</code></summary>
@@ -282,42 +281,42 @@ Referensi endpoint lengkap ada di [`docs/API.md`](docs/API.md).
 </details>
 
 <details open>
-<summary><code>products/{id}</code> — stok dipecah dua</summary>
+<summary><code>products/{id}</code>: stoknya dibagi dua</summary>
 
 <br />
 
-`name`, `sku` (dipakai sebagai barcode, unik), `category`, `hargaJual`, `hargaModal`, `stok`,
+`name`, `sku` (dipakai sebagai barcode, harus unik), `category`, `hargaJual`, `hargaModal`, `stok`,
 `stokDipesan`, `stokMinimum`, `imageUrl`, `aktif`, `createdAt`, `updatedAt`
 
-`stok` adalah jumlah fisik di rak; `stokDipesan` adalah bagian yang sudah dijanjikan ke pesanan online
-yang belum selesai. Yang boleh dijual — oleh kasir maupun etalase — adalah selisihnya:
+`stok` itu jumlah fisik yang ada di rak. `stokDipesan` itu bagian yang udah "dijanjiin" ke pesanan
+online yang belum selesai. Yang boleh dijual, baik oleh kasir maupun etalase, cuma selisihnya:
 
 ```text
 tersedia = stok − stokDipesan
 ```
 
-Tanpa pemisahan ini, satu barang terakhir bisa dipesan pembeli online pada detik yang sama saat kasir
-menjualnya di toko. Tiga peristiwa mengubahnya:
+Kalau nggak dipisah begini, barang terakhir bisa dipesan pembeli online di detik yang sama waktu kasir
+lagi ngejual barang itu di toko. Ada tiga kejadian yang ngubah angkanya:
 
-| Peristiwa | `stok` | `stokDipesan` |
+| Kejadian | `stok` | `stokDipesan` |
 |:--|:--:|:--:|
-| Pembeli memesan | — | ▲ naik |
-| Pesanan dibatalkan / kedaluwarsa | — | ▼ turun |
-| Pesanan selesai | ▼ turun | ▼ turun |
+| Pembeli pesan | – | naik |
+| Pesanan batal / kedaluwarsa | – | turun |
+| Pesanan selesai | turun | turun |
 
 </details>
 
 <details>
-<summary><code>transactions/{id}</code> — snapshot harga</summary>
+<summary><code>transactions/{id}</code>: harganya di-snapshot</summary>
 
 <br />
 
 `receiptNumber`, `cashierUid`, `cashierName`, `paymentMethod`, `cashReceived`, `change`,
 `qrisReference`, `subtotal`, `discount`, `tax`, `total`, `itemCount`, `createdAt`, dan `lines[]`
-berisi `{productId, name, sku, hargaJual, hargaModal, qty}`.
+yang isinya `{productId, name, sku, hargaJual, hargaModal, qty}`.
 
-`lines[]` menyimpan **snapshot** harga jual dan harga modal saat transaksi terjadi. Kalau harga produk
-diubah bulan depan, laporan laba bulan ini tetap akurat.
+`lines[]` nyimpen **snapshot** harga jual dan harga modal pas transaksi terjadi. Jadi kalau harga produk
+diganti bulan depan, laporan laba bulan ini tetap akurat.
 
 </details>
 
@@ -332,7 +331,7 @@ diubah bulan depan, laporan laba bulan ini tetap akurat.
 </details>
 
 <details open>
-<summary><code>orders/{id}</code> — siklus status pesanan</summary>
+<summary><code>orders/{id}</code>: perjalanan sebuah pesanan</summary>
 
 <br />
 
@@ -364,8 +363,8 @@ stateDiagram-v2
     class batal, kedaluwarsa stop
 ```
 
-Perpindahan di luar diagram ini ditolak oleh tabel `TRANSISI` di `server/services/order.service.js`,
-sehingga pesanan tidak bisa ditandai selesai tanpa pernah dibayar.
+Perpindahan status di luar diagram ini bakal ditolak sama tabel `TRANSISI` di
+`server/services/order.service.js`. Jadi pesanan nggak bisa ditandai selesai kalau belum pernah dibayar.
 
 </details>
 
@@ -374,12 +373,12 @@ sehingga pesanan tidak bisa ditandai selesai tanpa pernah dibayar.
 
 <br />
 
-`uid`, `email`, `action`, `metadata`, `createdAt` — hanya bisa dibaca admin, tidak bisa diubah atau
-dihapus siapa pun.
+`uid`, `email`, `action`, `metadata`, `createdAt`. Cuma admin yang bisa baca, dan nggak ada satu pun
+yang bisa ngubah atau ngehapus.
 
 </details>
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
@@ -387,42 +386,42 @@ dihapus siapa pun.
 
 ## 06 &nbsp;·&nbsp; Testing
 
-<img src="docs/assets/race.svg" width="100%" alt="Uji race condition: 12 checkout serentak atas stok 10, tepat 10 berhasil dan stok akhir 0" />
+<img src="docs/assets/race.svg" width="100%" alt="Uji race condition: 12 checkout barengan dengan stok 10, hasilnya tepat 10 berhasil dan sisa stok 0" />
 
 ```bash
-npm test              # unit murni, tanpa dependensi eksternal
+npm test              # unit test biasa, nggak butuh apa-apa
 npm run test:emulator # transaksi atomik + race condition (butuh Java)
 npm run test:rules    # Security Rules (butuh Java)
 npm run test:all
 ```
 
-**Yang diuji secara khusus:**
+**Yang dites khusus:**
 
-- [x] Diskon dipotong sebelum pajak, dan total tidak pernah negatif.
-- [x] Harga yang dikirim browser diabaikan; server memakai harga database.
-- [x] 12 checkout serentak atas stok 10 → tepat 10 berhasil, stok berakhir 0.
-- [x] Transaksi dua produk yang salah satunya kurang → **seluruhnya** dibatalkan.
-- [x] Kasir tidak bisa menulis ke `products` / `transactions` dari browser.
-- [x] Kasir tidak bisa menaikkan `role` dirinya sendiri menjadi `admin`.
-- [x] Kasir tidak bisa menjual barang yang sudah dikunci pesanan online, tetapi tetap boleh menjual sisanya.
-- [x] Satu kasir dan delapan pesanan online berebut stok 5 → tepat 5 unit terpakai, tidak ada yang dijanjikan dua kali.
-- [x] Membatalkan pesanan dua kali tidak membuat `stokDipesan` negatif.
-- [x] QRIS yang belum dikonfigurasi **menolak** membuat pembayaran, bukan menampilkan QR palsu.
-- [x] QRIS statis menghasilkan QR sungguhan tetapi tidak mengaku terverifikasi.
+- [x] Diskon dipotong sebelum pajak, dan total nggak pernah negatif.
+- [x] Harga kiriman browser diabaikan, server tetap pakai harga dari database.
+- [x] 12 checkout barengan dengan stok 10: tepat 10 yang berhasil, stok akhirnya 0.
+- [x] Transaksi dua produk yang salah satunya stoknya kurang: **seluruhnya** dibatalin.
+- [x] Kasir nggak bisa nulis ke `products` / `transactions` langsung dari browser.
+- [x] Kasir nggak bisa naikin `role` dirinya sendiri jadi `admin`.
+- [x] Kasir nggak bisa jual barang yang udah dikunci pesanan online, tapi sisanya tetap boleh dijual.
+- [x] Satu kasir dan delapan pesanan online rebutan stok 5: tepat 5 unit yang kepakai, nggak ada yang dijanjiin dobel.
+- [x] Batalin pesanan dua kali nggak bikin `stokDipesan` jadi negatif.
+- [x] QRIS yang belum dikonfigurasi **nolak** bikin pembayaran, bukannya nampilin QR palsu.
+- [x] QRIS statis ngasilin QR beneran, tapi nggak ngaku-ngaku terverifikasi.
 
 > [!NOTE]
-> Emulator Firebase membutuhkan Java. `firebase-tools` v15+ mensyaratkan JDK 21+; project ini memasang
-> `firebase-tools` v13 secara lokal agar tetap jalan dengan JDK 17.
+> Emulator Firebase butuh Java. `firebase-tools` v15 ke atas minta JDK 21+, makanya project ini pakai
+> `firebase-tools` v13 secara lokal biar tetap jalan di JDK 17.
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="deploy"></a>
 
-## 07 &nbsp;·&nbsp; Deployment
+## 07 &nbsp;·&nbsp; Mau deploy?
 
-`.env` yang dibutuhkan (daftar lengkap beserta penjelasannya ada di [`.env.example`](.env.example)):
+Isi `.env` minimal kayak gini (daftar lengkap plus penjelasannya ada di [`.env.example`](.env.example)):
 
 ```env
 PORT=3000
@@ -431,66 +430,36 @@ CLIENT_ORIGIN=https://domain-anda.com
 GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
 ```
 
-**Sebelum rilis pertama:**
+**Cek dulu sebelum rilis pertama:**
 
 - [ ] `git log --all -- serviceAccountKey.json` harus kosong
-- [ ] Security Rules sudah dideploy dan diuji di emulator
-- [ ] `CLIENT_ORIGIN` sesuai domain produksi (kalau tidak, CORS akan menolak)
-- [ ] Firebase App Check diaktifkan
-- [ ] Indeks komposit dibuat: `npx firebase deploy --only firestore:indexes`
+- [ ] Security Rules udah dideploy dan dites di emulator
+- [ ] `CLIENT_ORIGIN` udah diganti ke domain produksi (kalau nggak, bakal kena CORS)
+- [ ] Firebase App Check udah dinyalain
+- [ ] Indeks komposit udah dibikin: `npx firebase deploy --only firestore:indexes`
 
-Logika bisnis sengaja diletakkan di `server/services/` dan tidak bergantung pada Express, sehingga bisa
-dipindah ke Cloud Functions nanti tanpa mengubah isinya — cukup mengganti lapisan pemanggilnya.
+Logika bisnisnya sengaja ditaruh di `server/services/` dan nggak nempel ke Express. Jadi kalau nanti
+mau pindah ke Cloud Functions, isinya nggak perlu diubah, cukup ganti bagian yang manggilnya.
 
-<div align="right"><sub><a href="#top">↑ kembali ke atas</a></sub></div>
+<div align="right"><sub><a href="#top">↑ balik ke atas</a></sub></div>
 
 <img src="docs/assets/divider.svg" width="100%" alt="" />
 
 <a name="roadmap"></a>
 
-## 08 &nbsp;·&nbsp; Belum dikerjakan
+## 08 &nbsp;·&nbsp; Yang belum dikerjain
 
-| Area | Kondisi sekarang | Rencana |
+| Bagian | Sekarang | Rencananya |
 |:--|:--|:--|
-| Foto produk | Disimpan sebagai data URL di dalam dokumen produk | Pindah ke Firebase Storage atau CDN untuk katalog besar |
-| Scan barcode | Scanner USB dan input manual | Scan lewat kamera ponsel |
-| Cetak struk | Cetak bawaan browser | Thermal printer |
-| Skala toko | Satu cabang | Multi-cabang, App Check, dan sistem poin pelanggan |
+| Foto produk | Disimpan sebagai data URL di dalam dokumen produk | Pindah ke Firebase Storage atau CDN kalau katalognya udah gede |
+| Scan barcode | Scanner USB dan ketik manual | Scan pakai kamera HP |
+| Cetak struk | Print bawaan browser | Printer thermal |
+| Skala toko | Satu cabang | Multi-cabang, App Check, dan poin pelanggan |
 
 <br />
 
 <div align="center">
-  <img src="docs/assets/footer.svg" width="100%" alt="KasirOne — cepat di kasir, jujur di pembukuan" />
+  <img src="docs/assets/footer.svg" width="100%" alt="KasirOne. Terima kasih udah mampir." />
   <br />
-  <sub><a href="#top">↑ kembali ke atas</a></sub>
+  <sub><a href="#top">↑ balik ke atas</a></sub>
 </div>
-
----
-
-## Deploy
-
-Berkasnya sudah siap; yang belum ada hanyalah akun. Setelah project Firebase
-dan Google Cloud dibuat:
-
-```bash
-npm run deploy:api    # backend ke Cloud Run
-npm run deploy:web    # frontend, security rules, dan indeks ke Firebase
-```
-
-Untuk mencoba image-nya lebih dulu di komputer sendiri:
-
-```bash
-npm run docker:build
-npm run docker:run
-```
-
-**Yang dijaga pada konfigurasi ini**
-
-- `Dockerfile` memakai dua tahap sehingga `firebase-tools` dan pustaka uji
-  tidak ikut terbawa ke server produksi.
-- Kontainer berjalan sebagai pengguna biasa, bukan root.
-- `.dockerignore` mengecualikan `.env` dan `serviceAccountKey.json`.
-  Kredensial produksi disuntikkan lewat Secret Manager saat jalan, bukan
-  dipanggang ke dalam image.
-- Firebase Hosting menyajikan aset statis dari CDN dan meneruskan `/api/**`
-  ke Cloud Run, sehingga halaman tetap cepat dibuka meski server sedang sibuk.

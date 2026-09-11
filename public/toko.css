@@ -143,3 +143,13 @@
   }
   @keyframes geserKanan { from { transform: translateX(100%); } to { transform: none; } }
 }
+
+/* Kartu cara pengambilan sempat memaksa teks patah di tengah kata karena
+   lebarnya ditentukan flex, bukan isinya. Teks pendek seperti "Ambil sendiri"
+   yang terpotong jadi dua baris membuat kartu terlihat sesak dan asal jadi. */
+.cara-item { min-width: 0; white-space: nowrap; }
+.cara-item > div { min-width: 0; }
+.cara-item strong { white-space: nowrap; }
+@media (max-width: 559px) {
+  .cara-item { flex: 1 1 calc(50% - var(--s2)); }
+}

@@ -1005,3 +1005,153 @@ body[data-role="cashier"] .admin-only { display: none !important; }
 }
 @keyframes sapu { 0%, 100% { top: 28%; } 50% { top: 72%; } }
 @media (prefers-reduced-motion: reduce) { .kamera-garis { animation: none; } }
+
+/* ============================================================================
+   ARAH SENI — "Warung Editorial"
+   ----------------------------------------------------------------------------
+   Lapisan ini mengubah aplikasi dari panel admin generik menjadi sesuatu yang
+   terasa dirancang. Tiga keputusan yang membedakannya:
+
+   1. TIGA HURUF, BUKAN SATU. Satu keluarga huruf untuk segalanya adalah
+      penyebab utama tampilan terasa hambar — tidak ada yang punya suara.
+      Bricolage Grotesque membawa karakter pada judul dan angka besar,
+      Inter Tight mengurus teks kerja, JetBrains Mono memegang angka berderet.
+
+   2. ANGKA ADALAH TOKOHNYA. Ini aplikasi kasir; yang dicari mata pertama kali
+      selalu nominal. Harga dan statistik diberi ukuran, berat, dan penyempitan
+      huruf yang membuatnya terbaca dari seberang meja.
+
+   3. KONTRAS UKURAN DINAIKKAN. Sebelumnya 19 ukuran berbeda tersebar tanpa
+      sistem, dengan jarak terbesar ke terkecil hanya 4x. Skala di bawah
+      memakai rasio tetap dan merentang sampai 10x, sehingga hierarki terbaca
+      tanpa perlu garis atau kotak tambahan.
+   ========================================================================== */
+
+:root {
+  --font-display: "Bricolage Grotesque", "Inter Tight", system-ui, sans-serif;
+  --font-body: "Inter Tight", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+
+  /* Skala tipografi rasio 1.28. Nilai di luar daftar ini dianggap keliru. */
+  --t-xs: 11px;
+  --t-sm: 13px;
+  --t-base: 15px;
+  --t-md: 19px;
+  --t-lg: 24px;
+  --t-xl: 31px;
+  --t-2xl: 40px;
+  --t-3xl: 51px;
+  --t-4xl: 66px;
+}
+
+body { font-family: var(--font-body); }
+
+/* Judul memakai huruf display dengan penyempitan yang cukup agar terasa
+   dipahat, bukan sekadar diperbesar. */
+h1, h2, h3, .payment-total, .lp-nominal, .stat-card strong,
+.product-price, .toko-harga, .cart-summary .total-row strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Nominal besar: angka disamakan lebarnya supaya tidak bergoyang saat
+   berubah, dan diberi ruang napas di atasnya. */
+.payment-total { font-size: var(--t-2xl); line-height: 1; }
+.lp-nominal { font-size: var(--t-3xl); line-height: .95; }
+.stat-card strong { font-size: var(--t-lg); line-height: 1.05; }
+.cart-summary .total-row strong { font-size: var(--t-lg); }
+.product-price, .toko-harga { font-size: var(--t-base); letter-spacing: -.02em; }
+
+.hero-card h1, .toko-hero h1 { font-size: var(--t-xl); line-height: 1.02; text-wrap: balance; }
+.topbar h2 { font-size: var(--t-lg); line-height: 1.1; }
+.modal-card h2, .lp-kepala h2 { font-size: var(--t-md); }
+
+/* Label kecil diberi jarak huruf lebih lebar. Huruf kapital rapat pada ukuran
+   kecil membuat kata menyatu dan sulit dipindai. */
+.eyebrow, .side-label, .table-panel th, .tab-btn {
+  font-family: var(--font-body);
+  letter-spacing: .13em;
+}
+
+/* Angka berderet — tabel, struk, nomor acuan — memakai huruf mesin supaya
+   kolom benar-benar lurus dan nol tidak tertukar dengan huruf O. */
+.table-panel td, .receipt-preview, .lp-nomor, .qty-row span,
+.discount-input, .change-box strong, .cart-item small {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.table-panel td { font-size: var(--t-sm); letter-spacing: -.01em; }
+
+/* ── Tekstur kertas ─────────────────────────────────────────────────────────
+   Bidang putih polos terlihat seperti kotak kosong. Bintik halus ini hampir
+   tak terlihat satu per satu, tetapi membuat permukaan terasa punya bahan.
+   Dibuat dari SVG inline, bukan berkas gambar, supaya tidak menambah
+   permintaan jaringan. */
+.panel, .stat-card, .product-card, .toko-kartu, .modal-card, .lp-kartu, .auth-card {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.028'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ── Cap tinta ──────────────────────────────────────────────────────────────
+   Dipakai pada struk. Meminjam kosakata nota toko: stempel miring yang
+   dibubuhkan setelah pembayaran diterima. */
+.cap-lunas {
+  display: inline-block;
+  margin-top: var(--s3);
+  padding: 5px 12px;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: 800;
+  letter-spacing: .18em;
+  transform: rotate(-4deg);
+  opacity: .82;
+}
+
+@media (min-width: 1024px) {
+  .hero-card h1, .toko-hero h1 { font-size: var(--t-2xl); }
+  .topbar h2 { font-size: var(--t-xl); }
+  .stat-card strong { font-size: var(--t-xl); }
+  .lp-nominal { font-size: var(--t-4xl); }
+  .payment-total { font-size: var(--t-3xl); }
+  .product-price, .toko-harga { font-size: var(--t-md); }
+}
+
+/* ── Penampung foto produk ──────────────────────────────────────────────────
+   Huruf tunggal pucat di tengah kotak kosong membuat kartu terasa belum jadi.
+   Diberi bidang bergaris diagonal halus dan huruf yang lebih tegas, sehingga
+   kartu tanpa foto tetap terlihat sebagai keputusan desain, bukan kekosongan
+   yang terlupakan. Begitu foto asli diunggah, lapisan ini tertutup penuh. */
+.product-media, .toko-media {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--surface-2) 0 10px,
+    var(--surface) 10px 20px
+  );
+}
+.product-media .monogram, .toko-media .monogram {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--ink);
+  opacity: .13;
+  letter-spacing: -.06em;
+}
+.product-card:hover .monogram, .toko-kartu:hover .monogram { opacity: .2; }
+
+/* Kartu produk diberi tepi bawah beraksen tipis saat disentuh kursor, meminjam
+   cara katalog cetak menandai barang pilihan. */
+.product-card, .toko-kartu { position: relative; }
+.product-card::after, .toko-kartu::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .26s var(--ease);
+}
+.product-card:hover::after, .toko-kartu:hover::after { transform: scaleX(1); }

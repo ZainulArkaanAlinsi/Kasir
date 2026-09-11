@@ -284,7 +284,8 @@ export function tampilkanStruk(trx) {
       ${tunai}
       <hr>
       ${baris("Pembayaran", escapeHtml(labelMetode(trx.paymentMethod)))}
-      ${referensi ? baris("Referensi", escapeHtml(referensi)) : ""}`;
+      ${referensi ? baris("Referensi", escapeHtml(referensi)) : ""}
+      <div style="text-align:center"><span class="cap-lunas">LUNAS</span></div>`;
   }
 
   openModal("successModal");
