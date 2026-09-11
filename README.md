@@ -74,6 +74,10 @@ Efeknya di lapangan:
 
 <a name="mulai"></a>
 
+> [!NOTE]
+> Mau lanjut ngerjain? Buka **[docs/LANJUTAN-SESI.md](docs/LANJUTAN-SESI.md)** duluan.
+> Isinya status terakhir, apa yang belum kelar, dan jebakan yang udah pernah makan waktu.
+
 ## 02 &nbsp;·&nbsp; Cara jalanin
 
 ```bash
