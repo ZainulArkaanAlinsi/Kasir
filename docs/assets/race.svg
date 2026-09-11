@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="Uji race condition: 12 checkout serentak atas stok 10 menghasilkan tepat 10 berhasil, 2 ditolak, dan stok akhir 0.">
+  <title>Uji race condition — 12 checkout, stok 10</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12151c"/>
+      <stop offset="1" stop-color="#08090c"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b52"/>
+      <stop offset="1" stop-color="#ff2e43"/>
+    </linearGradient>
+    <linearGradient id="edgeTop" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="60"/></filter>
+    <clipPath id="frame"><rect width="1200" height="300" rx="24"/></clipPath>
+    <style>
+      text { font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .mono { font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace; }
+      [class^="c"] { opacity: 0; }
+      .panel { opacity: 0; }
+
+      /* Setiap permintaan punya jadwal sendiri pada satu linimasa 9 detik,
+         jadi urutan selesai dan reset-nya selalu sinkron. */
+      .c0{animation:c0 9s ease-out infinite}@keyframes c0{0%,6.67%{opacity:0;transform:scale(.7)}8.67%{opacity:1;transform:scale(1.06)}10.22%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c1{animation:c1 9s ease-out infinite}@keyframes c1{0%,9.78%{opacity:0;transform:scale(.7)}11.78%{opacity:1;transform:scale(1.06)}13.33%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c2{animation:c2 9s ease-out infinite}@keyframes c2{0%,12.89%{opacity:0;transform:scale(.7)}14.89%{opacity:1;transform:scale(1.06)}16.44%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c3{animation:c3 9s ease-out infinite}@keyframes c3{0%,16%{opacity:0;transform:scale(.7)}18%{opacity:1;transform:scale(1.06)}19.56%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c4{animation:c4 9s ease-out infinite}@keyframes c4{0%,19.11%{opacity:0;transform:scale(.7)}21.11%{opacity:1;transform:scale(1.06)}22.67%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c5{animation:c5 9s ease-out infinite}@keyframes c5{0%,22.22%{opacity:0;transform:scale(.7)}24.22%{opacity:1;transform:scale(1.06)}25.78%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c6{animation:c6 9s ease-out infinite}@keyframes c6{0%,25.33%{opacity:0;transform:scale(.7)}27.33%{opacity:1;transform:scale(1.06)}28.89%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c7{animation:c7 9s ease-out infinite}@keyframes c7{0%,28.44%{opacity:0;transform:scale(.7)}30.44%{opacity:1;transform:scale(1.06)}32%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c8{animation:c8 9s ease-out infinite}@keyframes c8{0%,31.56%{opacity:0;transform:scale(.7)}33.56%{opacity:1;transform:scale(1.06)}35.11%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c9{animation:c9 9s ease-out infinite}@keyframes c9{0%,34.67%{opacity:0;transform:scale(.7)}36.67%{opacity:1;transform:scale(1.06)}38.22%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c10{animation:c10 9s ease-out infinite}@keyframes c10{0%,37.78%{opacity:0;transform:scale(.7)}39.78%{opacity:1;transform:scale(1.06)}41.33%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+      .c11{animation:c11 9s ease-out infinite}@keyframes c11{0%,40.89%{opacity:0;transform:scale(.7)}42.89%{opacity:1;transform:scale(1.06)}44.44%,90%{opacity:1;transform:scale(1)}95.56%,100%{opacity:0}}
+
+      /* Stok habis dari kanan ke kiri, tepat saat permintaan yang berhasil tercatat */
+      .k9{animation:k9 9s ease-out infinite}@keyframes k9{0%,6.67%{opacity:1}10%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k8{animation:k8 9s ease-out infinite}@keyframes k8{0%,9.78%{opacity:1}13.11%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k7{animation:k7 9s ease-out infinite}@keyframes k7{0%,12.89%{opacity:1}16.22%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k6{animation:k6 9s ease-out infinite}@keyframes k6{0%,16%{opacity:1}19.33%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k5{animation:k5 9s ease-out infinite}@keyframes k5{0%,19.11%{opacity:1}22.44%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k4{animation:k4 9s ease-out infinite}@keyframes k4{0%,22.22%{opacity:1}25.56%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k3{animation:k3 9s ease-out infinite}@keyframes k3{0%,25.33%{opacity:1}28.67%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k2{animation:k2 9s ease-out infinite}@keyframes k2{0%,28.44%{opacity:1}31.78%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k1{animation:k1 9s ease-out infinite}@keyframes k1{0%,31.56%{opacity:1}34.89%,90%{opacity:.1}95.56%,100%{opacity:1}}
+      .k0{animation:k0 9s ease-out infinite}@keyframes k0{0%,34.67%{opacity:1}38%,90%{opacity:.1}95.56%,100%{opacity:1}}
+
+      .panel{animation:panel 9s ease-out infinite}@keyframes panel{0%,46.44%{opacity:0;transform:translateY(10px)}50.89%,90%{opacity:1;transform:none}95.56%,100%{opacity:0}}
+      .wait{animation:wait 9s ease-out infinite}@keyframes wait{0%,44%{opacity:1}47%,94%{opacity:0}97%,100%{opacity:1}}
+      .dot{animation:dot 1.2s ease-in-out infinite}@keyframes dot{50%{opacity:.25}}
+      .orb{animation:orb 17s ease-in-out infinite alternate}@keyframes orb{to{transform:translate(260px,-30px)}}
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; }
+        [class^="c"], .panel { opacity: 1 !important; }
+        [class^="k"], .wait { opacity: .1 !important; }
+      }
+    </style>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="300" fill="url(#bg)"/>
+    <circle class="orb" cx="260" cy="300" r="190" fill="#2fe0a4" opacity=".08" filter="url(#blur)"/>
+  </g>
+  <rect x=".5" y=".5" width="1199" height="299" rx="23.5" fill="none" stroke="#fff" stroke-opacity=".08"/>
+  <rect x="100" y="0" width="1000" height="1" fill="url(#edgeTop)"/>
+
+  <text x="48" y="48" font-size="12" font-weight="700" fill="#ff8a6b" letter-spacing="1.8">UJI RACE CONDITION · FIRESTORE EMULATOR</text>
+  <text x="48" y="82" font-size="22" font-weight="700" fill="#eef1f6">12 checkout serentak, stok hanya 10</text>
+
+  <!-- permintaan -->
+  <g><rect x="48.0" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="79" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#01</text><circle cx="79" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c0" style="transform-origin:79px 143px"><rect x="48.0" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="79" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#01</text><path d="M71 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="120.9" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="151.9" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#02</text><circle cx="151.9" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c1" style="transform-origin:151.9px 143px"><rect x="120.9" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="151.9" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#02</text><path d="M143.9 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="193.8" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="224.8" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#03</text><circle cx="224.8" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c2" style="transform-origin:224.8px 143px"><rect x="193.8" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="224.8" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#03</text><path d="M216.8 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="266.7" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="297.7" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#04</text><circle cx="297.7" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c3" style="transform-origin:297.7px 143px"><rect x="266.7" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="297.7" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#04</text><path d="M289.7 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="339.6" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="370.6" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#05</text><circle cx="370.6" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c4" style="transform-origin:370.6px 143px"><rect x="339.6" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="370.6" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#05</text><path d="M362.6 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="412.5" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="443.5" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#06</text><circle cx="443.5" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c5" style="transform-origin:443.5px 143px"><rect x="412.5" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="443.5" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#06</text><path d="M435.5 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="485.4" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="516.4" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#07</text><circle cx="516.4" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c6" style="transform-origin:516.4px 143px"><rect x="485.4" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="516.4" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#07</text><path d="M508.4 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="558.3" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="589.3" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#08</text><circle cx="589.3" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c7" style="transform-origin:589.3px 143px"><rect x="558.3" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="589.3" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#08</text><path d="M581.3 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="631.2" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="662.2" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#09</text><circle cx="662.2" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c8" style="transform-origin:662.2px 143px"><rect x="631.2" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="662.2" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#09</text><path d="M654.2 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="704.1" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="735.1" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#10</text><circle cx="735.1" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c9" style="transform-origin:735.1px 143px"><rect x="704.1" y="112" width="62" height="62" rx="14" fill="#2fe0a4" fill-opacity=".12" stroke="#2fe0a4" stroke-opacity=".7"/><text x="735.1" y="134" font-size="11.5" fill="#2fe0a4" text-anchor="middle" class="mono">#10</text><path d="M727.1 150l5 5 11-11" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+  <g><rect x="777.0" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="808" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#11</text><circle cx="808" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c10" style="transform-origin:808px 143px"><rect x="777.0" y="112" width="62" height="62" rx="14" fill="#ff4d5e" fill-opacity=".12" stroke="#ff4d5e" stroke-opacity=".7"/><text x="808" y="134" font-size="11.5" fill="#ff4d5e" text-anchor="middle" class="mono">#11</text><text x="808" y="156" font-size="12" font-weight="800" fill="#ff4d5e" text-anchor="middle" class="mono">409</text></g></g>
+  <g><rect x="849.9" y="112" width="62" height="62" rx="14" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/><text x="880.9" y="134" font-size="11.5" fill="#8a93a6" text-anchor="middle" class="mono">#12</text><circle cx="880.9" cy="152" r="3" fill="#fff" fill-opacity=".18"/><g class="c11" style="transform-origin:880.9px 143px"><rect x="849.9" y="112" width="62" height="62" rx="14" fill="#ff4d5e" fill-opacity=".12" stroke="#ff4d5e" stroke-opacity=".7"/><text x="880.9" y="134" font-size="11.5" fill="#ff4d5e" text-anchor="middle" class="mono">#12</text><text x="880.9" y="156" font-size="12" font-weight="800" fill="#ff4d5e" text-anchor="middle" class="mono">409</text></g></g>
+
+  <!-- stok di rak -->
+  <text x="48" y="208" font-size="12" font-weight="700" fill="#8a93a6" letter-spacing="1.6">STOK DI RAK</text>
+  <g>
+    <rect x="48" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k0" x="48" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="135.3" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k1" x="135.3" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="222.7" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k2" x="222.7" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="310" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k3" x="310" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="397.3" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k4" x="397.3" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="484.7" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k5" x="484.7" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="572" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k6" x="572" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="659.3" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k7" x="659.3" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="746.7" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k8" x="746.7" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+    <rect x="834" y="222" width="78" height="26" rx="7" fill="#fff" fill-opacity=".03" stroke="#fff" stroke-opacity=".12" stroke-dasharray="3 4"/><rect class="k9" x="834" y="222" width="78" height="26" rx="7" fill="url(#brand)"/>
+  </g>
+
+  <!-- hasil -->
+  <rect x="944" y="112" width="208" height="136" rx="16" fill="#fff" fill-opacity=".04" stroke="#fff" stroke-opacity=".1"/>
+  <g class="wait" font-size="13" fill="#8a93a6">
+    <text x="1048" y="185" text-anchor="middle">menunggu hasil</text>
+    <circle class="dot" cx="1034" cy="202" r="2.5" fill="#8a93a6"/>
+    <circle class="dot" cx="1048" cy="202" r="2.5" fill="#8a93a6" style="animation-delay:.2s"/>
+    <circle class="dot" cx="1062" cy="202" r="2.5" fill="#8a93a6" style="animation-delay:.4s"/>
+  </g>
+  <g class="panel">
+    <text x="966" y="152" font-size="28" font-weight="800" fill="#2fe0a4" class="mono">10</text>
+    <text x="1014" y="150" font-size="13.5" fill="#b6becd">berhasil</text>
+    <text x="966" y="192" font-size="28" font-weight="800" fill="#ff4d5e" class="mono">2</text>
+    <text x="1014" y="190" font-size="13.5" fill="#b6becd">ditolak, stok habis</text>
+    <text x="966" y="232" font-size="28" font-weight="800" fill="#eef1f6" class="mono">0</text>
+    <text x="1014" y="230" font-size="13.5" fill="#b6becd">stok akhir, tak minus</text>
+  </g>
+
+  <text x="48" y="280" font-size="12.5" fill="#8a93a6">Setiap checkout membaca dan mengurangi stok di dalam satu <tspan class="mono" fill="#b6becd">runTransaction</tspan> — dua kasir tidak mungkin menjual unit yang sama.</text>
+</svg>

@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="460" viewBox="0 0 1280 460" role="img" aria-label="KasirOne — Sistem Kasir &amp; Inventory Toko">
+  <title>KasirOne — Sistem Kasir &amp; Inventory Toko</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12151c"/>
+      <stop offset="1" stop-color="#08090c"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b52"/>
+      <stop offset="1" stop-color="#ff2e43"/>
+    </linearGradient>
+    <linearGradient id="word" gradientUnits="userSpaceOnUse" x1="360" y1="0" x2="540" y2="0">
+      <stop offset="0" stop-color="#ff8a6b"/>
+      <stop offset="1" stop-color="#ff2e43"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".38"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="edgeTop" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="fade" cx=".3" cy=".45" r=".75">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#fff"/>
+    </pattern>
+    <mask id="dotMask"><rect width="1280" height="460" fill="url(#fade)"/></mask>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
+    <filter id="soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+    <clipPath id="frame"><rect width="1280" height="460" rx="28"/></clipPath>
+    <clipPath id="tile"><rect width="84" height="84" rx="24"/></clipPath>
+
+    <style>
+      text { font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .mono { font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace; }
+
+      /* Aurora di latar */
+      .orb-a { animation: driftA 16s ease-in-out infinite alternate; }
+      .orb-b { animation: driftB 19s ease-in-out infinite alternate; }
+      .orb-c { animation: driftC 23s ease-in-out infinite alternate; }
+      @keyframes driftA { to { transform: translate(140px, 60px) } }
+      @keyframes driftB { to { transform: translate(-160px, -40px) } }
+      @keyframes driftC { to { transform: translate(90px, -70px) } }
+
+      /* Masuk sekali saat dimuat */
+      .rise   { opacity: 0; animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; }
+      .d1 { animation-delay: .1s } .d2 { animation-delay: .25s } .d3 { animation-delay: .4s }
+      .d4 { animation-delay: .55s } .d5 { animation-delay: .7s } .d6 { animation-delay: .85s }
+      @keyframes rise { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+
+      /* Logo */
+      .shine { animation: sweep 5s cubic-bezier(.6,0,.2,1) infinite; }
+      @keyframes sweep { 0%,60% { transform: translateX(-90px) skewX(-20deg) } 100% { transform: translateX(150px) skewX(-20deg) } }
+      .halo { transform-origin: 122px 168px; animation: halo 3.2s ease-in-out infinite; }
+      @keyframes halo { 0%,100% { opacity: .18; transform: scale(.9) } 50% { opacity: .45; transform: scale(1.04) } }
+
+      /* Tagline berganti-ganti */
+      .tag { opacity: 0; animation: tag 14s ease-in-out infinite; }
+      .t2 { animation-delay: 3.5s } .t3 { animation-delay: 7s } .t4 { animation-delay: 10.5s }
+      @keyframes tag {
+        0%      { opacity: 0; transform: translateY(10px) }
+        4%, 21% { opacity: 1; transform: none }
+        25%,100%{ opacity: 0; transform: translateY(-10px) }
+      }
+
+      /* Kartu struk */
+      .card { animation: float 7s ease-in-out infinite; }
+      @keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
+
+      .laser-wrap { animation: scanning 10s linear infinite; }
+      .laser { animation: laser 1.1s ease-in-out infinite alternate; }
+      @keyframes laser { from { transform: translateY(0) } to { transform: translateY(34px) } }
+      @keyframes scanning { 0%,40% { opacity: 1 } 44%,95% { opacity: 0 } 100% { opacity: 1 } }
+
+      .i1, .i2, .i3, .sum, .tot { opacity: 0; }
+      .i1  { animation: i1 10s cubic-bezier(.2,.7,.2,1) infinite; }
+      .i2  { animation: i2 10s cubic-bezier(.2,.7,.2,1) infinite; }
+      .i3  { animation: i3 10s cubic-bezier(.2,.7,.2,1) infinite; }
+      .sum { animation: sum 10s cubic-bezier(.2,.7,.2,1) infinite; }
+      .tot { animation: tot 10s cubic-bezier(.2,.7,.2,1) infinite; }
+      @keyframes i1  { 0%,7%  { opacity: 0; transform: translateY(8px) } 12%,90% { opacity: 1; transform: none } 96%,100% { opacity: 0 } }
+      @keyframes i2  { 0%,15% { opacity: 0; transform: translateY(8px) } 20%,90% { opacity: 1; transform: none } 96%,100% { opacity: 0 } }
+      @keyframes i3  { 0%,23% { opacity: 0; transform: translateY(8px) } 28%,90% { opacity: 1; transform: none } 96%,100% { opacity: 0 } }
+      @keyframes sum { 0%,31% { opacity: 0; transform: translateY(8px) } 36%,90% { opacity: 1; transform: none } 96%,100% { opacity: 0 } }
+      @keyframes tot { 0%,38% { opacity: 0; transform: translateY(8px) } 44%,90% { opacity: 1; transform: none } 96%,100% { opacity: 0 } }
+
+      .st-scan { animation: stScan 10s linear infinite; }
+      .st-paid { opacity: 0; animation: stPaid 10s linear infinite; }
+      @keyframes stScan { 0%,44% { opacity: 1 } 47%,96% { opacity: 0 } 100% { opacity: 1 } }
+      @keyframes stPaid { 0%,46% { opacity: 0 } 50%,92% { opacity: 1 } 96%,100% { opacity: 0 } }
+      .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 1.6s ease-out infinite; }
+      @keyframes pulse { from { transform: scale(1); opacity: .7 } to { transform: scale(3); opacity: 0 } }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; }
+        .rise, .i1, .i2, .i3, .sum, .tot, .t1 { opacity: 1 !important; }
+        .laser-wrap, .st-scan { opacity: 0 !important; }
+        .st-paid { opacity: 1 !important; }
+      }
+    </style>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="460" fill="url(#bg)"/>
+
+    <!-- aurora -->
+    <g filter="url(#blur)" opacity=".55">
+      <circle class="orb-a" cx="220" cy="80"  r="190" fill="#ff2e43" opacity=".55"/>
+      <circle class="orb-b" cx="1020" cy="420" r="210" fill="#ff6b52" opacity=".42"/>
+      <circle class="orb-c" cx="700" cy="-20" r="170" fill="#5b9dff" opacity=".22"/>
+    </g>
+    <rect width="1280" height="460" fill="url(#dots)" opacity=".07" mask="url(#dotMask)"/>
+  </g>
+  <rect x=".5" y=".5" width="1279" height="459" rx="27.5" fill="none" stroke="#fff" stroke-opacity=".08"/>
+  <rect x="120" y="0" width="1040" height="1" fill="url(#edgeTop)"/>
+
+  <!-- ─────────────── kiri: identitas ─────────────── -->
+  <g class="rise d1">
+    <rect x="80" y="62" width="222" height="30" rx="15" fill="#ff2e43" fill-opacity=".12" stroke="#ff2e43" stroke-opacity=".35"/>
+    <circle cx="99" cy="77" r="4" fill="#ff6b52"/>
+    <text x="112" y="82" font-size="12.5" font-weight="700" fill="#ff8a6b" letter-spacing="1.6">POINT OF SALE · RETAIL</text>
+  </g>
+
+  <g class="rise d2">
+    <circle class="halo" cx="122" cy="168" r="54" fill="#ff2e43" opacity=".3" filter="url(#soft)"/>
+    <g transform="translate(80 120)">
+      <rect width="84" height="84" rx="24" fill="url(#brand)"/>
+      <g clip-path="url(#tile)">
+        <rect width="84" height="84" fill="url(#gloss)"/>
+        <rect class="shine" x="0" y="-10" width="34" height="104" fill="#fff" opacity=".3"/>
+      </g>
+      <rect x=".5" y=".5" width="83" height="83" rx="23.5" fill="none" stroke="#fff" stroke-opacity=".3"/>
+      <g transform="scale(.477) translate(-40 -40)" fill="none" stroke="#fff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M98 82v94"/><path d="M160 82l-54 52"/><path d="M124 118l38 58"/>
+      </g>
+    </g>
+    <text x="190" y="187" font-size="74" font-weight="800" fill="#eef1f6" letter-spacing="-2">Kasir<tspan fill="url(#word)">One</tspan></text>
+  </g>
+
+  <text class="rise d3" x="82" y="252" font-size="26" font-weight="500" fill="#b6becd">Sistem Kasir &amp; Inventory Toko</text>
+
+  <g class="rise d4">
+    <text x="82" y="304" font-size="20" font-weight="700" fill="#ff6b52">›</text>
+    <g font-size="19" fill="#eef1f6">
+      <text class="tag t1" x="104" y="303">Scan barcode, bayar, selesai — dalam hitungan detik</text>
+      <text class="tag t2" x="104" y="303">Harga &amp; total dihitung ulang oleh server, bukan browser</text>
+      <text class="tag t3" x="104" y="303">Stok tidak pernah minus, sekalipun kasir berebut</text>
+      <text class="tag t4" x="104" y="303">QRIS jujur — tidak pernah menampilkan QR palsu</text>
+    </g>
+  </g>
+
+  <g class="rise d5" font-size="13" font-weight="600" fill="#b6becd">
+    <g transform="translate(80 350)">
+      <rect width="92" height="34" rx="17" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".1"/>
+      <circle cx="17" cy="17" r="4" fill="#2fe0a4"/><text x="29" y="22">Node.js</text>
+    </g>
+    <g transform="translate(182 350)">
+      <rect width="106" height="34" rx="17" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".1"/>
+      <circle cx="17" cy="17" r="4" fill="#eef1f6"/><text x="29" y="22">Express 5</text>
+    </g>
+    <g transform="translate(298 350)">
+      <rect width="134" height="34" rx="17" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".1"/>
+      <circle cx="17" cy="17" r="4" fill="#ffb224"/><text x="29" y="22">Firebase Auth</text>
+    </g>
+    <g transform="translate(442 350)">
+      <rect width="148" height="34" rx="17" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".1"/>
+      <circle cx="17" cy="17" r="4" fill="#ff6b52"/><text x="29" y="22">Cloud Firestore</text>
+    </g>
+    <g transform="translate(600 350)">
+      <rect width="112" height="34" rx="17" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".1"/>
+      <circle cx="17" cy="17" r="4" fill="#5b9dff"/><text x="29" y="22">ES Modules</text>
+    </g>
+  </g>
+
+  <!-- ─────────────── kanan: struk hidup ─────────────── -->
+  <g class="rise d6">
+    <g class="card">
+      <ellipse cx="1010" cy="428" rx="170" ry="14" fill="#000" opacity=".45" filter="url(#soft)"/>
+      <rect x="820" y="50" width="380" height="366" rx="24" fill="#fff" fill-opacity=".05" stroke="#fff" stroke-opacity=".12"/>
+      <rect x="860" y="50" width="300" height="1" fill="url(#edgeTop)"/>
+
+      <!-- header -->
+      <text x="850" y="91" font-size="12" font-weight="700" fill="#8a93a6" letter-spacing="1.6">STRUK</text>
+      <text x="901" y="91" font-size="12" font-weight="700" fill="#eef1f6" letter-spacing="1" class="mono">#KS-0142</text>
+      <g class="st-scan">
+        <rect x="1066" y="74" width="104" height="26" rx="13" fill="#ffb224" fill-opacity=".13"/>
+        <circle cx="1082" cy="87" r="3.5" fill="#ffb224"/>
+        <circle class="pulse" cx="1082" cy="87" r="3.5" fill="#ffb224"/>
+        <text x="1093" y="91.5" font-size="12" font-weight="700" fill="#ffb224">Memindai</text>
+      </g>
+      <g class="st-paid">
+        <rect x="1086" y="74" width="84" height="26" rx="13" fill="#2fe0a4" fill-opacity=".14"/>
+        <path d="M1098 87l4 4 8-8" fill="none" stroke="#2fe0a4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="1117" y="91.5" font-size="12" font-weight="700" fill="#2fe0a4">Lunas</text>
+      </g>
+
+      <!-- barcode + laser -->
+      <g transform="translate(850 112)">
+        <g fill="#eef1f6" opacity=".82">
+          <rect x="0.0" width="5.7" height="36"/><rect x="8.6" width="8.6" height="36"/><rect x="20.0" width="2.9" height="36"/><rect x="28.6" width="11.4" height="36"/><rect x="42.9" width="5.7" height="36"/><rect x="51.4" width="2.9" height="36"/><rect x="62.9" width="5.7" height="36"/><rect x="74.3" width="2.9" height="36"/><rect x="88.6" width="2.9" height="36"/><rect x="94.3" width="5.7" height="36"/><rect x="108.6" width="2.9" height="36"/><rect x="117.1" width="2.9" height="36"/><rect x="122.9" width="8.6" height="36"/><rect x="134.3" width="5.7" height="36"/><rect x="151.4" width="2.9" height="36"/><rect x="157.1" width="5.7" height="36"/><rect x="165.7" width="8.6" height="36"/><rect x="180.0" width="2.9" height="36"/><rect x="185.7" width="5.7" height="36"/><rect x="200.0" width="2.9" height="36"/><rect x="205.7" width="5.7" height="36"/><rect x="214.3" width="11.4" height="36"/><rect x="228.6" width="2.9" height="36"/><rect x="237.1" width="2.9" height="36"/><rect x="248.6" width="2.9" height="36"/><rect x="257.1" width="5.7" height="36"/><rect x="265.7" width="2.9" height="36"/><rect x="277.1" width="2.9" height="36"/><rect x="285.7" width="11.4" height="36"/><rect x="300.0" width="2.9" height="36"/><rect x="308.6" width="8.6" height="36"/>
+        </g>
+        <g class="laser-wrap">
+          <g class="laser">
+            <rect x="-10" y="-1" width="340" height="6" rx="3" fill="#ff2e43" opacity=".55" filter="url(#soft)"/>
+            <rect x="-10" y="1" width="340" height="2" rx="1" fill="#ff6b52"/>
+          </g>
+        </g>
+        <text x="160" y="54" font-size="10.5" fill="#8a93a6" text-anchor="middle" letter-spacing="3" class="mono">8 992761 002147</text>
+      </g>
+
+      <!-- baris barang -->
+      <g font-size="15">
+        <g class="i1">
+          <text x="850" y="200" fill="#eef1f6" font-weight="600">Kopi Aren</text>
+          <text x="850" y="219" fill="#8a93a6" font-size="12.5" class="mono">2 × 18.000</text>
+          <text x="1170" y="209" fill="#eef1f6" text-anchor="end" class="mono">36.000</text>
+        </g>
+        <g class="i2">
+          <text x="850" y="246" fill="#eef1f6" font-weight="600">Indomie Goreng</text>
+          <text x="850" y="265" fill="#8a93a6" font-size="12.5" class="mono">3 × 3.500</text>
+          <text x="1170" y="255" fill="#eef1f6" text-anchor="end" class="mono">10.500</text>
+        </g>
+        <g class="i3">
+          <text x="850" y="292" fill="#eef1f6" font-weight="600">Air Mineral 600ml</text>
+          <text x="850" y="311" fill="#8a93a6" font-size="12.5" class="mono">1 × 4.000</text>
+          <text x="1170" y="301" fill="#eef1f6" text-anchor="end" class="mono">4.000</text>
+        </g>
+      </g>
+
+      <g class="sum">
+        <line x1="850" y1="330" x2="1170" y2="330" stroke="#fff" stroke-opacity=".16" stroke-dasharray="4 5"/>
+        <text x="850" y="352" font-size="13" fill="#8a93a6">PPN 11%</text>
+        <text x="1170" y="352" font-size="13" fill="#8a93a6" text-anchor="end" class="mono">5.555</text>
+      </g>
+      <g class="tot">
+        <text x="850" y="390" font-size="15" font-weight="700" fill="#eef1f6">Total</text>
+        <text x="1170" y="392" font-size="26" font-weight="800" fill="url(#brand)" text-anchor="end" class="mono">Rp 56.055</text>
+      </g>
+    </g>
+  </g>
+</svg>

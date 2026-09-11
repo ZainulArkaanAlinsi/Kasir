@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="456" viewBox="0 0 1200 456" role="img" aria-label="Enam fitur utama KasirOne: scan barcode, transaksi atomik, QRIS jujur, laporan laba, etalase online, dan stok terkunci.">
+  <title>Fitur utama KasirOne</title>
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141821"/>
+      <stop offset="1" stop-color="#0c0e13"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b52"/>
+      <stop offset="1" stop-color="#ff2e43"/>
+    </linearGradient>
+    <linearGradient id="edgeTop" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="corner" cx="1" cy="0" r="1">
+      <stop offset="0" stop-color="#ff2e43" stop-opacity=".13"/>
+      <stop offset=".5" stop-color="#ff2e43" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tileClip"><rect x="26" y="26" width="48" height="48" rx="14"/></clipPath>
+
+    <symbol id="base" viewBox="0 0 388 218">
+      <rect width="388" height="218" rx="20" fill="url(#card)"/>
+      <rect width="388" height="218" rx="20" fill="url(#corner)"/>
+      <rect x=".5" y=".5" width="387" height="217" rx="19.5" fill="none" stroke="#fff" stroke-opacity=".09"/>
+      <rect x="40" y="0" width="308" height="1" fill="url(#edgeTop)"/>
+      <rect x="26" y="26" width="48" height="48" rx="14" fill="#ff2e43" fill-opacity=".13" stroke="#ff2e43" stroke-opacity=".3"/>
+    </symbol>
+
+    <style>
+      text { font-family: 'Segoe UI', Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+      .mono { font-family: 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', Menlo, monospace; }
+      .t  { font-size: 19px; font-weight: 700; fill: #eef1f6; }
+      .d  { font-size: 14.5px; fill: #b6becd; }
+      .g  { font-size: 11.5px; fill: #8a93a6; }
+      .ic { fill: none; stroke: #ff8a6b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+      .rise { opacity: 0; animation: rise .8s cubic-bezier(.2,.7,.2,1) forwards; }
+      .r1 { animation-delay: .05s } .r2 { animation-delay: .17s } .r3 { animation-delay: .29s }
+      .r4 { animation-delay: .41s } .r5 { animation-delay: .53s } .r6 { animation-delay: .65s }
+      @keyframes rise { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+
+      /* 1 · barcode */
+      .laser { animation: laser 1.3s ease-in-out infinite alternate; }
+      @keyframes laser { from { transform: translateY(0) } to { transform: translateY(22px) } }
+      /* 2 · gembok */
+      .shackle { animation: shackle 3.2s cubic-bezier(.5,0,.2,1) infinite; }
+      @keyframes shackle { 0%,20% { transform: translateY(-4px) } 35%,85% { transform: translateY(0) } 100% { transform: translateY(-4px) } }
+      .lockdot { animation: lockdot 3.2s ease-in-out infinite; }
+      @keyframes lockdot { 0%,30% { fill: #ff8a6b } 38%,85% { fill: #2fe0a4 } 100% { fill: #ff8a6b } }
+      /* 3 · QR */
+      .qscan { animation: qscan 2.2s ease-in-out infinite; }
+      @keyframes qscan { 0% { transform: translateY(0); opacity: 0 } 15%,85% { opacity: 1 } 100% { transform: translateY(26px); opacity: 0 } }
+      /* 4 · grafik */
+      .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: bar 2.8s cubic-bezier(.3,0,.2,1) infinite; }
+      .b2 { animation-delay: .15s } .b3 { animation-delay: .3s } .b4 { animation-delay: .45s }
+      @keyframes bar { 0% { transform: scaleY(.25) } 45%,80% { transform: scaleY(1) } 100% { transform: scaleY(.25) } }
+      /* 5 · tas */
+      .bag { animation: bob 2.6s ease-in-out infinite; }
+      @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+      .spark { transform-box: fill-box; transform-origin: center; animation: spark 2.6s ease-in-out infinite; }
+      @keyframes spark { 0%,100% { transform: scale(.4); opacity: 0 } 50% { transform: scale(1); opacity: 1 } }
+      /* 6 · cincin stok */
+      .ring { animation: ring 3.6s cubic-bezier(.5,0,.3,1) infinite; }
+      @keyframes ring { 0% { stroke-dashoffset: 88 } 55%,80% { stroke-dashoffset: 30 } 100% { stroke-dashoffset: 88 } }
+
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important } .rise { opacity: 1 } }
+    </style>
+  </defs>
+
+  <!-- 1 · Scan Barcode -->
+  <g transform="translate(0 2)"><g class="rise r1">
+    <use href="#base" width="388" height="218"/>
+    <g clip-path="url(#tileClip)">
+      <g fill="#ff8a6b"><rect x="36" y="39" width="2" height="22"/><rect x="40" y="39" width="4" height="22"/><rect x="46" y="39" width="2" height="22"/><rect x="50" y="39" width="3" height="22"/><rect x="55" y="39" width="2" height="22"/><rect x="59" y="39" width="4" height="22"/><rect x="64" y="39" width="1.5" height="22"/></g>
+      <rect class="laser" x="30" y="38" width="40" height="2" rx="1" fill="#fff"/>
+    </g>
+    <text class="t" x="26" y="112">Scan Barcode</text>
+    <text class="d" x="26" y="142">Scanner USB langsung jalan tanpa driver;</text>
+    <text class="d" x="26" y="164">barcode asing memunculkan notifikasi.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> keyboard wedge · input manual</text>
+  </g></g>
+
+  <!-- 2 · Transaksi Atomik -->
+  <g transform="translate(406 2)"><g class="rise r2">
+    <use href="#base" width="388" height="218"/>
+    <path class="ic shackle" d="M43 48v-4a7 7 0 0 1 14 0v4"/>
+    <rect class="ic" x="38" y="48" width="24" height="17" rx="4"/>
+    <circle class="lockdot" cx="50" cy="56.5" r="2.4" fill="#ff8a6b"/>
+    <text class="t" x="26" y="112">Transaksi Atomik</text>
+    <text class="d" x="26" y="142">Stok dan transaksi tersimpan bersama,</text>
+    <text class="d" x="26" y="164">atau tidak tersimpan sama sekali.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> diuji dengan 12 checkout serentak</text>
+  </g></g>
+
+  <!-- 3 · QRIS Jujur -->
+  <g transform="translate(812 2)"><g class="rise r3">
+    <use href="#base" width="388" height="218"/>
+    <g class="ic" stroke-width="1.8">
+      <rect x="37" y="37" width="9" height="9" rx="2"/><rect x="54" y="37" width="9" height="9" rx="2"/><rect x="37" y="54" width="9" height="9" rx="2"/>
+    </g>
+    <g fill="#ff8a6b"><rect x="55" y="55" width="3" height="3"/><rect x="60" y="55" width="3" height="3"/><rect x="55" y="60" width="3" height="3"/><rect x="60" y="60" width="3" height="3" opacity=".5"/><rect x="48.5" y="48.5" width="3" height="3"/></g>
+    <g clip-path="url(#tileClip)"><rect class="qscan" x="33" y="37" width="34" height="2" rx="1" fill="#2fe0a4"/></g>
+    <text class="t" x="26" y="112">QRIS Jujur</text>
+    <text class="d" x="26" y="142">Terverifikasi, manual, atau ditolak —</text>
+    <text class="d" x="26" y="164">tidak pernah ada QR hiasan yang palsu.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> Midtrans · QRIS statis merchant</text>
+  </g></g>
+
+  <!-- 4 · Laporan Laba -->
+  <g transform="translate(0 236)"><g class="rise r4">
+    <use href="#base" width="388" height="218"/>
+    <g fill="url(#brand)">
+      <rect class="bar b1" x="37" y="52" width="5" height="12" rx="1.5"/>
+      <rect class="bar b2" x="45" y="44" width="5" height="20" rx="1.5"/>
+      <rect class="bar b3" x="53" y="48" width="5" height="16" rx="1.5"/>
+      <rect class="bar b4" x="61" y="38" width="5" height="26" rx="1.5"/>
+    </g>
+    <text class="t" x="26" y="112">Laporan Laba</text>
+    <text class="d" x="26" y="142">Pemasukan vs pengeluaran, laba kotor</text>
+    <text class="d" x="26" y="164">&amp; bersih, dan unit terjual per produk.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> filter periode · ekspor CSV</text>
+  </g></g>
+
+  <!-- 5 · Etalase Online -->
+  <g transform="translate(406 236)"><g class="rise r5">
+    <use href="#base" width="388" height="218"/>
+    <g class="bag">
+      <path class="ic" d="M39 45h22l-1.8 18a2.5 2.5 0 0 1-2.5 2.2H43.3a2.5 2.5 0 0 1-2.5-2.2z"/>
+      <path class="ic" d="M45 49v-5a5 5 0 0 1 10 0v5"/>
+    </g>
+    <path class="spark" d="M64 34l1.2 2.8L68 38l-2.8 1.2L64 42l-1.2-2.8L60 38l2.8-1.2z" fill="#ffb224"/>
+    <text class="t" x="26" y="112">Etalase Online</text>
+    <text class="d" x="26" y="142">Katalog publik, keranjang, ambil di toko</text>
+    <text class="d" x="26" y="164">atau diantar — satu sumber stok.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> /toko.html · tanpa akun</text>
+  </g></g>
+
+  <!-- 6 · Stok Terkunci -->
+  <g transform="translate(812 236)"><g class="rise r6">
+    <use href="#base" width="388" height="218"/>
+    <circle cx="50" cy="50" r="14" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="3"/>
+    <circle class="ring" cx="50" cy="50" r="14" fill="none" stroke="url(#brand)" stroke-width="3" stroke-linecap="round" stroke-dasharray="88" stroke-dashoffset="30" transform="rotate(-90 50 50)"/>
+    <path class="ic" stroke-width="1.7" d="M50 44.5l5 2.6v5.8L50 55.5l-5-2.6v-5.8zM45 47.1l5 2.6 5-2.6M50 49.7v5.8"/>
+    <text class="t" x="26" y="112">Stok Terkunci</text>
+    <text class="d" x="26" y="142">Pesanan online mengunci stok; dilepas</text>
+    <text class="d" x="26" y="164">saat batal, dipotong saat selesai.</text>
+    <text class="g mono" x="26" y="196"><tspan fill="#ff6b52">›</tspan> tersedia = stok − stokDipesan</text>
+  </g></g>
+</svg>

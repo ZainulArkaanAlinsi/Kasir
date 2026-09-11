@@ -44,7 +44,7 @@ async function setPage(nama) {
   $$(".page").forEach((p) => p.classList.remove("active-page"));
   $(`${nama}Page`)?.classList.add("active-page");
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
-  $$(".rail-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
+  $$(".rail-btn, .tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
   $("sideNav")?.classList.remove("open");   // tutup menu geser di layar sempit
   window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -71,7 +71,7 @@ async function mulaiSesi() {
 }
 
 function bindNavigasi() {
-  $$(".nav-item, .rail-btn").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
+  $$(".nav-item, .rail-btn, .tab-btn").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
   $("navToggle")?.addEventListener("click", () => $("sideNav")?.classList.toggle("open"));
   $$("[data-go]").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.go)));
   $$("[data-close]").forEach((btn) => btn.addEventListener("click", () => closeModal(btn.dataset.close)));
@@ -96,6 +96,11 @@ function bindKasir() {
     if ($("cartDiscount")) $("cartDiscount").value = "0";
   });
   $("checkoutBtn")?.addEventListener("click", openPayment);
+
+  // Di layar sempit keranjang adalah lembar geser, jadi butuh pemicu.
+  // Di layar lebar CSS membuatnya selalu tampak dan kelas ini tidak berpengaruh.
+  $("bukaKeranjangKasir")?.addEventListener("click", () => $("cartPanel")?.classList.add("open"));
+  $("tutupKeranjangKasir")?.addEventListener("click", () => $("cartPanel")?.classList.remove("open"));
   $("confirmPayment")?.addEventListener("click", (e) => confirmPayment(e.currentTarget));
 
   // Scanner USB: dengarkan ketikan cepat di mana pun selama halaman Kasir.

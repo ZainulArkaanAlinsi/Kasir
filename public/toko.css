@@ -2,134 +2,144 @@
    Etalase publik — lapisan di atas design system KasirOne.
    ----------------------------------------------------------------------------
    Halaman ini dibuka pengunjung yang belum kenal toko, jadi prioritasnya
-   berbeda dari aplikasi kasir: foto barang dibuat besar, harga tebal dan
-   mudah dipindai, dan satu-satunya tombol mencolok adalah "tambah".
-   Token warna, bentuk, dan bayangan diwarisi apa adanya dari style.css.
-   ========================================================================== */
+   berbeda dari aplikasi kasir: foto barang dibuat besar, harga tebal, dan
+   satu-satunya tombol mencolok adalah "tambah".
 
-body.toko { padding-bottom: 0; }
+   Sama seperti aplikasi kasir, aturannya mobile-first: ponsel mendapat nav
+   bawah dan keranjang berupa lembar geser, layar lebar mendapat tata letak
+   melebar. Token warna 60-30-10 diwarisi apa adanya dari style.css.
+   ========================================================================== */
 
 /* ── Kepala halaman ───────────────────────────────────────────────────── */
 .toko-header {
   position: sticky; top: 0; z-index: 40;
-  background: rgba(10, 12, 16, .82);
-  border-bottom: 1px solid var(--edge);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 .toko-header-inner {
   max-width: 1240px; margin: 0 auto;
-  display: flex; align-items: center; gap: 16px;
-  padding: 14px 22px;
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  flex-wrap: wrap;
 }
-.toko-header .brand { text-decoration: none; color: inherit; flex-shrink: 0; }
-.toko-search { max-width: 420px; }
-.toko-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.toko-search { order: 3; width: 100%; max-width: none; }
+.toko-actions { margin-left: auto; display: flex; align-items: center; gap: var(--s2); }
 .hitung {
   display: inline-grid; place-items: center;
   min-width: 20px; height: 20px; padding: 0 6px;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, .25);
+  background: rgba(255, 255, 255, .28);
   font-size: 11px; font-weight: 800;
 }
 
-.toko-main { max-width: 1240px; margin: 0 auto; padding: 26px 22px 64px; }
+.toko-main {
+  max-width: 1240px; margin: 0 auto;
+  padding: var(--s4) var(--s4) calc(var(--nav-h) + var(--s6));
+}
 
 /* ── Hero ─────────────────────────────────────────────────────────────── */
 .toko-hero {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 26px; flex-wrap: wrap;
-  padding: 26px 30px;
+  display: flex; flex-direction: column; gap: var(--s4);
+  padding: var(--s5);
   border-radius: var(--r-xl);
-  background:
-    radial-gradient(680px 280px at 85% -25%, rgba(255, 107, 82, .45), transparent 62%),
-    linear-gradient(115deg, #b0122a, #ff2e43 58%, #ff6b52);
-  box-shadow: 0 20px 46px -22px var(--brand-glow);
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--sh-accent);
 }
-.toko-hero h1 { font-size: clamp(22px, 4vw, 30px); margin: 6px 0 6px; letter-spacing: -.02em; }
-.toko-hero p { margin: 0; opacity: .9; max-width: 52ch; font-size: 13px; }
-.toko-hero-cara { display: flex; gap: 10px; flex-wrap: wrap; }
+.toko-hero h1 { font-size: 22px; margin: 6px 0 6px; letter-spacing: -.02em; }
+.toko-hero p { margin: 0; opacity: .92; max-width: 52ch; font-size: 14px; }
+.toko-hero-cara { display: flex; gap: var(--s2); flex-wrap: wrap; }
 .cara-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 13px 16px;
-  border-radius: var(--r-lg);
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .28);
-  backdrop-filter: blur(8px);
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s3);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .3);
+  flex: 1; min-width: 132px;
 }
-.cara-item svg { width: 22px; height: 22px; flex-shrink: 0; }
+.cara-item svg { width: 21px; height: 21px; flex-shrink: 0; }
 .cara-item strong { display: block; font-size: 13px; }
-.cara-item span { display: block; font-size: 11px; opacity: .85; }
+.cara-item span { display: block; font-size: 11px; opacity: .88; }
 
-/* ── Grid produk: foto lebih besar daripada di layar kasir ────────────── */
-.toko-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-}
+/* ── Grid produk ──────────────────────────────────────────────────────── */
+.toko-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s3); }
+
 .toko-kartu {
   position: relative; overflow: hidden;
   display: flex; flex-direction: column;
   border-radius: var(--r-lg);
   background: var(--surface);
-  border: 1px solid var(--edge);
-  box-shadow: var(--sh-2), var(--lift);
-  transition: transform .22s var(--ease), border-color .22s, box-shadow .22s;
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  transition: transform .2s var(--ease), box-shadow .2s;
 }
-.toko-kartu::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: var(--hairline); z-index: 2; }
-.toko-kartu:hover { transform: translateY(-4px); border-color: var(--edge-2); box-shadow: var(--sh-3), var(--lift); }
-.toko-kartu.habis { opacity: .45; }
+.toko-kartu:active { transform: scale(.985); }
+.toko-kartu:hover { box-shadow: var(--sh-2); }
+.toko-kartu.habis { opacity: .55; }
 
-.toko-media { position: relative; aspect-ratio: 4 / 3; background: linear-gradient(160deg, #1a1d25, #101218); overflow: hidden; }
-.toko-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s var(--ease); }
-.toko-kartu:hover .toko-media img { transform: scale(1.05); }
+.toko-media { position: relative; aspect-ratio: 1 / 1; background: var(--surface-2); overflow: hidden; }
+.toko-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .toko-media .monogram {
   position: absolute; inset: 0; display: grid; place-items: center;
-  font-size: 40px; font-weight: 800; color: rgba(255, 255, 255, .26);
-  background: radial-gradient(closest-side, rgba(255, 255, 255, .07), transparent);
+  font-size: 38px; font-weight: 800; color: var(--line-2);
 }
-.toko-media .chip { position: absolute; left: 10px; top: 10px; z-index: 2; }
+.toko-media .chip { position: absolute; left: 8px; top: 8px; z-index: 2; }
 
-.toko-isi { padding: 14px 15px 15px; display: flex; flex-direction: column; flex: 1; }
-.toko-isi h3 { margin: 0 0 3px; font-size: 14px; font-weight: 700; line-height: 1.35; }
-.toko-isi .kategori { margin: 0; font-size: 11px; color: var(--muted); }
-.toko-bawah { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 13px; }
-.toko-harga { font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+.toko-isi { padding: var(--s3); display: flex; flex-direction: column; flex: 1; }
+.toko-isi h3 { margin: 0 0 2px; font-size: 14px; font-weight: 700; line-height: 1.35; }
+.toko-isi .kategori { margin: 0; font-size: 12px; color: var(--ink-3); }
+.toko-bawah { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); margin-top: auto; padding-top: var(--s3); }
+.toko-harga { font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
 
-/* ── Panel keranjang geser ─────────────────────────────────────────────── */
+/* ── Keranjang: lembar geser dari bawah ───────────────────────────────── */
 .keranjang-panel {
-  position: fixed; right: 0; top: 0; bottom: 0;
-  width: min(400px, 100vw);
-  z-index: 90;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  z-index: 90; max-height: 88vh;
   display: flex; flex-direction: column;
-  background: linear-gradient(180deg, #1b1e26, #121419);
-  border-left: 1px solid var(--edge-2);
-  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, .8);
-  animation: geser .28s var(--ease);
+  background: var(--surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: 0 -16px 44px -16px rgba(20, 23, 31, .4);
+  animation: naik .3s var(--ease);
 }
-@keyframes geser { from { transform: translateX(100%); } to { transform: none; } }
-.tirai { position: fixed; inset: 0; z-index: 80; background: rgba(4, 5, 8, .6); backdrop-filter: blur(4px); }
+.tirai { position: fixed; inset: 0; z-index: 80; background: rgba(20, 23, 31, .42); }
 
 .toko-footer {
   max-width: 1240px; margin: 0 auto;
-  padding: 26px 22px 44px;
-  border-top: 1px solid var(--edge);
-  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  color: var(--muted); font-size: 12px;
+  padding: var(--s5) var(--s4) calc(var(--nav-h) + var(--s5));
+  border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: var(--s3); flex-wrap: wrap;
+  color: var(--ink-3); font-size: 12px;
 }
 
-textarea { resize: vertical; min-height: 76px; font-family: inherit; }
+.pesanan-baris { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); padding: var(--s3) var(--s2); border-radius: var(--r-sm); }
+.pesanan-baris:hover { background: var(--surface-2); }
+.pesanan-baris strong { font-size: 13px; }
+.pesanan-baris span { display: block; font-size: 11px; color: var(--ink-3); margin-top: 2px; }
 
-.pesanan-baris { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 8px; border-radius: var(--r-sm); }
-.pesanan-baris:hover { background: var(--glass); }
-.pesanan-baris strong { font-size: 12px; }
-.pesanan-baris span { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; }
+@media (min-width: 560px) {
+  .toko-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--s4); }
+  .toko-hero { flex-direction: row; align-items: center; justify-content: space-between; }
+  .toko-hero h1 { font-size: 26px; }
+  .toko-hero-cara { flex: 0 0 auto; }
+  .cara-item { min-width: 0; }
+}
 
-@media (max-width: 760px) {
-  .toko-header-inner { flex-wrap: wrap; padding: 12px 14px; }
-  .toko-search { order: 3; max-width: none; width: 100%; }
-  .toko-main { padding: 18px 14px 48px; }
-  .toko-hero { padding: 20px; }
-  .toko-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
-  .toko-footer { padding: 20px 14px 36px; }
+@media (min-width: 900px) {
+  .toko-header-inner { flex-wrap: nowrap; padding: var(--s3) var(--s5); }
+  .toko-search { order: 0; width: auto; max-width: 420px; flex: 1; }
+  .toko-main { padding: var(--s5) var(--s5) var(--s8); }
+  .toko-footer { padding: var(--s5); }
+  .toko-hero { padding: var(--s6); }
+  .toko-hero h1 { font-size: 30px; }
+
+  /* Keranjang menjadi panel geser dari kanan, bukan dari bawah. */
+  .keranjang-panel {
+    left: auto; top: 0; bottom: 0;
+    width: min(400px, 100vw);
+    max-height: none;
+    border-radius: 0;
+    box-shadow: -20px 0 50px -20px rgba(20, 23, 31, .35);
+    animation: geserKanan .28s var(--ease);
+  }
+  @keyframes geserKanan { from { transform: translateX(100%); } to { transform: none; } }
 }

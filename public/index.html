@@ -243,6 +243,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg>
               <input id="productSearch" placeholder="Cari nama produk atau ketik barcode…" autocomplete="off">
             </div>
+            <button id="bukaKeranjangKasir" class="btn btn-primary" style="flex-shrink:0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg>
+              Keranjang
+            </button>
             <div class="status-pill" title="Arahkan scanner USB ke barcode — otomatis masuk keranjang">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:14px;height:14px"><use href="#i-scan"/></svg>
               Scanner siap
@@ -253,12 +257,15 @@
           <div class="product-grid" id="productGrid"></div>
         </section>
 
-        <aside class="cart-panel">
+        <aside class="cart-panel" id="cartPanel">
           <div class="cart-head">
             <div>
               <h3>Keranjang</h3>
               <span id="cartCount">0 item</span>
             </div>
+            <button id="tutupKeranjangKasir" class="icon-btn" title="Tutup" aria-label="Tutup keranjang" style="margin-right:6px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-x"/></svg>
+            </button>
             <button id="clearCart" class="icon-btn" title="Kosongkan keranjang" aria-label="Kosongkan keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><use href="#i-x"/></svg></button>
           </div>
 
@@ -490,6 +497,17 @@
       </div>
     </section>
   </main>
+
+  <!-- Nav bawah: hanya muncul di layar sempit (lihat @media di style.css).
+       Dibatasi lima tab karena lebih dari itu targetnya jadi terlalu kecil
+       untuk jempol. -->
+  <nav class="bottom-nav" aria-label="Navigasi utama">
+    <button class="tab-btn active" data-page="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-home"/></svg><span>Beranda</span></button>
+    <button class="tab-btn" data-page="kasir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg><span>Kasir</span></button>
+    <button class="tab-btn" data-page="produk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg><span>Produk</span></button>
+    <button class="tab-btn" data-page="pesanan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-truck"/></svg><span>Pesanan</span></button>
+    <button class="tab-btn" data-page="pengaturan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg><span>Lainnya</span></button>
+  </nav>
 </div>
 
 <!-- ══════════════════════════ MODAL PEMBAYARAN ══════════════════════════ -->

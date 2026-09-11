@@ -420,6 +420,20 @@ function pasangEvent() {
   });
 
   $$("[data-close]").forEach((b) => b.addEventListener("click", () => tutupModal(b.dataset.close)));
+
+  // Nav bawah ponsel. Tiap tab memicu aksi yang sudah ada, bukan halaman
+  // terpisah — etalase ini satu layar dengan beberapa lapisan.
+  $$("[data-tab]").forEach((b) => {
+    b.addEventListener("click", async () => {
+      const tab = b.dataset.tab;
+      $$("[data-tab]").forEach((x) => x.classList.toggle("active", x === b));
+
+      if (tab === "keranjang") { bukaKeranjangPanel(); return; }
+      if (tab === "pesanan") { await tampilkanPesananSaya(); return; }
+      if (tab === "cari") { $("cariProduk")?.focus(); $("cariProduk")?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     $$(".modal:not(.hidden)").forEach((m) => m.classList.add("hidden"));

@@ -21,6 +21,8 @@
     <g id="i-check"><path d="M20 6 9 17l-5-5"/></g>
     <g id="i-store"><path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></g>
     <g id="i-truck"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></g>
+    <g id="i-home"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></g>
+    <g id="i-receipt"><path d="M4 2v20l2.5-1.5L9 22l3-1.5L15 22l2.5-1.5L20 22V2l-2.5 1.5L15 2l-3 1.5L9 2 6.5 3.5z"/><path d="M8 8h8M8 12h8M8 16h5"/></g>
     <g id="i-bag"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></g>
   </defs>
 </svg>
@@ -74,6 +76,13 @@
   <div class="category-row" id="barisKategori"></div>
   <div class="toko-grid" id="gridKatalog"></div>
 </main>
+
+<nav class="bottom-nav" aria-label="Navigasi">
+  <button class="tab-btn active" data-tab="katalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-home"/></svg><span>Belanja</span></button>
+  <button class="tab-btn" data-tab="cari"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-search"/></svg><span>Cari</span></button>
+  <button class="tab-btn" data-tab="keranjang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bag"/></svg><span>Keranjang</span></button>
+  <button class="tab-btn" data-tab="pesanan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg><span>Pesanan</span></button>
+</nav>
 
 <footer class="toko-footer">
   <p>KasirOne Store · Harga sudah termasuk pajak dihitung saat checkout.</p>
