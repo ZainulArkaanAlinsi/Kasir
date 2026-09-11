@@ -125,18 +125,27 @@ barang yang dipesan pembeli langsung hilang dari daftar jual kasir.
 6. Download service account (*Project Settings → Service accounts*), simpan jadi
    `serviceAccountKey.json` di root project.
 7. Salin `.env.example` jadi `.env`.
-8. Bikin akun kasir lewat Firebase Authentication, lalu bikin dokumen `users/{UID}`:
+8. Bikin akun staf pertama. Satu perintah, sekalian masang custom claim:
 
-   ```json
-   { "role": "cashier", "displayName": "Nabila" }
+   ```bash
+   node scripts/buat-akun.js bos@toko.com  SandiKuat123 admin   "Admin Toko"
+   node scripts/buat-akun.js kasir@toko.com SandiKuat456 cashier "Nabila"
    ```
 
-   Atau biar gampang, pakai skrip bawaan yang sekalian masang custom claim:
+   Aman dijalankan berulang: kalau emailnya udah ada, akun lamanya dipakai dan
+   cuma perannya yang disegarkan. Sandi nggak pernah ditimpa.
+
+   Buat akun yang udah terlanjur dibikin lewat Firebase Console, cukup kasih peran:
 
    ```bash
    node scripts/set-role.js kasir@toko.com cashier "Nabila"
-   node scripts/set-role.js bos@toko.com  admin    "Admin Toko"
    ```
+
+> [!WARNING]
+> Akun yang dibikin langsung di Firebase Console **nggak punya custom claim**.
+> Dia bisa login, tapi tiap rute kasir bakal nolak dengan 403. Makanya pakai
+> `buat-akun.js` — dua langkahnya dikerjain sekaligus biar nggak ada kondisi
+> setengah jadi.
 
 > [!TIP]
 > Habis ganti role, user-nya harus **logout terus login lagi** biar token barunya kepakai.

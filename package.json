@@ -12,6 +12,7 @@
     "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
     "test:all": "npm run test && npm run test:emulator && npm run test:rules",
     "set-role": "node scripts/set-role.js",
+    "buat-akun": "node scripts/buat-akun.js",
     "docker:build": "docker build -t kasirone .",
     "docker:run": "docker run --rm -p 8080:8080 --env-file .env kasirone",
     "deploy:api": "gcloud run deploy kasirone --source . --region asia-southeast2 --allow-unauthenticated",

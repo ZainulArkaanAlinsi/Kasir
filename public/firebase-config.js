@@ -1,12 +1,15 @@
-// Isi dengan konfigurasi Web App dari Firebase Console.
-// Firebase Web API key bukan password/secret. Jangan masukkan service account private key di sini.
+// Konfigurasi Web App dari Firebase Console.
+// Firebase Web API key BUKAN password: ia memang dikirim ke setiap pengunjung
+// dan aman berada di frontend. Yang menjaga data adalah Security Rules dan
+// verifikasi token di server, bukan kerahasiaan kunci ini.
+// Private key service account TIDAK BOLEH ada di berkas ini.
 export const firebaseConfig = {
-  apiKey: "GANTI_DENGAN_API_KEY",
-  authDomain: "GANTI_DENGAN_PROJECT_ID.firebaseapp.com",
-  projectId: "GANTI_DENGAN_PROJECT_ID",
-  storageBucket: "GANTI_DENGAN_STORAGE_BUCKET",
-  messagingSenderId: "GANTI_DENGAN_MESSAGING_SENDER_ID",
-  appId: "GANTI_DENGAN_APP_ID"
+  apiKey: "AIzaSyCx-xKvpp-FYYNMFZl0DS8LTMd_rz10UrQ",
+  authDomain: "kasirone-3444.firebaseapp.com",
+  projectId: "kasirone-3444",
+  storageBucket: "kasirone-3444.firebasestorage.app",
+  messagingSenderId: "208893220085",
+  appId: "1:208893220085:web:d04c9f909027984d05e1bc"
 };
 
 export const firebaseConfigured =
