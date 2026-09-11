@@ -154,7 +154,9 @@ app.get("*splat", (_req, res) => res.sendFile(path.join(PUBLIC_DIR, "index.html"
 
 app.use(errorHandler);
 
-// Hanya menyalakan server bila dijalankan langsung, bukan saat diimpor test.
-if (process.env.NODE_ENV !== "test") {
+// Hanya menyalakan server bila dijalankan sebagai proses sendiri. Saat diimpor
+// oleh test, atau dijalankan Vercel sebagai serverless function, soketnya
+// diurus pihak lain dan memanggil listen di sini justru menyebabkan galat.
+if (process.env.NODE_ENV !== "test" && !process.env.VERCEL) {
   app.listen(PORT, () => console.log(`KasirOne berjalan di http://localhost:${PORT}`));
 }

@@ -5,7 +5,7 @@
  * sistem apa adanya — terutama status pembayaran. Kasir berhak tahu apakah
  * QRIS yang ia tunjukkan benar-benar menagih uang atau tidak.
  */
-import { $ } from "./shell.js";
+import { $, showToast, showApiError, withBusy } from "./shell.js";
 import { get } from "../state.js";
 import { getApi } from "../api/index.js";
 
@@ -52,6 +52,22 @@ export async function refreshSettings() {
 
 /** Menyimpan nama toko di perangkat ini agar struk memakainya. */
 export function bindSettings() {
+  // Impor produk contoh. Dipicu manual, tidak pernah otomatis: menimpa
+  // katalog yang sedang dipakai hanya karena halaman dibuka adalah kejutan
+  // yang mahal bagi toko yang sudah berjalan.
+  $("imporContohBtn")?.addEventListener("click", async (e) => {
+    await withBusy(e.currentTarget, async () => {
+      try {
+        showToast("Mengambil produk dari DummyJSON…");
+        const hasil = await getApi().imporContoh(30);
+        showToast(`${hasil.baru} produk baru, ${hasil.diperbarui} diperbarui.`, "success");
+        document.dispatchEvent(new CustomEvent("kasirone:stok-berubah"));
+      } catch (error) {
+        showApiError(error);
+      }
+    });
+  });
+
   const input = $("storeName");
   if (!input) return;
 

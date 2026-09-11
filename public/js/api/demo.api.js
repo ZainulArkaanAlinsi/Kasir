@@ -320,6 +320,48 @@ export function createDemoApi() {
       return merged;
     },
 
+    /**
+     * Impor contoh untuk mode demo. Pemetaannya sengaja disamakan dengan
+     * server/services/import.service.js; bila aturan di sana berubah, yang
+     * ini harus ikut diubah supaya data uji tidak berbeda antar mode.
+     */
+    imporContoh: async (limit = 30) => {
+      const r = await fetch(`https://dummyjson.com/products?limit=${limit}&select=title,sku,category,price,stock,thumbnail`);
+      if (!r.ok) throw apiError("Tidak bisa menghubungi DummyJSON. Periksa koneksi internet.", "SOURCE_UNREACHABLE");
+      const { products: mentah } = await r.json();
+
+      const keRatusan = (n) => Math.max(100, Math.round(n / 100) * 100);
+      const lama = getProducts();
+      const skuAda = new Map(lama.map((p) => [p.sku, p]));
+      let baru = 0, diperbarui = 0;
+
+      for (const p of mentah ?? []) {
+        const hargaJual = keRatusan((Number(p.price) || 1) * 1000);
+        const stok = Math.max(0, Number(p.stock) || 0);
+        const data = {
+          name: String(p.title ?? "Tanpa nama").slice(0, 120),
+          sku: String(p.sku || `DJ-${p.id}`).slice(0, 64),
+          category: String(p.category ?? "Umum").slice(0, 60),
+          hargaJual,
+          hargaModal: keRatusan(hargaJual * 0.72),
+          stokMinimum: Math.max(3, Math.round(stok * 0.15)),
+          imageUrl: typeof p.thumbnail === "string" && p.thumbnail.startsWith("https://") ? p.thumbnail : null,
+          aktif: true
+        };
+        const adaLama = skuAda.get(data.sku);
+        if (adaLama) {
+          // Stok dan kunci pesanan tidak ditimpa, sama seperti di server.
+          Object.assign(adaLama, data);
+          diperbarui += 1;
+        } else {
+          lama.unshift({ id: idBaru(), stok, stokDipesan: 0, ...data });
+          baru += 1;
+        }
+      }
+      tulis(KEY.products, lama);
+      return { diambil: (mentah ?? []).length, baru, diperbarui };
+    },
+
     deactivateProduct: async (id) => {
       const products = getProducts();
       const index = products.findIndex((p) => p.id === id);

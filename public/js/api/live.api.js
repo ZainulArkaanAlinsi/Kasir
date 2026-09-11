@@ -55,6 +55,7 @@ export function createLiveApi(getToken) {
     createProduct: (data) => request("/products", { method: "POST", body: JSON.stringify(data) }),
     updateProduct: (id, data) => request(`/products/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     deactivateProduct: (id) => request(`/products/${id}`, { method: "DELETE" }),
+    imporContoh: (limit = 30) => request("/products/impor-contoh", { method: "POST", body: JSON.stringify({ limit }) }),
 
     createTransaction: (payload) => request("/transactions", { method: "POST", body: JSON.stringify(payload) }),
     listTransactions: (filter) => request(`/transactions${qs(filter)}`),
