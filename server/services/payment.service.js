@@ -15,6 +15,7 @@
  *                   sudah dibayar atau belum. Kasir wajib mengecek mutasi.
  *   3. "nonaktif" - Tidak ada yang dikonfigurasi. QRIS ditolak, bukan dipalsukan.
  */
+import crypto from "node:crypto";
 import QRCode from "qrcode";
 import { AppError, badRequest } from "../lib/errors.js";
 import { requireNumber, requireString } from "../lib/validate.js";
@@ -178,4 +179,62 @@ export async function cekStatusQris(orderId) {
     : "tidak-diketahui";
 
   return { status, raw: String(s ?? "-") };
+}
+
+
+/**
+ * Memverifikasi keaslian pemberitahuan pembayaran dari Midtrans (M12).
+ *
+ * Ini satu-satunya endpoint yang boleh diakses tanpa login, karena yang
+ * memanggilnya adalah server Midtrans, bukan pengguna. Justru karena itu
+ * verifikasinya wajib: tanpa memeriksa tanda tangan, siapa pun yang tahu
+ * alamat webhook bisa mengirim "pesanan ini sudah lunas" dan mengambil
+ * barang tanpa membayar.
+ *
+ * Midtrans menandatangani dengan:
+ *   sha512(order_id + status_code + gross_amount + server_key)
+ *
+ * @param {object} payload badan permintaan dari Midtrans
+ * @returns {boolean} true bila tanda tangan cocok
+ */
+export function verifikasiTandaTanganWebhook(payload) {
+  if (!MIDTRANS_KEY) return false;
+
+  const { order_id: orderId, status_code: statusCode, gross_amount: gross, signature_key: tandaTangan } = payload ?? {};
+  if (!orderId || !statusCode || !gross || !tandaTangan) return false;
+
+  const harusnya = crypto
+    .createHash("sha512")
+    .update(`${orderId}${statusCode}${gross}${MIDTRANS_KEY}`)
+    .digest("hex");
+
+  // Perbandingan waktu-tetap. Perbandingan biasa membocorkan berapa banyak
+  // karakter awal yang sudah benar lewat selisih waktu eksekusi, sehingga
+  // tanda tangan bisa ditebak sepotong demi sepotong.
+  const a = Buffer.from(harusnya, "utf8");
+  const b = Buffer.from(String(tandaTangan), "utf8");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * Menerjemahkan status Midtrans menjadi keputusan yang dipahami sistem.
+ *
+ * @param {object} payload
+ * @returns {{status:"lunas"|"menunggu"|"gagal"|"tidak-diketahui", orderId:string|null, raw:string}}
+ */
+export function bacaStatusWebhook(payload) {
+  const s = payload?.transaction_status;
+  const penipuan = payload?.fraud_status;
+
+  // "capture" pada kartu kredit belum tentu aman: Midtrans bisa menandainya
+  // sebagai tertunda untuk ditinjau manual. Hanya "accept" yang boleh
+  // dianggap lunas.
+  const lunas = s === "settlement" || (s === "capture" && penipuan === "accept");
+
+  const status = lunas ? "lunas"
+    : s === "pending" ? "menunggu"
+    : ["deny", "cancel", "expire", "failure"].includes(s) ? "gagal"
+    : "tidak-diketahui";
+
+  return { status, orderId: payload?.order_id ?? null, raw: String(s ?? "-") };
 }

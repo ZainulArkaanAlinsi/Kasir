@@ -77,3 +77,51 @@ test("mode gateway sandbox menyatakan diri sandbox, bukan produksi", async () =>
   assert.match(s.keterangan, /SANDBOX/);
   assert.match(s.keterangan, /jangan dipakai melayani pembeli/i);
 });
+
+test("WEBHOOK: tanda tangan palsu ditolak", async () => {
+  process.env.MIDTRANS_SERVER_KEY = "SB-Mid-server-RAHASIA";
+  const mod = await import(`../server/services/payment.service.js?v=${Date.now() + 10}`);
+
+  assert.equal(mod.verifikasiTandaTanganWebhook({
+    order_id: "ORD-1", status_code: "200", gross_amount: "20535.00",
+    signature_key: "tanda-tangan-karangan"
+  }), false);
+});
+
+test("WEBHOOK: tanda tangan sah diterima", async () => {
+  const KUNCI = "SB-Mid-server-RAHASIA";
+  process.env.MIDTRANS_SERVER_KEY = KUNCI;
+  const mod = await import(`../server/services/payment.service.js?v=${Date.now() + 11}`);
+  const crypto = await import("node:crypto");
+
+  const order = "ORD-1", kode = "200", jumlah = "20535.00";
+  const sah = crypto.createHash("sha512").update(`${order}${kode}${jumlah}${KUNCI}`).digest("hex");
+
+  assert.equal(mod.verifikasiTandaTanganWebhook({
+    order_id: order, status_code: kode, gross_amount: jumlah, signature_key: sah
+  }), true);
+});
+
+test("WEBHOOK: field kurang atau gateway mati selalu ditolak", async () => {
+  process.env.MIDTRANS_SERVER_KEY = "SB-Mid-server-RAHASIA";
+  const mod = await import(`../server/services/payment.service.js?v=${Date.now() + 12}`);
+
+  assert.equal(mod.verifikasiTandaTanganWebhook({}), false);
+  assert.equal(mod.verifikasiTandaTanganWebhook({ order_id: "ORD-1" }), false);
+  assert.equal(mod.verifikasiTandaTanganWebhook(null), false);
+
+  delete process.env.MIDTRANS_SERVER_KEY;
+  const tanpaKunci = await import(`../server/services/payment.service.js?v=${Date.now() + 13}`);
+  assert.equal(tanpaKunci.verifikasiTandaTanganWebhook({
+    order_id: "a", status_code: "200", gross_amount: "1", signature_key: "x"
+  }), false, "tanpa kunci server, webhook tidak boleh dipercaya sama sekali");
+});
+
+test("WEBHOOK: capture yang ditandai perlu tinjauan TIDAK dianggap lunas", async () => {
+  const mod = await import(`../server/services/payment.service.js?v=${Date.now() + 14}`);
+
+  assert.equal(mod.bacaStatusWebhook({ transaction_status: "settlement" }).status, "lunas");
+  assert.equal(mod.bacaStatusWebhook({ transaction_status: "capture", fraud_status: "accept" }).status, "lunas");
+  assert.equal(mod.bacaStatusWebhook({ transaction_status: "capture", fraud_status: "challenge" }).status, "tidak-diketahui");
+  assert.equal(mod.bacaStatusWebhook({ transaction_status: "expire" }).status, "gagal");
+});

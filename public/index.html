@@ -36,6 +36,7 @@
     <g id="i-alert"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></g>
     <g id="i-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/></g>
     <g id="i-menu"><path d="M3 12h18M3 6h18M3 18h18"/></g>
+    <g id="i-truck"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></g>
     <g id="i-logout"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></g>
   </defs>
 </svg>
@@ -93,6 +94,7 @@
     <button class="rail-btn" data-page="kasir" title="Kasir" aria-label="Kasir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg></button>
     <button class="rail-btn" data-page="produk" title="Produk" aria-label="Produk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg></button>
     <button class="rail-btn admin-only" data-page="restock" title="Restock &amp; Biaya" aria-label="Restock dan biaya"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg></button>
+    <button class="rail-btn" data-page="pesanan" title="Pesanan online" aria-label="Pesanan online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-truck"/></svg></button>
     <button class="rail-btn" data-page="transaksi" title="Riwayat" aria-label="Riwayat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg></button>
     <button class="rail-btn admin-only" data-page="laporan" title="Analitik" aria-label="Analitik"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg></button>
     <div class="rail-spacer"></div>
@@ -113,6 +115,8 @@
     <button class="nav-item" data-page="kasir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg> Kasir <span class="count" id="navCartCount">0</span></button>
     <button class="nav-item" data-page="produk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-box"/></svg> Produk <span class="count" id="navProductCount">0</span></button>
     <button class="nav-item admin-only" data-page="restock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-refresh"/></svg> Restock &amp; Biaya</button>
+
+    <button class="nav-item" data-page="pesanan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-truck"/></svg> Pesanan online <span class="count" id="navOrderCount">0</span></button>
 
     <div class="side-label">LAPORAN</div>
     <button class="nav-item" data-page="transaksi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-receipt"/></svg> Riwayat</button>
@@ -349,6 +353,37 @@
       </div>
     </section>
 
+    <!-- ───────────────────── PESANAN ONLINE ───────────────────── -->
+    <section id="pesananPage" class="page">
+      <div class="page-toolbar">
+        <div>
+          <h3>Pesanan online</h3>
+          <p><strong id="orderPendingCount">0</strong> pesanan menunggu dikerjakan.</p>
+        </div>
+        <div class="filter-row">
+          <label>Status
+            <select id="orderStatusFilter">
+              <option value="">Semua</option>
+              <option value="menunggu_bayar">Menunggu bayar</option>
+              <option value="dibayar">Sudah dibayar</option>
+              <option value="disiapkan">Sedang disiapkan</option>
+              <option value="siap_diambil">Siap diambil</option>
+              <option value="dikirim">Dalam pengiriman</option>
+              <option value="selesai">Selesai</option>
+              <option value="batal">Dibatalkan</option>
+            </select>
+          </label>
+          <button id="orderCleanupBtn" class="btn btn-secondary admin-only">Bersihkan kedaluwarsa</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table>
+          <thead><tr><th>Pesanan</th><th>Pelanggan</th><th>Pengambilan</th><th>Item</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="orderTable"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ───────────────────── RIWAYAT ───────────────────── -->
     <section id="transaksiPage" class="page">
       <div class="page-toolbar">
@@ -526,6 +561,16 @@
       <button id="printReceipt" class="btn btn-secondary">Cetak struk</button>
       <button id="newTransaction" class="btn btn-primary">Transaksi baru</button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MODAL DETAIL PESANAN ══════════════════════════ -->
+<div id="orderModal" class="modal hidden">
+  <div class="modal-card">
+    <button class="modal-close" data-close="orderModal" aria-label="Tutup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px"><use href="#i-x"/></svg></button>
+    <span class="eyebrow">PESANAN</span>
+    <h2>Rincian pesanan</h2>
+    <div class="receipt-preview" id="orderDetail"></div>
   </div>
 </div>
 

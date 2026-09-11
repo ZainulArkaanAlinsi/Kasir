@@ -19,6 +19,7 @@ import { attachBarcodeListener, handleScan } from "./ui/barcode.js";
 import { getApi } from "./api/index.js";
 import { refreshSettings, bindSettings } from "./ui/settings.js";
 import { eksporTransaksi, eksporLaporan } from "./ui/export-csv.js";
+import { refreshOrders, bindOrders } from "./ui/orders.js";
 
 /** Judul dan keterangan tiap halaman. */
 const HALAMAN = {
@@ -26,6 +27,7 @@ const HALAMAN = {
   kasir: { title: "Kasir", eyebrow: "Transaksi" },
   produk: { title: "Produk", eyebrow: "Inventori" },
   restock: { title: "Restock & Pengeluaran", eyebrow: "Modal" },
+  pesanan: { title: "Pesanan Online", eyebrow: "Etalase" },
   transaksi: { title: "Riwayat Transaksi", eyebrow: "Histori" },
   laporan: { title: "Laporan", eyebrow: "Analitik" },
   pengaturan: { title: "Pengaturan", eyebrow: "Sistem" }
@@ -54,6 +56,7 @@ async function setPage(nama) {
   if (nama === "laporan") await refreshReport();
   if (nama === "transaksi") await refreshTransactions();
   if (nama === "restock") { isiPilihanProduk(); await refreshExpenses(); }
+  if (nama === "pesanan") await refreshOrders();
   if (nama === "pengaturan") await refreshSettings();
 }
 
@@ -63,6 +66,7 @@ async function mulaiSesi() {
   await refreshProducts();
   await setPage("dashboard");
   await refreshSettings();   // agar label mode benar sejak awal
+  await refreshOrders();     // agar jumlah pesanan menunggu tampil di menu
   renderCart();
 }
 
@@ -129,6 +133,12 @@ document.addEventListener("kasirone:transaksi-selesai", async () => {
   if (get("activePage") === "dashboard") await refreshDashboard();
 });
 
+// Membatalkan atau menyelesaikan pesanan mengubah stok, jadi katalog ikut
+// disegarkan agar kasir tidak melihat angka yang sudah basi.
+document.addEventListener("kasirone:stok-berubah", async () => {
+  await refreshProducts();
+});
+
 bindNavigasi();
 bindKasir();
 bindLaporan();
@@ -137,5 +147,6 @@ bindProductForm();
 bindExpenseForms();
 bindTransactionFilters();
 bindPaymentMethods();
+bindOrders();
 setOnReady(mulaiSesi);
 bindAuth();

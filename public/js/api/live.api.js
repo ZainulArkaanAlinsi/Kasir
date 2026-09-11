@@ -67,6 +67,14 @@ export function createLiveApi(getToken) {
 
     paymentStatus: () => request("/payments/status"),
     createQris: (payload) => request("/payments/qris", { method: "POST", body: JSON.stringify(payload) }),
-    qrisStatus: (orderId) => request(`/payments/qris/${encodeURIComponent(orderId)}/status`)
+    qrisStatus: (orderId) => request(`/payments/qris/${encodeURIComponent(orderId)}/status`),
+
+    opsiPengiriman: () => request("/orders/opsi-pengiriman"),
+    buatPesanan: (payload) => request("/orders", { method: "POST", body: JSON.stringify(payload) }),
+    daftarPesanan: (filter) => request(`/orders${qs(filter)}`),
+    ambilPesanan: (id) => request(`/orders/${encodeURIComponent(id)}`),
+    ubahStatusPesanan: (id, status, extra = {}) =>
+      request(`/orders/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status, ...extra }) }),
+    bersihkanKedaluwarsa: () => request("/orders/bersihkan-kedaluwarsa", { method: "POST" })
   };
 }

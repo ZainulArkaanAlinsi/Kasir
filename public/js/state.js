@@ -19,6 +19,7 @@ const state = {
   products: [],
   cart: [],
   transactions: [],
+  orders: [],
   report: null,
   activeCategory: "Semua",
   activePage: "dashboard",

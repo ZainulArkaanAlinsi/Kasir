@@ -15,7 +15,8 @@ import { stokTersedia } from "../shared/product.js";
 const KEY = {
   products: "kasirone_demo_products",
   trx: "kasirone_demo_transactions",
-  exp: "kasirone_demo_expenses"
+  exp: "kasirone_demo_expenses",
+  ord: "kasirone_demo_orders"
 };
 
 /** Barcode memakai format EAN-13 agar realistis saat diuji dengan scanner asli. */
@@ -152,6 +153,126 @@ export function createDemoApi() {
     }),
 
     qrisStatus: async () => ({ status: "tidak-diketahui", raw: "demo" }),
+
+    opsiPengiriman: async () => ({
+      cara: ["pickup", "delivery"],
+      zona: ["dalam_kota", "luar_kota"],
+      tarif: { pickup: 0, dalam_kota: 10000, luar_kota: 25000 }
+    }),
+
+    /**
+     * Pesanan mode demo. Aturan penguncian stoknya ditiru dari server:
+     * memesan menaikkan stokDipesan tanpa memotong stok fisik, sehingga
+     * kasir di halaman lain langsung melihat sisa yang boleh dijual.
+     */
+    buatPesanan: async ({ items, pengiriman, telepon }) => {
+      const products = getProducts();
+      const lines = [];
+      const kurang = [];
+
+      for (const item of items ?? []) {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product) throw apiError("Produk tidak ditemukan.", "NOT_FOUND");
+        const tersedia = stokTersedia(product);
+        if (tersedia < item.qty) {
+          kurang.push({ name: product.name, diminta: item.qty, tersedia });
+          continue;
+        }
+        lines.push({
+          productId: product.id, name: product.name, sku: product.sku,
+          hargaJual: Number(product.hargaJual) || 0,
+          hargaModal: Number(product.hargaModal) || 0,
+          qty: item.qty
+        });
+      }
+
+      if (kurang.length) {
+        const ringkas = kurang.map((k) => `${k.name} (minta ${k.diminta}, tersedia ${k.tersedia})`).join("; ");
+        throw apiError(`Stok tidak mencukupi: ${ringkas}.`, "INSUFFICIENT_STOCK", { kurang });
+      }
+      if (!lines.length) throw apiError("Keranjang tidak boleh kosong.", "EMPTY_CART");
+
+      const cara = pengiriman?.cara === "delivery" ? "delivery" : "pickup";
+      if (cara === "delivery" && String(pengiriman?.alamat ?? "").trim().length < 10) {
+        throw apiError("Alamat pengiriman wajib diisi minimal 10 karakter.", "BAD_ADDRESS");
+      }
+      const ongkir = cara === "delivery" ? (pengiriman.zona === "luar_kota" ? 25000 : 10000) : 0;
+
+      for (const line of lines) {
+        const product = products.find((p) => p.id === line.productId);
+        product.stokDipesan = (Number(product.stokDipesan) || 0) + line.qty;
+      }
+      tulis(KEY.products, products);
+
+      const totals = computeTotals(lines);
+      const pesanan = {
+        id: idBaru(),
+        orderNumber: `ORD-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(Date.now()).slice(-4)}`,
+        status: "menunggu_bayar",
+        customerUid: "demo-user", customerName: "Nabila (Demo)", customerPhone: telepon ?? null,
+        pengiriman: { cara, zona: pengiriman?.zona ?? null, alamat: pengiriman?.alamat ?? null, catatan: pengiriman?.catatan ?? "", ongkir },
+        lines, ...totals, ongkir, total: totals.total + ongkir,
+        paymentMethod: null, paymentRef: null,
+        riwayatStatus: [{ status: "menunggu_bayar", pada: new Date().toISOString(), oleh: "demo-user" }],
+        createdAt: new Date().toISOString()
+      };
+      tulis(KEY.ord, [pesanan, ...baca(KEY.ord, [])]);
+      return pesanan;
+    },
+
+    daftarPesanan: async ({ status, limit = 50 } = {}) =>
+      baca(KEY.ord, []).filter((o) => !status || o.status === status).slice(0, limit),
+
+    ambilPesanan: async (id) => {
+      const o = baca(KEY.ord, []).find((x) => x.id === id);
+      if (!o) throw apiError("Pesanan tidak ditemukan.", "NOT_FOUND");
+      return o;
+    },
+
+    ubahStatusPesanan: async (id, status) => {
+      const semua = baca(KEY.ord, []);
+      const o = semua.find((x) => x.id === id);
+      if (!o) throw apiError("Pesanan tidak ditemukan.", "NOT_FOUND");
+
+      const TRANSISI = {
+        menunggu_bayar: ["dibayar", "batal", "kedaluwarsa"],
+        dibayar: ["disiapkan", "batal"],
+        disiapkan: ["siap_diambil", "dikirim", "batal"],
+        siap_diambil: ["selesai", "batal"],
+        dikirim: ["selesai"],
+        selesai: [], batal: [], kedaluwarsa: []
+      };
+      if (!(TRANSISI[o.status] ?? []).includes(status)) {
+        throw apiError(`Pesanan "${o.status}" tidak bisa menjadi "${status}".`, "INVALID_TRANSITION");
+      }
+
+      const products = getProducts();
+      const kunciMasih = ["menunggu_bayar", "dibayar", "disiapkan", "siap_diambil", "dikirim"].includes(o.status);
+
+      if (["batal", "kedaluwarsa"].includes(status) && kunciMasih) {
+        for (const l of o.lines) {
+          const p = products.find((x) => x.id === l.productId);
+          if (p) p.stokDipesan = Math.max(0, (Number(p.stokDipesan) || 0) - l.qty);
+        }
+        tulis(KEY.products, products);
+      } else if (status === "selesai") {
+        for (const l of o.lines) {
+          const p = products.find((x) => x.id === l.productId);
+          if (p) {
+            p.stok = Math.max(0, (Number(p.stok) || 0) - l.qty);
+            p.stokDipesan = Math.max(0, (Number(p.stokDipesan) || 0) - l.qty);
+          }
+        }
+        tulis(KEY.products, products);
+      }
+
+      o.status = status;
+      o.riwayatStatus.push({ status, pada: new Date().toISOString(), oleh: "demo-user" });
+      tulis(KEY.ord, semua);
+      return o;
+    },
+
+    bersihkanKedaluwarsa: async () => ({ diproses: 0 }),
 
     findBySku: async (sku) => {
       const kode = String(sku).trim();

@@ -23,6 +23,8 @@ import { expensesRouter } from "./routes/expenses.routes.js";
 import { reportsRouter } from "./routes/reports.routes.js";
 import { paymentsRouter } from "./routes/payments.routes.js";
 import { ordersRouter } from "./routes/orders.routes.js";
+import { verifikasiTandaTanganWebhook, bacaStatusWebhook } from "./services/payment.service.js";
+import { daftarPesanan, ubahStatus, STATUS as ORDER_STATUS } from "./services/order.service.js";
 import { getDb, admin } from "./services/firebase.js";
 import { requireString } from "./lib/validate.js";
 
@@ -58,6 +60,49 @@ app.use("/api", rateLimit({
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "kasirone", firebase: isFirebaseReady(), time: new Date().toISOString() });
 });
+
+/**
+ * Pemberitahuan pembayaran dari Midtrans (M12).
+ *
+ * Sengaja TANPA login: yang memanggil adalah server Midtrans, bukan pengguna.
+ * Sebagai gantinya, keasliannya dibuktikan lewat tanda tangan SHA-512. Tanpa
+ * pemeriksaan itu siapa pun yang tahu alamat ini bisa mengirim "pesanan sudah
+ * lunas" lalu mengambil barang tanpa membayar.
+ *
+ * Webhook dipakai karena status pembayaran tidak boleh bergantung pada
+ * peramban pembeli — ia bisa saja sudah menutup tab sebelum pembayarannya
+ * terkonfirmasi.
+ */
+app.post("/api/payments/webhook", asyncHandler(async (req, res) => {
+  if (!verifikasiTandaTanganWebhook(req.body)) {
+    console.warn("[webhook] tanda tangan ditolak", { orderId: req.body?.order_id });
+    // Jawaban sengaja tidak menjelaskan apa yang salah.
+    return res.status(403).json({ error: "Tanda tangan tidak sah.", code: "BAD_SIGNATURE" });
+  }
+
+  const { status, orderId } = bacaStatusWebhook(req.body);
+  if (!orderId) return res.status(400).json({ error: "Order ID tidak ada.", code: "NO_ORDER_ID" });
+
+  // paymentRef menyimpan orderId gateway; cocokkan ke pesanan kita.
+  const cocok = (await daftarPesanan({ status: ORDER_STATUS.MENUNGGU_BAYAR, limit: 200 }))
+    .find((o) => o.paymentRef === orderId || o.id === orderId || o.orderNumber === orderId);
+
+  if (!cocok) {
+    // Bukan kesalahan: bisa jadi pembayaran kasir, atau pesanan sudah
+    // diproses lebih dulu lewat polling. Dijawab 200 supaya Midtrans tidak
+    // mengirim ulang tanpa henti.
+    return res.json({ ok: true, catatan: "Pesanan tidak ditemukan atau sudah diproses." });
+  }
+
+  if (status === "lunas") {
+    await ubahStatus(cocok.id, ORDER_STATUS.DIBAYAR, { uid: "midtrans-webhook", role: "admin" },
+      { paymentMethod: "qris", paymentRef: orderId });
+  } else if (status === "gagal") {
+    await ubahStatus(cocok.id, ORDER_STATUS.BATAL, { uid: "midtrans-webhook", role: "admin" });
+  }
+
+  res.json({ ok: true, status });
+}));
 
 // --- Semua rute di bawah ini wajib login & punya role ---
 const guarded = [verifyFirebaseToken, attachRole];

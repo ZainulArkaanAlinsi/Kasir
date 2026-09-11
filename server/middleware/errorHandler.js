@@ -24,6 +24,17 @@ export function errorHandler(err, _req, res, _next) {
     return res.status(err.status).json(body);
   }
 
+  // Badan permintaan yang rusak adalah kesalahan pengirim, bukan kegagalan
+  // server. body-parser menandainya dengan expose:true dan status 4xx; tanpa
+  // cabang ini setiap JSON salah ketik akan terlihat sebagai error internal
+  // dan memenuhi log dengan kebisingan yang menyesatkan saat menelusuri bug.
+  if (err?.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Format JSON tidak valid.", code: "BAD_JSON" });
+  }
+  if (err?.type === "entity.too.large") {
+    return res.status(413).json({ error: "Data yang dikirim terlalu besar.", code: "PAYLOAD_TOO_LARGE" });
+  }
+
   // Bug atau kegagalan tak terduga: catat lengkap di server, kirim generik ke klien.
   console.error("[unhandled]", err);
   res.status(500).json({ error: "Terjadi kesalahan di server.", code: "INTERNAL" });
