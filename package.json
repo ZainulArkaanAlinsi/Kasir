@@ -8,7 +8,7 @@
     "dev": "node --watch server/server.js",
     "start": "node server/server.js",
     "test": "node --test test/money.test.js test/report.test.js test/demo.test.js test/payment.test.js",
-    "test:emulator": "firebase emulators:exec --only firestore \"node --test --test-concurrency=1 test/transaction.emulator.test.js test/reservation.emulator.test.js\"",
+    "test:emulator": "firebase emulators:exec --only firestore \"node --test --test-concurrency=1 test/transaction.emulator.test.js test/reservation.emulator.test.js test/order.emulator.test.js\"",
     "test:rules": "firebase emulators:exec --only firestore \"node --test test/rules.test.js\"",
     "test:all": "npm run test && npm run test:emulator && npm run test:rules",
     "set-role": "node scripts/set-role.js"

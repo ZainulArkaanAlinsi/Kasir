@@ -98,3 +98,50 @@ diperlakukan sebagai `week`. Rentang kustom maksimal 366 hari.
   "grafikHarian": [{ "label": "Sen", "tanggal": "2026-09-04", "total": 120000 }]
 }
 ```
+
+---
+
+## Pesanan online
+
+| Method | Path | Role | Keterangan |
+|---|---|---|---|
+| GET | `/api/orders/opsi-pengiriman` | staf & pelanggan | Cara ambil dan tarif ongkir |
+| POST | `/api/orders` | pelanggan | Membuat pesanan, mengunci stok |
+| GET | `/api/orders` | staf (semua) / pelanggan (miliknya) | Daftar pesanan |
+| GET | `/api/orders/:id` | staf / pemilik | Detail satu pesanan |
+| PATCH | `/api/orders/:id/status` | staf / pemilik (batal saja) | Memindahkan status |
+| POST | `/api/orders/bersihkan-kedaluwarsa` | admin | Melepas kunci pesanan lewat waktu |
+
+```jsonc
+// POST /api/orders
+{
+  "items": [{ "productId": "abc123", "qty": 2 }],
+  "telepon": "08123456789",
+  "pengiriman": {
+    "cara": "delivery",              // "pickup" | "delivery"
+    "zona": "dalam_kota",            // hanya untuk delivery
+    "alamat": "Jl. Melati No. 12…",  // wajib untuk delivery, min 10 karakter
+    "catatan": "Titip ke satpam"
+  }
+}
+```
+
+**Status dan perpindahan yang sah.** Perpindahan di luar tabel ini ditolak
+dengan `INVALID_TRANSITION`, sehingga pesanan tidak bisa ditandai selesai
+tanpa pernah dibayar.
+
+| Dari | Boleh menjadi |
+|---|---|
+| `menunggu_bayar` | `dibayar`, `batal`, `kedaluwarsa` |
+| `dibayar` | `disiapkan`, `batal` |
+| `disiapkan` | `siap_diambil`, `dikirim`, `batal` |
+| `siap_diambil` | `selesai`, `batal` |
+| `dikirim` | `selesai` |
+| `selesai` / `batal` / `kedaluwarsa` | — (akhir) |
+
+**Pengaruh ke stok:** memesan menaikkan `stokDipesan`; `batal` dan
+`kedaluwarsa` menurunkannya kembali; `selesai` menurunkan `stok` sekaligus
+`stokDipesan`.
+
+**Kode error:** `INSUFFICIENT_STOCK`, `INVALID_TRANSITION`,
+`CANCEL_NOT_ALLOWED`, `NOT_FOUND`

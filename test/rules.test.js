@@ -20,6 +20,8 @@ const testEnv = await initializeTestEnvironment({
 const kasir = testEnv.authenticatedContext("kasir-1", { role: "cashier" }).firestore();
 const admin = testEnv.authenticatedContext("admin-1", { role: "admin" }).firestore();
 const tamu = testEnv.unauthenticatedContext().firestore();
+const pembeli = testEnv.authenticatedContext("pembeli-1", { role: "customer" }).firestore();
+const pembeliLain = testEnv.authenticatedContext("pembeli-2", { role: "customer" }).firestore();
 
 test.before(async () => {
   // Data awal ditulis dengan rules dimatikan, meniru penulisan oleh server.
@@ -31,6 +33,8 @@ test.before(async () => {
     await setDoc(doc(db, "transactions/t1"), { total: 20535, cashierUid: "kasir-1" });
     await setDoc(doc(db, "expenses/e1"), { type: "restock", amount: 50000 });
     await setDoc(doc(db, "auditLogs/a1"), { action: "CREATE_TRANSACTION" });
+    await setDoc(doc(db, "orders/o1"), { customerUid: "pembeli-1", status: "menunggu_bayar", total: 25000 });
+    await setDoc(doc(db, "orders/o2"), { customerUid: "pembeli-2", status: "dibayar", total: 40000 });
   });
 });
 
@@ -94,4 +98,42 @@ test("audit log tidak bisa dihapus atau diubah siapa pun", async () => {
 
 test("koleksi acak di luar skema ditolak", async () => {
   await assertFails(setDoc(doc(admin, "rahasia/x"), { a: 1 }));
+});
+
+test("pelanggan boleh membaca pesanannya sendiri", async () => {
+  await assertSucceeds(getDoc(doc(pembeli, "orders/o1")));
+});
+
+test("PRIVASI: pelanggan TIDAK BISA membaca pesanan pelanggan lain", async () => {
+  await assertFails(getDoc(doc(pembeli, "orders/o2")));
+  await assertFails(getDoc(doc(pembeliLain, "orders/o1")));
+});
+
+test("pelanggan TIDAK BISA membuat atau mengubah pesanan langsung", async () => {
+  await assertFails(addDoc(collection(pembeli, "orders"), { customerUid: "pembeli-1", total: 1 }));
+  await assertFails(updateDoc(doc(pembeli, "orders/o1"), { status: "dibayar" }));
+  await assertFails(updateDoc(doc(pembeli, "orders/o1"), { total: 1 }));
+});
+
+test("staf toko boleh membaca semua pesanan", async () => {
+  await assertSucceeds(getDoc(doc(admin, "orders/o1")));
+  await assertSucceeds(getDoc(doc(kasir, "orders/o2")));
+});
+
+test("pelanggan TIDAK BISA melihat produk lewat SDK (harga modal ikut di sana)", async () => {
+  await assertFails(getDoc(doc(pembeli, "products/p1")));
+});
+
+test("pelanggan TIDAK BISA melihat transaksi kasir, pengeluaran, atau audit", async () => {
+  await assertFails(getDoc(doc(pembeli, "transactions/t1")));
+  await assertFails(getDoc(doc(pembeli, "expenses/e1")));
+  await assertFails(getDoc(doc(pembeli, "auditLogs/a1")));
+});
+
+test("pendaftaran sebagai customer diizinkan, sebagai admin ditolak", async () => {
+  const baru = testEnv.authenticatedContext("pembeli-baru").firestore();
+  await assertSucceeds(setDoc(doc(baru, "users/pembeli-baru"), { role: "customer", displayName: "Baru" }));
+
+  const nakal = testEnv.authenticatedContext("nakal").firestore();
+  await assertFails(setDoc(doc(nakal, "users/nakal"), { role: "admin", displayName: "Nakal" }));
 });

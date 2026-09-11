@@ -9,7 +9,29 @@
 import { getAuth, getDb, isFirebaseReady } from "../services/firebase.js";
 import { forbidden, unauthorized, AppError } from "../lib/errors.js";
 
-export const ROLES = Object.freeze({ ADMIN: "admin", CASHIER: "cashier" });
+export const ROLES = Object.freeze({
+  ADMIN: "admin",
+  CASHIER: "cashier",
+  /**
+   * Pembeli di etalase online (M9). Sengaja dipisah dari staf toko: pelanggan
+   * tidak boleh menyentuh produk, laporan, apalagi harga modal. Satu-satunya
+   * data yang boleh ia lihat adalah pesanannya sendiri.
+   */
+  CUSTOMER: "customer"
+});
+
+/** Peran yang bekerja di dalam toko. */
+export const PERAN_STAF = [ROLES.ADMIN, ROLES.CASHIER];
+
+/**
+ * Pintu masuk khusus staf toko.
+ *
+ * Dibuat sebagai konstanta tersendiri karena begitu peran pelanggan ada,
+ * setiap rute yang sebelumnya cukup "sudah login" berubah arti: pelanggan
+ * juga sudah login. Rute kasir, riwayat transaksi, dan laporan harus
+ * menyatakan stafnya secara eksplisit.
+ */
+export const hanyaStaf = () => requireRole(...PERAN_STAF);
 
 /** Memastikan request membawa ID token Firebase yang sah. */
 export async function verifyFirebaseToken(req, _res, next) {
@@ -41,7 +63,7 @@ export async function attachRole(req, _res, next) {
       role = snap.data().role;
       req.userProfile = snap.data();
     }
-    if (!Object.values(ROLES).includes(role)) throw forbidden("Role tidak memiliki akses.");
+    if (!Object.values(ROLES).includes(role)) throw forbidden("Role tidak dikenal.");
     req.userRole = role;
     next();
   } catch (error) {

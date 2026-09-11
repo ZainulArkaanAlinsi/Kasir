@@ -15,13 +15,14 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import { initFirebase, isFirebaseReady } from "./services/firebase.js";
-import { verifyFirebaseToken, attachRole } from "./middleware/auth.js";
+import { verifyFirebaseToken, attachRole, hanyaStaf } from "./middleware/auth.js";
 import { errorHandler, notFoundHandler, asyncHandler } from "./middleware/errorHandler.js";
 import { productsRouter } from "./routes/products.routes.js";
 import { transactionsRouter } from "./routes/transactions.routes.js";
 import { expensesRouter } from "./routes/expenses.routes.js";
 import { reportsRouter } from "./routes/reports.routes.js";
 import { paymentsRouter } from "./routes/payments.routes.js";
+import { ordersRouter } from "./routes/orders.routes.js";
 import { getDb, admin } from "./services/firebase.js";
 import { requireString } from "./lib/validate.js";
 
@@ -77,11 +78,19 @@ app.post("/api/audit", guarded, asyncHandler(async (req, res) => {
   res.status(201).json({ ok: true });
 }));
 
+// Katalog boleh dibaca pelanggan (etalase membutuhkannya); penulisan tetap
+// dijaga admin di dalam router.
 app.use("/api/products", guarded, productsRouter);
-app.use("/api/transactions", guarded, transactionsRouter);
+
+// Kasir, riwayat transaksi toko, pengeluaran, dan laporan bukan urusan
+// pelanggan sekalipun ia sudah login.
+app.use("/api/transactions", guarded, hanyaStaf(), transactionsRouter);
 app.use("/api/expenses", guarded, expensesRouter);
 app.use("/api/reports", guarded, reportsRouter);
+
+// Pembayaran dan pesanan dipakai bersama oleh kasir dan pelanggan.
 app.use("/api/payments", guarded, paymentsRouter);
+app.use("/api/orders", guarded, ordersRouter);
 
 app.use(notFoundHandler);
 

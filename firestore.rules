@@ -33,15 +33,19 @@ service cloud.firestore {
       return signedIn() && roleOf() in ['admin', 'cashier'];
     }
 
+    function isCustomer() {
+      return signedIn() && roleOf() == 'customer';
+    }
+
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
 
-      // Pengguna boleh membuat profilnya sendiri, TAPI hanya sebagai cashier.
-      // Tanpa batasan ini, siapa pun yang baru mendaftar bisa langsung
-      // menuliskan role 'admin' untuk dirinya sendiri.
+      // Pengguna boleh membuat profilnya sendiri, TAPI hanya sebagai peran
+      // tanpa hak istimewa. Tanpa batasan ini, siapa pun yang baru mendaftar
+      // bisa langsung menuliskan role 'admin' untuk dirinya sendiri.
       allow create: if signedIn()
                     && request.auth.uid == uid
-                    && request.resource.data.role == 'cashier';
+                    && request.resource.data.role in ['cashier', 'customer'];
 
       // Pengguna boleh mengubah namanya sendiri, tapi TIDAK boleh menyentuh
       // role-nya. Kenaikan role hanya lewat admin atau server.
@@ -53,10 +57,22 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Master produk: staf boleh baca (untuk grid kasir & listener stok),
-    // penulisan hanya lewat server.
+    // Master produk: staf membacanya untuk grid kasir, pelanggan untuk
+    // etalase. Harga modal memang ikut terbaca pelanggan di sini, karena
+    // Firestore tidak bisa menyembunyikan sebagian field — itulah sebabnya
+    // etalase mengambil produk lewat API server yang menyaring field, bukan
+    // lewat SDK langsung. Penulisan tetap tertutup untuk semua klien.
     match /products/{productId} {
       allow read: if isStaff();
+      allow write: if false;
+    }
+
+    // Pesanan online. Pelanggan hanya boleh melihat miliknya sendiri;
+    // pembuatan dan perubahan status wajib lewat server agar stok terkunci
+    // secara atomik dan perpindahan status tetap sah.
+    match /orders/{orderId} {
+      allow read: if isStaff()
+                  || (isCustomer() && resource.data.customerUid == request.auth.uid);
       allow write: if false;
     }
 
