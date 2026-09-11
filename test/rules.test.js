@@ -137,3 +137,27 @@ test("pendaftaran sebagai customer diizinkan, sebagai admin ditolak", async () =
   const nakal = testEnv.authenticatedContext("nakal").firestore();
   await assertFails(setDoc(doc(nakal, "users/nakal"), { role: "admin", displayName: "Nakal" }));
 });
+
+/**
+ * Repositori ini publik, jadi apiKey di public/firebase-config.js bisa dibaca
+ * siapa saja, dan pendaftaran Email/Password terbuka. Artinya orang asing
+ * SELALU bisa memperoleh token yang sah tanpa peran apa pun.
+ *
+ * Yang menahannya cuma satu baris rules. Kalau 'cashier' ikut boleh ditulis
+ * sendiri, orang asing itu tinggal menulis profilnya sebagai kasir — roleOf()
+ * jatuh balik ke dokumen users/{uid} karena tokennya tidak punya claim — lalu
+ * harga modal dan seluruh riwayat transaksi toko terbuka untuknya.
+ */
+test("KENAIKAN HAK: orang asing tidak bisa mendaftarkan dirinya sebagai kasir", async () => {
+  const asing = testEnv.authenticatedContext("orang-asing").firestore();
+  await assertFails(setDoc(doc(asing, "users/orang-asing"), { role: "cashier", displayName: "Asing" }));
+});
+
+test("KENAIKAN HAK: mendaftar sebagai customer tidak membuka data toko", async () => {
+  const asing = testEnv.authenticatedContext("asing-2").firestore();
+  await assertSucceeds(setDoc(doc(asing, "users/asing-2"), { role: "customer", displayName: "Asing" }));
+
+  await assertFails(getDoc(doc(asing, "products/p1")));
+  await assertFails(getDoc(doc(asing, "transactions/t1")));
+  await assertFails(getDoc(doc(asing, "expenses/e1")));
+});

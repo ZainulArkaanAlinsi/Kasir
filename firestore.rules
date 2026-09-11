@@ -40,12 +40,22 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
 
-      // Pengguna boleh membuat profilnya sendiri, TAPI hanya sebagai peran
-      // tanpa hak istimewa. Tanpa batasan ini, siapa pun yang baru mendaftar
-      // bisa langsung menuliskan role 'admin' untuk dirinya sendiri.
+      // Pengguna boleh membuat profilnya sendiri, TAPI hanya sebagai
+      // 'customer' — satu-satunya peran yang memang tanpa hak istimewa.
+      //
+      // 'cashier' dulu ikut di daftar ini dan itu adalah lubang: apiKey di
+      // frontend memang publik dan pendaftaran Email/Password terbuka, jadi
+      // orang asing selalu bisa memperoleh token yang sah. Tokennya tidak
+      // punya custom claim, sehingga roleOf() jatuh balik membaca dokumen
+      // users/{uid} — dokumen yang baru saja ia tulis sendiri. Dengan menulis
+      // 'cashier' di situ, ia lolos isStaff() dan harga modal serta seluruh
+      // riwayat transaksi toko terbuka untuknya.
+      //
+      // Akun staf tidak pernah lahir dari sini. Ia dibuat lewat Admin SDK
+      // (scripts/buat-akun.js), yang melewati rules ini sepenuhnya.
       allow create: if signedIn()
                     && request.auth.uid == uid
-                    && request.resource.data.role in ['cashier', 'customer'];
+                    && request.resource.data.role == 'customer';
 
       // Pengguna boleh mengubah namanya sendiri, tapi TIDAK boleh menyentuh
       // role-nya. Kenaikan role hanya lewat admin atau server.

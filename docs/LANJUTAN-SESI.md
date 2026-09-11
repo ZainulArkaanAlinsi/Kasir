@@ -65,6 +65,31 @@ Data uji tersebut sudah dihapus lagi. Firestore dalam keadaan kosong.
 
 ---
 
+## 1b · Statusnya BELUM live, tapi repo-nya publik
+
+- Repo GitHub: **publik**. Riwayat Git bersih — `.env` dan
+  `serviceAccountKey.json` tidak pernah masuk, sudah dicek ke seluruh riwayat.
+- Aplikasi: **belum ke-deploy ke mana pun**. `kasirone-3444.web.app` masih 404,
+  Vercel masih 403. Yang jalan cuma `localhost:3000`.
+
+Konsekuensi yang sempat terlewat: karena repo publik, `apiKey` di
+`public/firebase-config.js` terbaca siapa saja (ini memang wajar, kunci itu
+bukan rahasia) — tetapi pendaftaran Email/Password terbuka, jadi orang asing
+selalu bisa memperoleh token yang sah tanpa peran apa pun. Yang menahannya
+cuma security rules.
+
+Dan di situ ada lubang: `allow create` pada `users/{uid}` dulu mengizinkan
+peran **`cashier`** ditulis sendiri. Karena tokennya tidak punya custom claim,
+`roleOf()` jatuh balik membaca dokumen yang baru saja ditulis orang itu, lalu
+`isStaff()` lolos — harga modal dan seluruh riwayat transaksi toko terbuka.
+
+Sudah ditambal (`allow create` sekarang hanya menerima `'customer'`), rules-nya
+sudah ter-deploy ulang, dan dua uji regresi ditambahkan di `test/rules.test.js`.
+Uji yang membuktikan lubangnya gagal sebelum tambalan dan lulus sesudahnya.
+Total uji rules sekarang 23, semuanya lulus.
+
+---
+
 ## 2 · YANG BELUM KELAR
 
 Urut dari yang paling menghambat.
