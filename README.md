@@ -33,8 +33,19 @@ terakhir secara bersamaan tidak bisa membuat stok menjadi minus.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
+npm run dev
 ```
+
+Dua pintu, satu server:
+
+| Alamat | Untuk siapa |
+|---|---|
+| `http://localhost:3000/` | **Kasir & admin toko** — butuh login staf |
+| `http://localhost:3000/toko.html` | **Pembeli** — etalase publik, bisa dibuka tanpa akun |
+
+Keduanya berbagi satu sumber stok. Barang yang direstock admin langsung
+muncul di etalase, dan barang yang dipesan pembeli langsung hilang dari
+daftar jual kasir.
 
 ### Mode Demo (tanpa Firebase)
 
@@ -112,6 +123,13 @@ dokumen `users/{uid}` sebagai cadangan agar akun lama tetap bisa masuk.
   rincian metode bayar, dan jumlah unit terjual per produk
   (mis. *Top Kopi Aren 40 pcs, Indomie Goreng 23 pcs*).
 - **Riwayat transaksi** dengan filter tanggal dan struk yang bisa dicetak.
+- **Etalase publik** (`/toko.html`) — katalog, keranjang, pilihan ambil di
+  toko atau diantar, dan riwayat pesanan pembeli.
+- **Pesanan online** dengan siklus status penuh dan stok yang dikunci saat
+  memesan, dilepas saat batal, dipotong saat selesai.
+- **Panel pesanan** untuk staf: saring status, lihat rincian, pindahkan tahap.
+- **Webhook pembayaran** bertanda tangan, agar status tidak bergantung pada
+  peramban pembeli yang mungkin sudah ditutup.
 
 ### 3.1 Soal kepercayaan pada pembayaran QRIS
 
@@ -214,6 +232,17 @@ akurat.
 ### `expenses/{id}`
 `type` (`restock`|`operasional`|`lainnya`), `productId`, `productName`, `qty`,
 `hargaModal`, `amount`, `note`, `createdBy`, `createdAt`
+
+### `orders/{id}`
+`orderNumber`, `status`, `customerUid`, `customerName`, `customerPhone`,
+`pengiriman{cara,zona,alamat,catatan,ongkir}`, `lines[]`, `subtotal`,
+`discount`, `tax`, `ongkir`, `total`, `paymentMethod`, `paymentRef`,
+`riwayatStatus[]`, `expiresAt`, `createdAt`, `updatedAt`
+
+Status berjalan `menunggu_bayar → dibayar → disiapkan → siap_diambil |
+dikirim → selesai`, dengan `batal` dan `kedaluwarsa` sebagai jalan keluar.
+Perpindahan di luar tabel itu ditolak, sehingga pesanan tidak bisa ditandai
+selesai tanpa pernah dibayar.
 
 ### `auditLogs/{id}`
 `uid`, `email`, `action`, `metadata`, `createdAt` — hanya bisa dibaca admin,
