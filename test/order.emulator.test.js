@@ -50,7 +50,9 @@ test("memesan mengunci stok, belum memotongnya", async () => {
   const p = await produk();
 
   assert.equal(o.status, O.STATUS.MENUNGGU_BAYAR);
-  assert.match(o.orderNumber, /^ORD-\d{8}-\d{4}$/);
+  // Ekor nomor diambil dari id dokumen, bukan angka acak, supaya dua pesanan
+  // pada hari yang sama tidak pernah bernomor kembar.
+  assert.match(o.orderNumber, /^ORD-\d{8}-[A-Z0-9]{6}$/);
   assert.equal(p.stok, 10, "barang masih di rak sampai pesanan selesai");
   assert.equal(p.stokDipesan, 3);
   assert.equal(o.lines[0].hargaModal, 4800, "harga modal ikut ter-snapshot");
@@ -99,6 +101,44 @@ test("alur wajar: bayar, siapkan, kirim, selesai", async () => {
   assert.equal(akhir.status, O.STATUS.SELESAI);
   assert.equal(akhir.paymentRef, "KSR-1");
   assert.equal(akhir.riwayatStatus.length, 5, "setiap perpindahan tercatat");
+});
+
+test("RACE CONDITION: dua penyelesaian bersamaan hanya memotong stok sekali", async () => {
+  const o = await pesan(3);
+  await O.ubahStatus(o.id, O.STATUS.DIBAYAR, AKTOR_ADMIN);
+  await O.ubahStatus(o.id, O.STATUS.DISIAPKAN, AKTOR_ADMIN);
+  await O.ubahStatus(o.id, O.STATUS.SIAP_DIAMBIL, AKTOR_ADMIN);
+
+  // Admin menekan "Sudah diambil" dua kali beruntun — hal paling lumrah
+  // terjadi saat jaringan terasa lambat. Dulu keduanya membaca status lama,
+  // sama-sama lolos tabel transisi, dan stok terpotong dua kali untuk satu
+  // pesanan yang sama.
+  const hasil = await Promise.allSettled([
+    O.ubahStatus(o.id, O.STATUS.SELESAI, AKTOR_ADMIN),
+    O.ubahStatus(o.id, O.STATUS.SELESAI, AKTOR_ADMIN)
+  ]);
+
+  const berhasil = hasil.filter((h) => h.status === "fulfilled");
+  assert.equal(berhasil.length, 1, "hanya satu panggilan yang boleh menyelesaikan pesanan");
+
+  const p = await produk();
+  assert.equal(p.stok, 7, "stok berkurang tepat sekali, bukan dua kali");
+  assert.equal(p.stokDipesan, 0);
+});
+
+test("RACE CONDITION: batal bersamaan tidak melepas kunci dua kali", async () => {
+  const o = await pesan(4);
+
+  const hasil = await Promise.allSettled([
+    O.ubahStatus(o.id, O.STATUS.BATAL, AKTOR_ADMIN),
+    O.ubahStatus(o.id, O.STATUS.BATAL, AKTOR_ADMIN)
+  ]);
+
+  assert.equal(hasil.filter((h) => h.status === "fulfilled").length, 1);
+
+  const p = await produk();
+  assert.equal(p.stok, 10, "stok fisik tidak pernah disentuh saat batal");
+  assert.equal(p.stokDipesan, 0, "kunci dilepas, dan tidak menjadi minus");
 });
 
 test("membatalkan pesanan mengembalikan stok ke rak", async () => {

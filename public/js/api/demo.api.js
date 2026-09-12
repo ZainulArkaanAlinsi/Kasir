@@ -66,6 +66,20 @@ const tulis = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 const idBaru = () => `d${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
 /**
+ * Nomor struk / pesanan, sebentuk dengan yang dibuat server.
+ *
+ * Ekornya diambil dari id catatan, bukan dari `String(Date.now()).slice(-4)`
+ * seperti sebelumnya — empat digit terakhir milidetik berulang setiap
+ * sepuluh detik, jadi dua struk yang dibuat berselang 10 detik mendapat
+ * nomor yang sama persis.
+ *
+ * @param {"TRX"|"ORD"} awalan
+ * @param {string} id id catatan
+ */
+const nomorCatatan = (awalan, id) =>
+  `${awalan}-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(id).slice(-6).toUpperCase()}`;
+
+/**
  * Membuat error yang BENTUKNYA sama dengan error dari server, supaya
  * modul UI cukup menangani satu format error saja.
  * @param {string} message
@@ -217,9 +231,10 @@ export function createDemoApi() {
       tulis(KEY.products, products);
 
       const totals = computeTotals(lines);
+      const idPesanan = idBaru();
       const pesanan = {
-        id: idBaru(),
-        orderNumber: `ORD-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(Date.now()).slice(-4)}`,
+        id: idPesanan,
+        orderNumber: nomorCatatan("ORD", idPesanan),
         status: "menunggu_bayar",
         customerUid: "demo-user", customerName: "Nabila (Demo)", customerPhone: telepon ?? null,
         pengiriman: { cara, zona: pengiriman?.zona ?? null, alamat: pengiriman?.alamat ?? null, catatan: pengiriman?.catatan ?? "", ongkir },
@@ -442,9 +457,10 @@ export function createDemoApi() {
       }
       tulis(KEY.products, products);
 
+      const idTrx = idBaru();
       const trx = {
-        id: idBaru(),
-        receiptNumber: `TRX-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${String(Date.now()).slice(-4)}`,
+        id: idTrx,
+        receiptNumber: nomorCatatan("TRX", idTrx),
         cashierUid: "demo-user",
         cashierName: "Nabila (Demo)",
         paymentMethod,
@@ -573,10 +589,23 @@ export function createDemoApi() {
         })
         .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
 
+      // Pengeluaran per hari, supaya grafik pemasukan-vs-pengeluaran
+      // berbentuk sama seperti yang dikirim server.
+      const perHariKeluar = new Map();
+      for (const e of exp) {
+        const kunci = new Date(e.createdAt).toISOString().slice(0, 10);
+        perHariKeluar.set(kunci, (perHariKeluar.get(kunci) || 0) + (Number(e.amount) || 0));
+      }
+
       const grafikHarian = [];
       for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const kunci = d.toISOString().slice(0, 10);
-        grafikHarian.push({ label: NAMA_HARI[d.getDay()], tanggal: kunci, total: perHari.get(kunci) || 0 });
+        grafikHarian.push({
+          label: NAMA_HARI[d.getDay()],
+          tanggal: kunci,
+          total: perHari.get(kunci) || 0,
+          keluar: perHariKeluar.get(kunci) || 0
+        });
       }
 
       return {

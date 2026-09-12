@@ -25,7 +25,7 @@ import { paymentsRouter } from "./routes/payments.routes.js";
 import { ordersRouter } from "./routes/orders.routes.js";
 import { catalogRouter } from "./routes/catalog.routes.js";
 import { verifikasiTandaTanganWebhook, bacaStatusWebhook } from "./services/payment.service.js";
-import { daftarPesanan, ubahStatus, STATUS as ORDER_STATUS } from "./services/order.service.js";
+import { cariPesananPembayaran, ubahStatus, STATUS as ORDER_STATUS } from "./services/order.service.js";
 import { getDb, admin } from "./services/firebase.js";
 import { requireString } from "./lib/validate.js";
 
@@ -90,11 +90,12 @@ app.post("/api/payments/webhook", asyncHandler(async (req, res) => {
   const { status, orderId } = bacaStatusWebhook(req.body);
   if (!orderId) return res.status(400).json({ error: "Order ID tidak ada.", code: "NO_ORDER_ID" });
 
-  // paymentRef menyimpan orderId gateway; cocokkan ke pesanan kita.
-  const cocok = (await daftarPesanan({ status: ORDER_STATUS.MENUNGGU_BAYAR, limit: 200 }))
-    .find((o) => o.paymentRef === orderId || o.id === orderId || o.orderNumber === orderId);
+  // Dicari langsung ke Firestore, bukan dengan menarik 200 pesanan lalu
+  // menyaringnya di memori: begitu antreannya lebih panjang dari batas itu,
+  // pembayaran yang sah tidak akan pernah ketemu.
+  const cocok = await cariPesananPembayaran(orderId);
 
-  if (!cocok) {
+  if (!cocok || cocok.status !== ORDER_STATUS.MENUNGGU_BAYAR) {
     // Bukan kesalahan: bisa jadi pembayaran kasir, atau pesanan sudah
     // diproses lebih dulu lewat polling. Dijawab 200 supaya Midtrans tidak
     // mengirim ulang tanpa henti.

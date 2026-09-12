@@ -173,12 +173,28 @@ export async function buildReport(range) {
 
   const pengeluaran = expSnap.docs.reduce((sum, d) => sum + (Number(d.data().amount) || 0), 0);
 
+  // Pengeluaran dikelompokkan per hari juga, supaya grafik bisa menyandingkan
+  // uang masuk dan uang keluar pada kolom yang sama. Tanpa ini pemilik toko
+  // hanya melihat omzet naik, tanpa tahu berapa yang habis untuk restock.
+  const perHariKeluar = new Map();
+  for (const doc of expSnap.docs) {
+    const biaya = doc.data();
+    const tanggalBiaya = biaya.createdAt?.toDate?.() ?? new Date();
+    const kunci = tanggalBiaya.toISOString().slice(0, 10);
+    perHariKeluar.set(kunci, (perHariKeluar.get(kunci) || 0) + (Number(biaya.amount) || 0));
+  }
+
   // Grafik harian dari transaksi ASLI (menggantikan array hardcode
   // [38,55,46,78,62,91,70] yang dulu ada di renderDashboard).
   const grafikHarian = [];
   for (let d = new Date(range.from); d <= range.to; d.setDate(d.getDate() + 1)) {
     const kunci = d.toISOString().slice(0, 10);
-    grafikHarian.push({ label: NAMA_HARI[d.getDay()], tanggal: kunci, total: perHari.get(kunci) || 0 });
+    grafikHarian.push({
+      label: NAMA_HARI[d.getDay()],
+      tanggal: kunci,
+      total: perHari.get(kunci) || 0,
+      keluar: perHariKeluar.get(kunci) || 0
+    });
   }
 
   const jumlahTransaksi = trxSnap.size;

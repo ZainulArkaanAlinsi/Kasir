@@ -24,11 +24,21 @@ import { stokTersedia } from "../../public/js/shared/product.js";
 
 export const PAYMENT_METHODS = Object.freeze(["cash", "card", "qris"]);
 
-/** Membuat nomor struk yang mudah dibaca manusia. */
-function buildReceiptNumber(now = new Date()) {
+/**
+ * Membuat nomor struk yang mudah dibaca manusia.
+ *
+ * Ekornya diambil dari id dokumen Firestore, bukan empat digit acak. Toko
+ * yang ramai melewati 100 struk sehari dengan mudah, dan pada titik itu
+ * peluang dua struk bernomor sama sudah di atas 40%. Nomor struk dipakai
+ * pembeli untuk menanyakan transaksinya dan oleh kasir untuk mencarinya —
+ * nomor kembar berarti retur bisa dikaitkan ke penjualan yang keliru.
+ *
+ * @param {Date} now
+ * @param {string} docId id dokumen transaksi (dijamin unik oleh Firestore)
+ */
+function buildReceiptNumber(now, docId) {
   const stamp = now.toISOString().slice(0, 10).replaceAll("-", "");
-  const random = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-  return `TRX-${stamp}-${random}`;
+  return `TRX-${stamp}-${String(docId).slice(0, 6).toUpperCase()}`;
 }
 
 /**
@@ -116,7 +126,7 @@ export async function createTransaction(input) {
 
     // --- FASE TULIS ---
     const trxRef = db.collection("transactions").doc();
-    const receiptNumber = buildReceiptNumber();
+    const receiptNumber = buildReceiptNumber(new Date(), trxRef.id);
 
     snapshots.forEach((snap, i) => {
       tx.update(productRefs[i], {

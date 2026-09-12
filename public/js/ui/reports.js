@@ -8,6 +8,9 @@
 import { $, showApiError } from "./shell.js";
 import { money, angka, escapeHtml, labelMetode } from "../format.js";
 import { getApi } from "../api/index.js";
+import { renderChart } from "./dashboard.js";
+import { tileBg, initials } from "./tile.js";
+import { get } from "../state.js";
 
 /** Memuat laporan untuk periode yang dipilih dan menggambar seluruh panel. */
 export async function refreshReport() {
@@ -24,11 +27,52 @@ export async function refreshReport() {
     isi("reportCount", angka(report.jumlahTransaksi));
     isi("reportAverage", money(report.rataRataTransaksi));
 
+    renderChart(report.grafikHarian, "reportChart", "reportChartLabels");
+    renderSoldList(report.produkTerjual);
     renderMetodeBayar(report.perMetodeBayar);
     renderProdukTerjual(report.produkTerjual);
   } catch (error) {
     showApiError(error);
   }
+}
+
+/**
+ * "Qty terjual per produk" dalam bentuk batang proporsi.
+ *
+ * Pertanyaan yang dijawab di sini bukan "berapa rupiah", tetapi "berapa
+ * bungkus yang benar-benar keluar" — itu yang dipakai untuk memutuskan
+ * berapa banyak harus dikulak minggu depan. Panjang batang relatif
+ * terhadap produk terlaris, jadi urutannya langsung terbaca.
+ *
+ * @param {Array<{productId:string, name:string, qty:number, omzet:number}>} data
+ */
+function renderSoldList(data) {
+  const container = $("soldList");
+  if (!container) return;
+
+  const list = (data ?? []).slice(0, 6);
+  if (list.length === 0) {
+    container.innerHTML = `<p class="muted" style="padding:14px 2px">Belum ada barang terjual pada periode ini.</p>`;
+    return;
+  }
+
+  const produk = get("products");
+  const maksimum = Math.max(...list.map((p) => p.qty)) || 1;
+
+  container.innerHTML = list.map((p, i) => {
+    const kategori = produk.find((x) => x.id === p.productId)?.category ?? "";
+    return `
+      <div class="sold-row" style="animation-delay:${i * 0.05}s">
+        <span class="sold-tile" style="background:${tileBg(kategori)}">${escapeHtml(initials(p.name))}</span>
+        <div class="sold-body">
+          <div class="sold-top">
+            <span>${escapeHtml(p.name)}</span>
+            <strong>${angka(p.qty)} pcs</strong>
+          </div>
+          <span class="sold-track"><i style="width:${Math.round((p.qty / maksimum) * 100)}%"></i></span>
+        </div>
+      </div>`;
+  }).join("");
 }
 
 /** @param {Record<string,{jumlah:number,total:number}>} data */

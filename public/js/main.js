@@ -6,7 +6,7 @@
  * di sini — itu milik lapisan API dan service di server.
  */
 import { subscribe, set, get } from "./state.js";
-import { $, $$, closeAllModals, closeModal } from "./ui/shell.js";
+import { $, $$, closeAllModals, closeModal, openModal } from "./ui/shell.js";
 import { bindAuth, setOnReady } from "./auth.js";
 import { renderCart, clearCart, addToCart } from "./ui/cart.js";
 import { refreshProducts, renderProductGrid, bindProductForm, bukaFormProduk } from "./ui/products.js";
@@ -21,6 +21,7 @@ import { getApi } from "./api/index.js";
 import { refreshSettings, bindSettings } from "./ui/settings.js";
 import { eksporTransaksi, eksporLaporan } from "./ui/export-csv.js";
 import { refreshOrders, bindOrders } from "./ui/orders.js";
+import { bindSeg } from "./ui/segmented.js";
 
 /** Judul dan keterangan tiap halaman. */
 const HALAMAN = {
@@ -45,8 +46,10 @@ async function setPage(nama) {
   $$(".page").forEach((p) => p.classList.remove("active-page"));
   $(`${nama}Page`)?.classList.add("active-page");
   $$(".nav-item").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
-  $$(".rail-btn, .tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
+  $$(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === nama));
   $("sideNav")?.classList.remove("open");   // tutup menu geser di layar sempit
+  $("cartPanel")?.classList.remove("open"); // keranjang tidak ikut pindah halaman
+  renderCart();                             // bilah keranjang hanya tampil di halaman Kasir
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   if ($("pageTitle")) $("pageTitle").textContent = HALAMAN[nama].title;
@@ -72,7 +75,7 @@ async function mulaiSesi() {
 }
 
 function bindNavigasi() {
-  $$(".nav-item, .rail-btn, .tab-btn").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
+  $$(".nav-item, .tab-btn").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.page)));
   $("navToggle")?.addEventListener("click", () => $("sideNav")?.classList.toggle("open"));
   $$("[data-go]").forEach((btn) => btn.addEventListener("click", () => setPage(btn.dataset.go)));
   $$("[data-close]").forEach((btn) => btn.addEventListener("click", () => closeModal(btn.dataset.close)));
@@ -102,6 +105,8 @@ function bindKasir() {
   // Di layar lebar CSS membuatnya selalu tampak dan kelas ini tidak berpengaruh.
   $("bukaKeranjangKasir")?.addEventListener("click", () => $("cartPanel")?.classList.add("open"));
   $("tutupKeranjangKasir")?.addEventListener("click", () => $("cartPanel")?.classList.remove("open"));
+  // Bilah total mengambang: satu ketukan langsung ke keranjang.
+  $("cartFab")?.addEventListener("click", () => $("cartPanel")?.classList.add("open"));
   $("confirmPayment")?.addEventListener("click", (e) => confirmPayment(e.currentTarget));
 
   // Scanner USB: dengarkan ketikan cepat di mana pun selama halaman Kasir.
@@ -158,21 +163,42 @@ function bindKamera() {
 function bindLaporan() {
   $("reportPeriod")?.addEventListener("change", refreshReport);
   $("chartPeriod")?.addEventListener("change", refreshDashboard);
+
+  // Segmen periode menulis ke <select> yang sama, lalu memicu 'change' —
+  // jadi hanya ada satu jalur pemuatan data, bukan dua.
+  bindSeg("chartPeriodSeg", "chartPeriod");
+  bindSeg("reportPeriodSeg", "reportPeriod");
+
   $("reportExportBtn")?.addEventListener("click", () => eksporLaporan(get("report")));
   $("trxExportBtn")?.addEventListener("click", () => eksporTransaksi(get("transactions")));
 }
 
 function bindRestockShortcut() {
-  // Tombol "Restock" di tabel produk dibuat ulang setiap render,
-  // jadi dipasang lewat event delegation di elemen induk yang tetap ada.
-  $("productTable")?.addEventListener("click", (event) => {
+  // Tombol "Restock" dibuat ulang setiap render, jadi dipasang lewat event
+  // delegation pada elemen induk yang tetap ada. Keduanya didengarkan karena
+  // layar sempit memakai kartu (#manageList) sedangkan layar lebar memakai
+  // tabel (#productTable) — memasang di salah satu saja membuat tombolnya
+  // mati di separuh perangkat.
+  const pindahKeRestock = async (event) => {
     const btn = event.target.closest("[data-restock]");
-    if (btn) bukaRestock(btn.dataset.restock);
-  });
+    if (!btn) return;
+    // Formnya hidup di halaman Restock & Biaya, jadi pindah dulu ke sana:
+    // mengisi form yang sedang tersembunyi tidak menolong siapa pun.
+    await setPage("restock");
+    bukaRestock(btn.dataset.restock);
+  };
+
+  $("productTable")?.addEventListener("click", pindahKeRestock);
+  $("manageList")?.addEventListener("click", pindahKeRestock);
 }
 
 // --- Perubahan state memicu render, sehingga modul tidak saling memanggil ---
 subscribe("cart", renderCart);
+// Kartu produk memperlihatkan jumlah yang sudah masuk keranjang, jadi ikut
+// digambar ulang — kalau tidak, stepper di kartu akan menampilkan angka basi.
+subscribe("cart", () => {
+  if (get("activePage") === "kasir") renderProductGrid();
+});
 subscribe("products", () => {
   if (get("activePage") === "kasir") renderProductGrid();
 });

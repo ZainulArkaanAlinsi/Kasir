@@ -8,9 +8,10 @@
  */
 import { get, set } from "../state.js";
 import { $, showApiError } from "./shell.js";
-import { money, angka, escapeHtml, tanggal, tanggalPendek } from "../format.js";
+import { money, angka, escapeHtml, tanggal, tanggalPendek, labelMetode } from "../format.js";
 import { isLowStock } from "../shared/product.js";
 import { getApi } from "../api/index.js";
+import { tileBg, initials } from "./tile.js";
 
 /** Nama periode untuk teks pembanding. */
 const NAMA_PERIODE = { today: "kemarin", week: "7 hari sebelumnya", month: "30 hari sebelumnya" };
@@ -50,31 +51,51 @@ function renderTren(elementId, tren, periode, naikItuBaik = true) {
   el.innerHTML = `<span class="trend ${kelas}">${panah} ${Math.abs(tren.persen)}%</span> vs ${escapeHtml(banding)}`;
 }
 
-/** Tinggi batang grafik dalam persen, relatif terhadap hari terlaris. */
+/** Tinggi batang grafik dalam persen, relatif terhadap hari tertinggi. */
 function tinggiBatang(nilai, maksimum) {
   if (maksimum <= 0) return 2;
   return Math.max(2, Math.round((nilai / maksimum) * 100));
 }
 
 /**
- * Menggambar grafik penjualan harian.
- * @param {Array<{label:string, tanggal:string, total:number}>} data
+ * Menggambar grafik pemasukan vs pengeluaran per hari.
+ *
+ * Kedua batang memakai skala yang sama supaya tingginya bisa dibandingkan
+ * langsung — memberi masing-masing skalanya sendiri akan membuat
+ * pengeluaran kecil terlihat setinggi omzet besar.
+ *
+ * @param {Array<{label:string, tanggal:string, total:number, keluar?:number}>} data
+ * @param {string} [chartId]
+ * @param {string} [labelId]
  */
-function renderChart(data) {
-  const container = $("barChart");
+export function renderChart(data, chartId = "barChart", labelId = "barChartLabels") {
+  const container = $(chartId);
+  const labels = $(labelId);
   if (!container) return;
 
   if (!data?.length) {
-    container.innerHTML = `<p class="muted">Belum ada transaksi pada periode ini.</p>`;
+    container.innerHTML = `<p class="muted" style="align-self:center">Belum ada transaksi pada periode ini.</p>`;
+    if (labels) labels.innerHTML = "";
     return;
   }
 
-  const maksimum = Math.max(...data.map((d) => d.total));
-  container.innerHTML = data.map((d) => `
-    <div class="bar" style="height:${tinggiBatang(d.total, maksimum)}%"
-         title="${escapeHtml(tanggalPendek(d.tanggal))}: ${money(d.total)}">
-      <span>${escapeHtml(d.label)}</span>
-    </div>`).join("");
+  const maksimum = Math.max(...data.map((d) => Math.max(d.total, Number(d.keluar) || 0)));
+
+  container.innerHTML = data.map((d) => {
+    const keluar = Number(d.keluar) || 0;
+    const tanggalLabel = escapeHtml(tanggalPendek(d.tanggal));
+    return `
+      <div class="col">
+        <span class="bar bar-in" style="height:${tinggiBatang(d.total, maksimum)}%"
+              title="${tanggalLabel} · masuk ${money(d.total)}"></span>
+        <span class="bar bar-out" style="height:${tinggiBatang(keluar, maksimum)}%"
+              title="${tanggalLabel} · keluar ${money(keluar)}"></span>
+      </div>`;
+  }).join("");
+
+  if (labels) {
+    labels.innerHTML = data.map((d) => `<span>${escapeHtml(d.label)}</span>`).join("");
+  }
 }
 
 /** Memuat & menggambar seluruh dashboard. */
@@ -88,6 +109,7 @@ export async function refreshDashboard() {
     const stokMenipis = produk.filter(isLowStock).length;
 
     if ($("statSales")) $("statSales").textContent = money(report.pemasukan);
+    if ($("statExpense")) $("statExpense").textContent = money(report.pengeluaran);
     if ($("statTransactions")) $("statTransactions").textContent = angka(report.jumlahTransaksi);
     if ($("statItems")) $("statItems").textContent = angka(report.totalItemTerjual);
     if ($("statLowStock")) $("statLowStock").textContent = angka(stokMenipis);
@@ -95,6 +117,8 @@ export async function refreshDashboard() {
 
     const p = report.perbandingan ?? {};
     renderTren("trendSales", p.pemasukan, periode);
+    // Pengeluaran naik BUKAN kabar baik, jadi arah panah dinilai terbalik.
+    renderTren("trendExpense", p.pengeluaran, periode, false);
     renderTren("trendTransactions", p.jumlahTransaksi, periode);
     renderTren("trendItems", p.totalItemTerjual, periode);
     renderTren("trendProfit", p.labaKotor, periode);
@@ -151,13 +175,14 @@ function renderStokMenipis(produk) {
     return;
   }
 
-  container.innerHTML = menipis.map((p) => {
+  container.innerHTML = menipis.map((p, i) => {
     const stok = Number(p.stok) || 0;
     const kelas = stok <= 0 ? "out-badge" : "low-badge";
     const label = stok <= 0 ? "Habis" : `Sisa ${angka(stok)}`;
     return `
-      <div class="activity">
-        <div>
+      <div class="activity" style="animation-delay:${i * 0.04}s">
+        <span class="sold-tile" style="background:${tileBg(p.category)}">${escapeHtml(initials(p.name))}</span>
+        <div style="flex:1;min-width:0">
           <strong>${escapeHtml(p.name)}</strong>
           <span>Ambang minimum ${angka(p.stokMinimum ?? 5)}</span>
         </div>
@@ -175,13 +200,13 @@ async function renderAktivitasTerbaru() {
   set("transactions", list);
 
   container.innerHTML = list.length
-    ? list.map((t) => `
-      <div class="activity">
+    ? list.map((t, i) => `
+      <div class="activity" style="animation-delay:${i * 0.04}s">
         <div>
           <strong>${escapeHtml(t.receiptNumber ?? t.id)}</strong>
-          <span>${escapeHtml(tanggal(t.createdAt))}</span>
+          <span>${escapeHtml(tanggal(t.createdAt))} · ${escapeHtml(labelMetode(t.paymentMethod))}</span>
         </div>
         <b>${money(t.total)}</b>
       </div>`).join("")
-    : `<p class="muted">Belum ada transaksi.</p>`;
+    : `<p class="muted" style="padding:10px 8px">Belum ada transaksi.</p>`;
 }

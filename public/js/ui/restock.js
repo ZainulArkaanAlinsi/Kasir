@@ -5,7 +5,7 @@
  * Kalau dipisah, sangat mudah stok bertambah tapi pengeluarannya lupa
  * dicatat — dan laporan laba langsung menipu.
  */
-import { $, showToast, showApiError, closeModal, openModal, withBusy } from "./shell.js";
+import { $, showToast, showApiError, withBusy } from "./shell.js";
 import { money, angka, escapeHtml, tanggal } from "../format.js";
 import { get } from "../state.js";
 import { getApi } from "../api/index.js";
@@ -20,11 +20,21 @@ export function isiPilihanProduk() {
     .join("");
 }
 
-/** Membuka modal restock, opsional dengan produk terpilih. */
+/**
+ * Menyiapkan form restock untuk satu produk.
+ *
+ * Dulu fungsi ini memanggil openModal("restockModal") — padahal tidak ada
+ * elemen dengan id itu di halaman, sehingga tombol "Restock" pada daftar
+ * produk diam saja setiap kali ditekan. Formnya memang hidup di halaman
+ * Restock & Biaya, jadi yang benar adalah mengisi form tersebut lalu
+ * menaruh kursor di kolom jumlah; perpindahan halamannya diurus pemanggil.
+ *
+ * @param {string} [productId] produk yang ingin direstock
+ */
 export function bukaRestock(productId) {
   isiPilihanProduk();
   if (productId && $("restockProduct")) $("restockProduct").value = productId;
-  openModal("restockModal");
+  $("restockQty")?.focus();
 }
 
 /** Memuat & menggambar tabel pengeluaran. */
@@ -48,9 +58,47 @@ export async function refreshExpenses() {
           <td>${escapeHtml(e.note ?? "")}</td>
         </tr>`).join("")
       : `<tr><td colspan="6">Belum ada pengeluaran tercatat.</td></tr>`;
+
+    renderExpenseList(list);
   } catch (error) {
     showApiError(error);
   }
+}
+
+/**
+ * Pengeluaran sebagai kartu untuk layar sempit.
+ *
+ * Restock ditandai terakota dan biaya operasional slate, supaya sekali
+ * lihat ketahuan uang toko habis untuk menambah barang atau untuk hal
+ * lain — dua hal yang keputusannya sangat berbeda.
+ *
+ * @param {Array<object>} list
+ */
+function renderExpenseList(list) {
+  const container = $("expenseList");
+  if (!container) return;
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-cart">Belum ada pengeluaran tercatat.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.slice(0, 40).map((e, i) => {
+    const jenis = e.type === "restock" ? "restock" : e.type === "operasional" ? "operasional" : "lainnya";
+    const rincian = e.productName
+      ? `${escapeHtml(e.productName)}${e.qty ? ` ×${angka(e.qty)}` : ""} · modal`
+      : escapeHtml(e.note || "tanpa catatan");
+
+    return `
+      <div class="expense-row" style="animation-delay:${Math.min(i, 10) * 0.04}s">
+        <span class="expense-ico ${jenis}">${escapeHtml(jenis.charAt(0).toUpperCase())}</span>
+        <div>
+          <strong>${escapeHtml(e.type ?? "-")}</strong>
+          <span>${rincian} · ${escapeHtml(tanggal(e.createdAt))}</span>
+        </div>
+        <b>&minus;${money(e.amount)}</b>
+      </div>`;
+  }).join("");
 }
 
 /** Memasang form restock dan form pengeluaran operasional. */
@@ -74,8 +122,8 @@ export function bindExpenseForms() {
           hargaModalBaru: hargaModalBaru === "" ? null : Number(hargaModalBaru),
           note: $("restockNote").value.trim()
         });
-        closeModal("restockModal");
         event.target.reset();
+        isiPilihanProduk();   // reset() mengosongkan <select>, isi ulang pilihannya
         showToast(`Stok ${hasil.productName} kini ${angka(hasil.stokBaru)}. Biaya ${money(hasil.amount)} tercatat.`, "success");
         await refreshProducts();
         await refreshExpenses();

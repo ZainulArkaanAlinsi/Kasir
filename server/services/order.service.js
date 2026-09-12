@@ -88,11 +88,52 @@ export function hitungOngkir(cara, zona = "dalam_kota") {
   return ONGKIR[zona] ?? ONGKIR.dalam_kota;
 }
 
-/** Nomor pesanan yang mudah dibaca manusia. */
-function nomorPesanan(now = new Date()) {
+/**
+ * Nomor pesanan yang mudah dibaca manusia.
+ *
+ * Ekornya diambil dari id dokumen Firestore, bukan dari empat digit acak.
+ * Dengan angka acak, dua pesanan bisa memakai nomor sama pada hari yang
+ * sama — peluangnya sudah sekitar 50% begitu toko melewati ~120 pesanan
+ * sehari. Nomor kembar berbahaya justru karena tampak sepele: pembeli
+ * menyebutkan nomornya, lalu staf membuka pesanan milik orang lain.
+ *
+ * @param {Date} now
+ * @param {string} docId id dokumen pesanan (dijamin unik oleh Firestore)
+ */
+function nomorPesanan(now, docId) {
   const tanggal = now.toISOString().slice(0, 10).replaceAll("-", "");
-  const acak = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-  return `ORD-${tanggal}-${acak}`;
+  return `ORD-${tanggal}-${String(docId).slice(0, 6).toUpperCase()}`;
+}
+
+/**
+ * Mencari pesanan yang cocok dengan order_id dari payment gateway.
+ *
+ * Dulu webhook menarik 200 pesanan berstatus "menunggu bayar" lalu mencari
+ * di memori. Begitu antreannya lebih panjang dari itu, pembayaran yang sah
+ * diam-diam tidak terdeteksi — pembeli sudah membayar, tetapi pesanannya
+ * tetap tercatat belum lunas. Tiga kemungkinan bentuk id dicoba langsung ke
+ * Firestore, semuanya lewat pencarian berindeks.
+ *
+ * @param {string} gatewayOrderId nilai order_id dari gateway
+ * @returns {Promise<object|null>} pesanan beserta id-nya, atau null
+ */
+export async function cariPesananPembayaran(gatewayOrderId) {
+  const id = String(gatewayOrderId ?? "").trim();
+  if (!id) return null;
+
+  const db = getDb();
+
+  // 1. order_id memang id dokumen kita.
+  const langsung = await db.collection("orders").doc(id).get();
+  if (langsung.exists) return { id: langsung.id, ...langsung.data() };
+
+  // 2. atau nomor pesanan yang dipajang ke pembeli, 3. atau referensi gateway.
+  for (const field of ["orderNumber", "paymentRef"]) {
+    const snap = await db.collection("orders").where(field, "==", id).limit(1).get();
+    if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+  }
+
+  return null;
 }
 
 /**
@@ -151,7 +192,7 @@ export async function buatPesanan({ items, pengiriman, pelanggan }) {
   const kedaluwarsa = new Date(sekarang.getTime() + MENIT_KEDALUWARSA * 60000);
 
   const doc = {
-    orderNumber: nomorPesanan(sekarang),
+    orderNumber: nomorPesanan(sekarang, ref.id),
     status: STATUS.MENUNGGU_BAYAR,
     customerUid: pelanggan.uid,
     customerName: pelanggan.name || "Pelanggan",
@@ -204,55 +245,94 @@ export async function ubahStatus(orderId, statusBaru, aktor, tambahan = {}) {
 
   const db = getDb();
   const ref = db.collection("orders").doc(id);
-  const snap = await ref.get();
-  if (!snap.exists) throw notFound("Pesanan tidak ditemukan.");
+  const waktu = new Date().toISOString();
+  const entriRiwayat = { status: tujuan, pada: waktu, oleh: aktor.uid };
 
-  const pesanan = snap.data();
+  // Perpindahan status di-KLAIM lebih dulu di dalam satu Firestore
+  // transaction: membaca status, memeriksa keabsahannya, dan menuliskannya
+  // terjadi tanpa celah di antaranya.
+  //
+  // Sebelumnya pemeriksaan memakai ref.get() biasa lalu stok diubah di luar
+  // transaksi. Dua panggilan yang berdekatan — admin menekan "Sudah diambil"
+  // dua kali, atau pembatalan pelanggan bertabrakan dengan sapuan
+  // kedaluwarsa — sama-sama membaca status lama, sama-sama lolos tabel
+  // transisi, dan stok fisik terpotong DUA KALI untuk satu pesanan.
+  // Dengan klaim atomik, hanya panggilan pertama yang lolos; sisanya
+  // ditolak sebagai transisi tidak sah.
+  const { pesanan, statusLama } = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw notFound("Pesanan tidak ditemukan.");
 
-  // Pelanggan hanya boleh membatalkan pesanannya sendiri yang belum dibayar.
-  if (aktor.role === "customer") {
-    if (pesanan.customerUid !== aktor.uid) throw forbidden("Ini bukan pesanan Anda.");
-    if (tujuan !== STATUS.BATAL) throw forbidden("Pelanggan hanya dapat membatalkan pesanan.");
-    if (pesanan.status !== STATUS.MENUNGGU_BAYAR) {
-      throw conflict("Pesanan yang sudah dibayar hanya bisa dibatalkan oleh toko.", "CANCEL_NOT_ALLOWED");
+    const data = snap.data();
+
+    // Pelanggan hanya boleh membatalkan pesanannya sendiri yang belum dibayar.
+    if (aktor.role === "customer") {
+      if (data.customerUid !== aktor.uid) throw forbidden("Ini bukan pesanan Anda.");
+      if (tujuan !== STATUS.BATAL) throw forbidden("Pelanggan hanya dapat membatalkan pesanan.");
+      if (data.status !== STATUS.MENUNGGU_BAYAR) {
+        throw conflict("Pesanan yang sudah dibayar hanya bisa dibatalkan oleh toko.", "CANCEL_NOT_ALLOWED");
+      }
+    }
+
+    const boleh = TRANSISI[data.status] ?? [];
+    if (!boleh.includes(tujuan)) {
+      throw conflict(
+        `Pesanan berstatus "${data.status}" tidak bisa diubah menjadi "${tujuan}".`,
+        "INVALID_TRANSITION",
+        { dari: data.status, boleh }
+      );
+    }
+
+    const patch = {
+      status: tujuan,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      riwayatStatus: admin.firestore.FieldValue.arrayUnion(entriRiwayat)
+    };
+
+    if (tujuan === STATUS.DIBAYAR) {
+      patch.paymentMethod = tambahan.paymentMethod ?? "qris";
+      patch.paymentRef = tambahan.paymentRef ?? null;
+      patch.paidAt = admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    tx.update(ref, patch);
+    return { pesanan: data, statusLama: data.status };
+  });
+
+  // Stok baru disentuh SETELAH klaim berhasil. Urutannya disengaja: kalau
+  // stok diubah lebih dulu lalu penulisan status gagal, barang terlanjur
+  // berpindah tanpa jejak. Dengan urutan ini, kegagalan langkah stok
+  // meninggalkan pesanan berstatus baru yang stoknya belum disesuaikan —
+  // keadaan yang terlihat di panel dan bisa diperbaiki, bukan diam-diam
+  // memotong stok dua kali.
+  const itemsRingkas = (pesanan.lines ?? []).map((l) => ({ productId: l.productId, qty: l.qty }));
+  if (itemsRingkas.length > 0) {
+    if ([STATUS.BATAL, STATUS.KEDALUWARSA].includes(tujuan) && MASIH_MENGUNCI.includes(statusLama)) {
+      await lepasKunci(itemsRingkas);
+    } else if (tujuan === STATUS.SELESAI) {
+      await selesaikanKunci(itemsRingkas);
     }
   }
 
-  const boleh = TRANSISI[pesanan.status] ?? [];
-  if (!boleh.includes(tujuan)) {
-    throw conflict(
-      `Pesanan berstatus "${pesanan.status}" tidak bisa diubah menjadi "${tujuan}".`,
-      "INVALID_TRANSITION",
-      { dari: pesanan.status, boleh }
-    );
-  }
-
-  // Stok mengikuti status: dilepas bila batal, dipotong bila selesai.
-  const itemsRingkas = (pesanan.lines ?? []).map((l) => ({ productId: l.productId, qty: l.qty }));
-  if ([STATUS.BATAL, STATUS.KEDALUWARSA].includes(tujuan) && MASIH_MENGUNCI.includes(pesanan.status)) {
-    await lepasKunci(itemsRingkas);
-  } else if (tujuan === STATUS.SELESAI) {
-    await selesaikanKunci(itemsRingkas);
-  }
-
-  const patch = {
+  // Nilai kembalian dibersihkan dari sentinel FieldValue: kalau ikut dikirim
+  // apa adanya, klien menerima objek internal Firestore alih-alih tanggal
+  // yang bisa ditampilkan.
+  return {
+    id,
+    ...pesanan,
     status: tujuan,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    riwayatStatus: admin.firestore.FieldValue.arrayUnion({
-      status: tujuan,
-      pada: new Date().toISOString(),
-      oleh: aktor.uid
-    })
+    updatedAt: waktu,
+    riwayatStatus: [...(pesanan.riwayatStatus ?? []), entriRiwayat],
+    createdAt: pesanan.createdAt?.toDate?.()?.toISOString() ?? null,
+    expiresAt: pesanan.expiresAt?.toDate?.()?.toISOString() ?? null,
+    ...(tujuan === STATUS.DIBAYAR
+      ? {
+        paymentMethod: tambahan.paymentMethod ?? "qris",
+        paymentRef: tambahan.paymentRef ?? null,
+        paidAt: waktu
+      }
+      : {})
   };
-
-  if (tujuan === STATUS.DIBAYAR) {
-    patch.paymentMethod = tambahan.paymentMethod ?? "qris";
-    patch.paymentRef = tambahan.paymentRef ?? null;
-    patch.paidAt = admin.firestore.FieldValue.serverTimestamp();
-  }
-
-  await ref.update(patch);
-  return { id, ...pesanan, ...patch, status: tujuan };
 }
 
 /**

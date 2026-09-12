@@ -4,3 +4,9 @@ serviceAccountKey.json
 *.log
 .DS_Store
 .vscode/
+
+# Folder desain ikut membawa salinan utuh project ini di dalamnya. Menaruh
+# repo di dalam repo membuat setiap pencarian ketemu dua kali dan gampang
+# menyunting berkas salinan tanpa sadar. Berkas desainnya sendiri tetap
+# disimpan; hanya duplikat project-nya yang diabaikan.
+ini-dari-claude-design/uploads/kasir-modern-v1/

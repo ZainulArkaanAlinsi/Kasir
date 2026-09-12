@@ -56,6 +56,7 @@ export function bindPaymentMethods() {
   });
 
   $("cashReceived")?.addEventListener("input", hitungKembalian);
+  bindPecahanCepat();
   $$('[data-close="paymentModal"]').forEach((b) => b.addEventListener("click", resetQris));
 
   bindLayarPembeli();
@@ -94,12 +95,45 @@ export function openPayment() {
   openModal("paymentModal");
 }
 
-/** Pratinjau kembalian saat kasir mengetik uang yang diterima. */
+/**
+ * Pecahan cepat: "Pas" mengisi tepat sebesar total, sisanya lembaran yang
+ * paling sering diserahkan pembeli. Mengetik "100000" berkali-kali sehari
+ * adalah pekerjaan yang tidak perlu ada.
+ */
+function bindPecahanCepat() {
+  const container = $("quickCash");
+  const input = $("cashReceived");
+  if (!container || !input) return;
+
+  container.querySelectorAll("[data-cash]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const nilai = btn.dataset.cash;
+      input.value = String(nilai === "pas" ? cartTotals().total : Number(nilai) || 0);
+      hitungKembalian();
+    });
+  });
+}
+
+/**
+ * Pratinjau kembalian saat kasir mengetik uang yang diterima.
+ *
+ * Bila uangnya masih kurang, kotaknya berubah merah dan menyebut
+ * kekurangannya — jauh lebih berguna daripada menampilkan "Rp0" yang
+ * terbaca seolah transaksi sudah pas.
+ */
 function hitungKembalian() {
   const el = $("changeAmount");
   if (!el) return;
+
   const diterima = Number($("cashReceived")?.value || 0);
-  el.textContent = money(computeChange(diterima, cartTotals().total).change);
+  const total = cartTotals().total;
+  const kurang = diterima > 0 && diterima < total;
+
+  el.textContent = kurang
+    ? `Kurang ${money(total - diterima)}`
+    : money(computeChange(diterima, total).change);
+
+  $("changeBox")?.classList.toggle("kurang", kurang);
 }
 
 /** Menampilkan baris status di area QRIS. */

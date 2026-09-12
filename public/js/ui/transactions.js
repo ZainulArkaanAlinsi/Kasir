@@ -45,9 +45,64 @@ export async function refreshTransactions() {
         if (trx) tampilkanStruk(trx);
       };
     });
+
+    renderTimeline(list);
   } catch (error) {
     showApiError(error);
   }
+}
+
+/** Jam-menit saja; tanggalnya sudah jelas dari filter di atas. */
+function jam(value) {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+}
+
+/**
+ * Riwayat sebagai garis waktu untuk layar sempit.
+ *
+ * Tabel tujuh kolom tidak terbaca di ponsel, sedangkan struk punya urutan
+ * waktu yang jelas — jadi bentuk paling jujur untuk layar kecil adalah
+ * garis waktu, dengan warna titik mengikuti metode pembayarannya.
+ *
+ * @param {Array<object>} list
+ */
+function renderTimeline(list) {
+  const container = $("trxTimeline");
+  if (!container) return;
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-cart">Tidak ada transaksi pada rentang ini.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.slice(0, 50).map((t, i) => {
+    const metode = t.paymentMethod || "cash";
+    return `
+      <div class="tl-item" style="animation-delay:${Math.min(i, 10) * 0.04}s">
+        <span class="tl-dot tl-${escapeHtml(metode)}"></span>
+        <div class="ticket" data-struk-card="${escapeHtml(t.id)}">
+          <div class="ticket-top">
+            <div>
+              <strong>${escapeHtml(t.receiptNumber ?? t.id)}</strong>
+              <span>${escapeHtml(jam(t.createdAt))} · ${escapeHtml(t.cashierName ?? "-")} · ${angka(t.itemCount ?? 0)} item</span>
+            </div>
+            <span class="badge badge-${escapeHtml(metode)}">${escapeHtml(labelMetode(metode))}</span>
+          </div>
+          <div class="ticket-foot">
+            <span>Ketuk untuk lihat struk</span>
+            <strong>${money(t.total)}</strong>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  container.querySelectorAll("[data-struk-card]").forEach((card) => {
+    card.onclick = () => {
+      const trx = get("transactions").find((t) => t.id === card.dataset.strukCard);
+      if (trx) tampilkanStruk(trx);
+    };
+  });
 }
 
 /** Memasang tombol filter tanggal. */

@@ -11,6 +11,7 @@ import { stokTersedia } from "../shared/product.js";
 import { get, set } from "../state.js";
 import { $, showToast } from "./shell.js";
 import { money, escapeHtml } from "../format.js";
+import { tileBg, initials } from "./tile.js";
 
 /**
  * Menambahkan produk ke keranjang, menghormati batas stok.
@@ -43,7 +44,10 @@ export function addToCart(product, qty = 1) {
       hargaJual: Number(product.hargaJual) || 0,
       hargaModal: Number(product.hargaModal) || 0,
       stok,
-      icon: product.icon ?? "\u{1F4E6}",
+      // Dipakai hanya untuk menggambar ubin baris keranjang; tidak pernah
+      // ikut dikirim ke server saat checkout.
+      category: product.category ?? "",
+      imageUrl: product.imageUrl ?? null,
       qty
     });
   }
@@ -107,24 +111,28 @@ export function renderCart() {
   const container = $("cartItems");
   if (container) {
     container.innerHTML = cart.length
-      ? cart.map((item) => `
-        <div class="cart-item">
-          <div class="cart-item-top">
-            <div>
-              <strong>${escapeHtml(item.name)}</strong><br>
-              <small>${money(item.hargaJual)} x ${item.qty}</small>
-            </div>
-            <b>${money(item.hargaJual * item.qty)}</b>
+      ? cart.map((item, i) => {
+        const ubin = item.imageUrl
+          ? `<img src="${escapeHtml(item.imageUrl)}" alt="" loading="lazy">`
+          : escapeHtml(initials(item.name));
+
+        return `
+        <div class="cart-item" style="animation-delay:${Math.min(i, 8) * 0.03}s">
+          <span class="cart-tile" style="background:${tileBg(item.category)}">${ubin}</span>
+          <div class="cart-item-body">
+            <strong>${escapeHtml(item.name)}</strong>
+            <small>${money(item.hargaJual)} · ${money(item.hargaJual * item.qty)}</small>
           </div>
           <div class="qty-row">
-            <button class="qty-btn" data-minus="${escapeHtml(item.productId)}" aria-label="Kurangi">&minus;</button>
+            <button class="qty-btn" data-minus="${escapeHtml(item.productId)}" aria-label="Kurangi ${escapeHtml(item.name)}">&minus;</button>
             <span>${item.qty}</span>
-            <button class="qty-btn" data-plus="${escapeHtml(item.productId)}" aria-label="Tambah">+</button>
+            <button class="qty-btn" data-plus="${escapeHtml(item.productId)}" aria-label="Tambah ${escapeHtml(item.name)}">+</button>
           </div>
-        </div>`).join("")
+        </div>`;
+      }).join("")
       : `<div class="empty-cart">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-cart"/></svg>
-          <div>Keranjang masih kosong.<br>Scan barcode atau pilih produk.</div>
+          <div>Scan barcode atau klik produk.<br>Stok dicek langsung dari server.</div>
         </div>`;
 
     container.querySelectorAll("[data-minus]").forEach((b) => {
@@ -140,4 +148,31 @@ export function renderCart() {
   if ($("tax")) $("tax").textContent = money(totals.tax);
   if ($("grandTotal")) $("grandTotal").textContent = money(totals.total);
   if ($("checkoutBtn")) $("checkoutBtn").disabled = cart.length === 0;
+
+  renderCartFab(jumlahItem, totals.total);
+}
+
+/**
+ * Bilah keranjang mengambang di layar sempit.
+ *
+ * Di ponsel panel keranjang tertutup secara default, jadi tanpa bilah ini
+ * kasir kehilangan jejak berapa total yang sedang berjalan — dan harus
+ * membuka panel hanya untuk mengeceknya.
+ *
+ * @param {number} jumlahItem
+ * @param {number} total
+ */
+function renderCartFab(jumlahItem, total) {
+  const fab = $("cartFab");
+  if (!fab) return;
+
+  // Hanya relevan di halaman Kasir; di halaman lain ia cuma menutupi isi.
+  const tampil = jumlahItem > 0 && get("activePage") === "kasir";
+  fab.classList.toggle("hidden", !tampil);
+  if (!tampil) return;
+
+  const hitung = $("fabCount");
+  const nilai = $("fabTotal");
+  if (hitung) hitung.textContent = `${jumlahItem} item di keranjang`;
+  if (nilai) nilai.textContent = money(total);
 }
