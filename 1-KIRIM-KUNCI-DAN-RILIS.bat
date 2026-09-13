@@ -35,7 +35,9 @@ if not exist "serviceAccountKey.json" (
 
 echo   [1/2] Mengirim kunci Firebase ke Vercel...
 echo.
-node -e "console.log(Buffer.from(require('fs').readFileSync('serviceAccountKey.json')).toString('base64'))" | call vercel env add FIREBASE_SERVICE_ACCOUNT production --sensitive -y
+rem Sisi kanan pipa sudah dijalankan di proses cmd tersendiri, jadi "call"
+rem tidak diperlukan di sana.
+node -e "console.log(Buffer.from(require('fs').readFileSync('serviceAccountKey.json')).toString('base64'))" | vercel.cmd env add FIREBASE_SERVICE_ACCOUNT production --sensitive -y
 if errorlevel 1 (
   echo.
   echo   [X] Gagal mengirim kunci.
