@@ -17,3 +17,6 @@ node_modules/
 ini-dari-claude-design/
 docs/
 test/
+
+# Pembantu penyiapan untuk Windows: tidak dibutuhkan saat aplikasi berjalan.
+*.bat
