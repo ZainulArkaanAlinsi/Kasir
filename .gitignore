@@ -10,3 +10,9 @@ serviceAccountKey.json
 # menyunting berkas salinan tanpa sadar. Berkas desainnya sendiri tetap
 # disimpan; hanya duplikat project-nya yang diabaikan.
 ini-dari-claude-design/uploads/kasir-modern-v1/
+
+# Tautan project Vercel (berisi id akun, bukan untuk dibagikan)
+.vercel/
+
+.vercel
+.env*

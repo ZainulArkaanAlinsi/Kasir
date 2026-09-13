@@ -1,0 +1,19 @@
+# Berkas yang TIDAK boleh ikut terunggah ke Vercel.
+#
+# Yang paling penting baris pertama: kunci service account tidak pernah
+# meninggalkan komputer ini. Di Vercel kredensial dititipkan lewat variabel
+# lingkungan FIREBASE_SERVICE_ACCOUNT, bukan sebagai berkas di dalam paket
+# deploy — berkas rahasia yang ikut terbungkus akan terbawa ke setiap salinan
+# build dan sulit ditarik kembali.
+serviceAccountKey.json
+.env
+.env.*
+
+node_modules/
+.git/
+*.log
+
+# Rujukan desain dan dokumen: tidak dibutuhkan saat aplikasi berjalan.
+ini-dari-claude-design/
+docs/
+test/

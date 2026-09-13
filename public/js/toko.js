@@ -12,6 +12,7 @@
 import { computeTotals } from "./shared/money.js";
 import { money, angka, escapeHtml, tanggal } from "./format.js";
 import { initApi, getApi } from "./api/index.js";
+import { pasangPembaruanOtomatis, amanUntukMuatUlang } from "./pembaruan.js";
 import { auth, firebaseConfigured, onAuthStateChanged } from "./firebase.js";
 
 const KUNCI_KERANJANG = "kasirone_toko_cart";
@@ -449,6 +450,10 @@ function pasangEvent() {
  * tetap bisa dicoba dari ujung ke ujung.
  */
 async function mulai() {
+  // Etalase ikut memperbarui diri sendiri; halaman hanya dimuat ulang
+  // saat keranjang pembeli kosong supaya belanjaannya tidak hilang.
+  pasangPembaruanOtomatis({ aman: amanUntukMuatUlang });
+
   muatKeranjang();
   pasangEvent();
 

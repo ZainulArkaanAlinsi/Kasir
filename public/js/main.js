@@ -22,6 +22,7 @@ import { refreshSettings, bindSettings } from "./ui/settings.js";
 import { eksporTransaksi, eksporLaporan } from "./ui/export-csv.js";
 import { refreshOrders, bindOrders } from "./ui/orders.js";
 import { bindSeg } from "./ui/segmented.js";
+import { pasangPembaruanOtomatis, amanUntukMuatUlang } from "./pembaruan.js";
 
 /** Judul dan keterangan tiap halaman. */
 const HALAMAN = {
@@ -224,5 +225,9 @@ bindExpenseForms();
 bindTransactionFilters();
 bindPaymentMethods();
 bindOrders();
+// Versi baru dipasang sendiri; halaman hanya dimuat ulang saat keranjang
+// kosong, supaya transaksi yang sedang berjalan tidak pernah hilang.
+pasangPembaruanOtomatis({ aman: amanUntukMuatUlang });
+
 setOnReady(mulaiSesi);
 bindAuth();
