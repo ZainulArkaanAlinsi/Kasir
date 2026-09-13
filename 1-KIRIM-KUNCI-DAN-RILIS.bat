@@ -37,14 +37,14 @@ echo   [1/2] Mengirim kunci Firebase ke Vercel...
 echo.
 rem Sisi kanan pipa sudah dijalankan di proses cmd tersendiri, jadi "call"
 rem tidak diperlukan di sana.
-node -e "console.log(Buffer.from(require('fs').readFileSync('serviceAccountKey.json')).toString('base64'))" | vercel.cmd env add FIREBASE_SERVICE_ACCOUNT production --sensitive -y
+rem
+rem --force membuat berkas ini aman dijalankan berulang: kunci yang sudah ada
+rem ditimpa, bukan membuat perintahnya berhenti dengan pesan "sudah ada".
+rem Itu juga yang dipakai kalau suatu saat kuncinya perlu diganti.
+node -e "console.log(Buffer.from(require('fs').readFileSync('serviceAccountKey.json')).toString('base64'))" | vercel.cmd env add FIREBASE_SERVICE_ACCOUNT production --sensitive --force -y
 if errorlevel 1 (
   echo.
-  echo   [X] Gagal mengirim kunci.
-  echo.
-  echo       Kalau pesannya bilang variabelnya sudah ada, jalankan dulu:
-  echo         vercel env rm FIREBASE_SERVICE_ACCOUNT production -y
-  echo       lalu klik dua kali berkas ini lagi.
+  echo   [X] Gagal mengirim kunci. Salin pesan di atas lalu tempel ke chat.
   goto selesai
 )
 
